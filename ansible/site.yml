@@ -1,0 +1,13 @@
+---
+- name: Launch Cloud Servers
+  hosts: localhost
+  tasks:
+    - openstack.cloud.server:
+        name: "{{ hostvars[item]['server_name'] }}"
+        state: present
+        image: "ubuntu-20.40-server-cloudimg-amd64"
+        flavor: "{{ hostvars[item]['flavor'] }}"
+        network: test
+        key_name: "{{ lookup('env','USER') }}_key"
+      with_items: "{{ groups['servers'] }}"
+

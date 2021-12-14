@@ -1,0 +1,6 @@
+# Ansible roles
+# =============
+
+[servers]
+sbdi-uat-access-1.sbdi-uat.local
+sbdi-uat-1.sbdi-uat.local
