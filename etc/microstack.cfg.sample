@@ -1,0 +1,62 @@
+# Microstack config file (template)
+# Copy and rename and edit this file microstack.cfg
+
+ADMIN_PASSWORD="topsecret"
+
+# How much space do we allocate for disks
+LOOP_DEVICE_FILE_SIZE=50
+
+# In our homedir a venv will be created for accesing the Openstack CLI
+
+OS_CLI_VENV_DIR=".msclivenv"
+
+# The install script will generate an env script in your .bin or bin folder 
+OS_CLI_ENV_FILE_NAME="mscli"
+
+
+# The image we will use in Microstack
+
+CLOUD_IMAGE_NAME="ubuntu-20.40-server-cloudimg-amd64"
+CLOUD_IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-disk-kvm.img"
+
+CLOUD_IMAGE_DOWNLOAD_DIR=${HOME}/Downloads
+
+# Flavors in Safespring
+# name		CPUs	RAM	DISK	EPHEMERAL
+# lb.tiny	1	1 GB	10 GB	0 GB
+# m.medium	2	8 GB	40 GB	0 GB
+# lm.large.1d	4	16 GB	80 GB	170 GB
+# lb.xlarge.1d	8	16 GB	80 GB	170 GB
+# lm.xlarge.2d	8	32 GB	80 GB	420 GB
+
+# Corresponding flavors in our Microstack
+FLAVOR[0]=lb.tiny
+FLAVOR_CPU[0]=1    
+FLAVOR_RAM[0]=1024 
+FLAVOR_DISK[0]=4  
+FLAVOR_EPHEMERAL[0]=0  
+
+FLAVOR[1]=m.medium
+FLAVOR_CPU[1]=2   
+FLAVOR_RAM[1]=2048 
+FLAVOR_DISK[1]=4
+FLAVOR_EPHEMERAL[1]=0  
+
+FLAVOR[2]=lm.large.1d
+FLAVOR_CPU[2]=2   
+FLAVOR_RAM[2]=2048 
+FLAVOR_DISK[2]=4
+FLAVOR_EPHEMERAL[2]=2  
+
+FLAVOR[3]=lb.xlarge.1d
+FLAVOR_CPU[3]=2   
+FLAVOR_RAM[3]=2048 
+FLAVOR_DISK[3]=4
+FLAVOR_EPHEMERAL[3]=2  
+
+FLAVOR[4]=lm.xlarge.2d
+FLAVOR_CPU[4]=2   
+FLAVOR_RAM[4]=2048 
+FLAVOR_DISK[4]=4
+FLAVOR_EPHEMERAL[4]=2  
+
