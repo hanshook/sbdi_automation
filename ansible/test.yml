@@ -1,0 +1,64 @@
+---
+- name: Launch Cloud Servers
+  hosts: localhost
+  tasks:
+    - openstack.cloud.network:
+        state: present
+        name: sbdi_uat
+    - openstack.cloud.subnet:
+        state: present
+        network_name: sbdi_uat
+        name: sbdi_uat_subnet
+        cidr: 10.202.0.0/24
+    - openstack.cloud.router:
+        state: present
+        name: sbdi_uat_router
+        network: external
+        interfaces:
+          - sbdi_uat_subnet
+    - openstack.cloud.port:
+        state: present
+        name: t1-port
+        network: sbdi_uat
+        fixed_ips:
+          - ip_address: 10.202.0.101
+    - openstack.cloud.port:
+        state: present
+        name: t2-port
+        network: sbdi_uat
+        fixed_ips:
+          - ip_address: 10.202.0.102
+    - openstack.cloud.port:
+        state: present
+        name: t1t-port
+        network: test
+        fixed_ips:
+          - ip_address: 192.168.222.101
+    - openstack.cloud.port:
+        state: present
+        name: t2t-port
+        network: test
+        fixed_ips:
+          - ip_address: 192.168.222.102
+    - openstack.cloud.server:
+        name: "t1"
+        state: present
+        image: "ubuntu-20.40-server-cloudimg-amd64"
+        flavor: "lb.tiny"
+        floating_ip_pools:
+          - external
+        nics:
+          - port-name: t1-port
+        key_name: "{{ lookup('env','USER') }}_key"
+    - openstack.cloud.server:
+        name: "t2"
+        state: present
+        image: "ubuntu-20.40-server-cloudimg-amd64"
+        flavor: "lb.tiny"
+        auto_floating_ip: no
+        nics:
+          - port-name: t2-port
+        key_name: "{{ lookup('env','USER') }}_key"
+
+
+
