@@ -2,5 +2,5 @@
 # =============
 
 [servers]
-sbdi-uat-access-1.sbdi-uat.local
+sbdi-uat-access-[1:2].sbdi-uat.local
 sbdi-uat-1.sbdi-uat.local

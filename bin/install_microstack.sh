@@ -41,8 +41,9 @@ fi
 
 
 FLAVOR_NBR=0
-for flavor in in "${FLAVOR[@]}"   #${#FLAVOR[@]}
+for flavor in "${FLAVOR[@]}"   #${#FLAVOR[@]}
 do
+    #echo "Checking flavor (${flavor}) with nbr ${FLAVOR_NBR} i.e. ${FLAVOR[$FLAVOR_NBR]}"
     if [ -z "${flavor}" ]
     then
 	>&2 echo "Flavor number ${FLAVOR_NBR} in ${INSTALL_CONFIG} has no name"
@@ -72,7 +73,6 @@ do
 done
     
 
-
 # Check that the user has an ssh public key
 # -----------------------------------------
 
@@ -87,12 +87,12 @@ fi
 sudo apt-get install -qq -y python3-dev python3-pip virtualenvwrapper build-essential wget snapd ca-certificates > /dev/null
 
 
-# Remove previous microstack installs
-# -----------------------------------
+# Check if Microstack is already installed
+# ----------------------------------------
 
 if snap list | grep -q microstack 
 then
-    # Check Microstack is installed do you whant to reinstal?
+    # 
     echo "Microstack is already installed"
     echo "If you desire a clean install removit it with:"
     echo "sudo snap remove --purge microstack"

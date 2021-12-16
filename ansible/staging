@@ -1,0 +1,19 @@
+# Ansible roles
+# =============
+
+localhost ansible_connection=local
+
+[servers]
+access-1 nbr=11 flavor=lb-tiny
+access-2 nbr=12 flavor=lb-tiny
+master-1 nbr=21 flavor=lm-large-1d
+master-2 nbr=22 flavor=lm-large-1d
+backup-director nbr=91 flavor=lb-tiny
+backup-target nbr=92 flavor=m-medium
+
+
+[servers:vars]
+ansible_connection=ssh
+server_name_prefix=uat_
+subnet=10.201.0.0/24
+domain=sbdi-uat.local
