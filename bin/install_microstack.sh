@@ -194,6 +194,13 @@ then
     . ${OS_CLI_VENV_DIR}/bin/activate
 fi
 
+if ! ps -p $SSH_AGENT_PID > /dev/null
+then
+   # We are running in a shell without ssh-agent
+   eval `ssh-agent -s`
+   ssh-add .ssh/id_rsa
+fi
+
 popd
 
 openstack token issue
