@@ -1,19 +1,26 @@
 # Ansible roles
 # =============
 
-localhost ansible_connection=local
+[gateways]
+access-1 nbr=11 flavor=lb.tiny floating_ip=10.20.20.11
+access-2 nbr=12 flavor=lb.tiny floating_ip=10.20.20.12
 
 [servers]
-access-1 nbr=11 flavor=lb-tiny
-access-2 nbr=12 flavor=lb-tiny
-master-1 nbr=21 flavor=lm-large-1d
-master-2 nbr=22 flavor=lm-large-1d
-backup-director nbr=91 flavor=lb-tiny
-backup-target nbr=92 flavor=m-medium
+master-1 nbr=21 flavor=lm.large.1d
+master-2 nbr=22 flavor=lm.large.1d
+backup-director nbr=91 flavor=lb.tiny
+backup-target nbr=92 flavor=m.medium
 
+[gateways:vars]
+ansible_connection=ssh
 
 [servers:vars]
 ansible_connection=ssh
-server_name_prefix=uat_
-subnet=10.201.0.0/24
+
+[all:vars]
+deployment_prefix=uat
+private_subnet=10.201.0.0/24
 domain=sbdi-uat.local
+server_image=ubuntu-20.40-server-cloudimg-amd64
+access_ip=10.20.20.47
+

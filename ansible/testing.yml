@@ -1,0 +1,12 @@
+---
+- name: testing testing
+  hosts: gateways
+  vars:
+    ansible_host: "{{deployment_prefix}}_{{  inventory_hostname }}.{{ domain }}"
+  tasks:
+    - name: show ansible_host
+      debug:
+        msg: "{{ ansible_host }}"
+    - name: show test_var
+      debug:
+        msg: "{{ test_var }}"     

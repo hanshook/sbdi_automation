@@ -1,0 +1,11 @@
+- name: copy /etc/hosts
+  vars:
+    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
+  template:
+    src: etc_hosts
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: 0644
+
+

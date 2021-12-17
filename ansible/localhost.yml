@@ -1,0 +1,23 @@
+---
+- name: Deploy Cloud Servers
+  hosts: localhost
+  vars:
+    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
+  tasks:
+    - name: Remove old gatways from the /etc/hosts file
+      become: yes
+      lineinfile:
+        path: "/etc/hosts"
+        regexp: ".*{{domain}}.*"
+        state: absent
+        backup: yes
+      with_items: "{{ groups['gateways'] }}"
+    - name: Add gateways to the /etc/hosts file 
+      become: yes
+      lineinfile:
+        path: "/etc/hosts"
+        insertafter: '^127\.0\.1\.1.+'
+        line: "{{ hostvars[item]['floating_ip'] }}\t{{deployment_prefix}}_{{ item}} {{deployment_prefix}}_{{ item}}.{{domain}}"
+        state: present
+        backup: yes
+      with_items: "{{ groups['gateways'] }}"

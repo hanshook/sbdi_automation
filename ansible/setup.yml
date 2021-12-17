@@ -1,0 +1,22 @@
+---
+- name: Setup Name Resolution on Gateways
+  hosts: gateways
+  remote_user: ubuntu
+  become: true
+  vars:
+    ansible_host: "{{deployment_prefix}}_{{  inventory_hostname }}.{{ domain }}"
+  roles:
+    - role: etchosts
+      tags: etchosts
+- name: Setup Name Resolution on Servers
+  hosts: servers
+  remote_user: ubuntu
+  become: true
+  vars:
+    ansible_ssh_common_args: '-J ubuntu@uat_access-1.sbdi-uat.local'
+    ansible_host: "{{deployment_prefix}}_{{  inventory_hostname }}.{{ domain }}"
+  roles:
+    - role: etchosts
+      tags: etchosts
+
+

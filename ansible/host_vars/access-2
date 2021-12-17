@@ -1,6 +1,4 @@
 #ansible_ssh_pass: "{{ sbdi_uat_access_1_sudo_pass }}"
 #ansible_sudo_pass: "{{ sbdi_uat_access_1_sudo_pass }}"
 
-server_name: access1
-flavor: lb.tiny
-ip: 10.202.0.201
+test_var: "test_var for access-2"
