@@ -1,0 +1,56 @@
+---
+- name: Setup SSH access to Servers (Phase I)
+  hosts: localhost
+  tasks:
+    - name: Remove previous hostname realted SSH keys from known hosts
+      shell: "ssh-keygen -R {{ deployment_prefix }}_{{ item }}"
+      ignore_errors: yes
+      with_items: "{{ groups['gateways']  + groups['servers'] }}"
+    - name: Remove previous fqdn related SSH keys from known hosts
+      shell: "ssh-keygen -R {{ deployment_prefix }}_{{ item }}.{{ domain }}"
+      ignore_errors: yes
+      with_items: "{{ groups['gateways']  + groups['servers'] }}"
+    - name: Remove previous ip related SSH keys from known host
+      shell: "ssh-keygen -R {{  hostvars[item]['floating_ip'] }}"
+      ignore_errors: yes
+      with_items: "{{ groups['gateways']  }}"
+    - name: Accept SSH host keys for gatway hostnames
+      shell:  "ssh-keyscan -H {{ deployment_prefix }}_{{ item }} >> ~/.ssh/known_hosts"
+      with_items: "{{ groups['gateways'] }}"
+    - name: Accept SSH host keys for gateway fqdn
+      shell:  "ssh-keyscan -H {{ deployment_prefix }}_{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
+      with_items: "{{ groups['gateways'] }}"
+      
+- name: Setup Name Resolution (i.e. generate /etc/hosts file) on Gateways
+  hosts: gateways
+  remote_user: ubuntu
+  become: true
+  vars:
+    ansible_host: "{{deployment_prefix}}_{{  inventory_hostname }}.{{ domain }}"
+  roles:
+  - role: etchosts
+
+- name: Setup SSH access to Servers (Phase II)
+  hosts: localhost
+  tasks:
+  - name: Accept SSH host keys for server hostnames
+    shell:  "ssh ubuntu@{{ deployment_prefix }}_{{ groups['gateways'][0] }} ssh-keyscan -H {{ deployment_prefix }}_{{ item }} >> ~/.ssh/known_hosts"
+    with_items: "{{ groups['servers'] }}"
+  - name: Accept SSH host keys for server fqdn
+    shell:  "ssh ubuntu@{{ deployment_prefix }}_{{ groups['gateways'][0] }} ssh-keyscan -H {{ deployment_prefix }}_{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
+    with_items: "{{ groups['servers'] }}"
+      
+- name: Setup Name Resolution (i.e. generate /etc/hosts file) on Servers
+  hosts: servers
+  remote_user: ubuntu
+  become: true
+  vars:
+    ansible_ssh_common_args: '-J ubuntu@uat_access-1.sbdi-uat.local'
+    ansible_host: "{{deployment_prefix}}_{{  inventory_hostname }}.{{ domain }}"
+  roles:
+    - role: etchosts
+      tags: etchosts
+
+
+#      register: known_hosts_script
+#      changed_when: "'found' not in known_hosts_script.stdout"  

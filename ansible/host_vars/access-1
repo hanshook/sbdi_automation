@@ -1,5 +1,6 @@
-#ansible_ssh_pass: "{{ sbdi_uat_1_sudo_pass }}"
-#ansible_sudo_pass: "{{ sbdi_uat_1_sudo_pass }}"
+ansible_ssh_pass: "{{ notroot_passwords[inventory_hostname] }}"
+ansible_sudo_pass: "{{ notroot_passwords[inventory_hostname] }}"
+
 
 test_var: "test_var for access-1"
 
