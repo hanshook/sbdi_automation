@@ -6,12 +6,26 @@ This repository contains Ansible playbooks for:
 
 * Deploing all virtual servers, including access gateways
 * Setting up access vi ssh
-* Setting up users on all servers with passwords
+* Setting up and administrate admin users on all servers
 * ...
 
 ## Execution
 
-Install and configure: ```ansible-playbook <playbook>.yml```
+1. Prepare your host (i.e. prepare /etc/hosts): ```ansible-playbook local_reslove.yml --ask-become-pass```
+
+2. Deploy vms: ```ansible-playbook deploy.yml```
+
+3. Setup localhost for ssh access: ```ansible-playbook local_ssh.yml```
+
+4. Setup admin users: ```ansible-playbook setup_admin_users.yml```
+
+5. "Harden" deployment (for now remove ubuntu user) : ```ansible-playbook harden.yml --ask-become-pass```
+
+6. Manage admin users: ```ansible-playbook manage_admin_users.yml --ask-become-pass```
+
+7. Install ... TBD
+
+
 
 Dry-run: ```ansible-playbook <playbook>.yml --check```
 
@@ -23,9 +37,10 @@ Run on a specific tag: ```ansible-playbook <playbook>.yml --tags nagiosclient```
 
 
 Edit vault. '''export EDITOR=emacs; ansible-vault edit group_vars/all/vault'''
-# Do not forget: export EDITOR=/usr/bin/emacs
+# Change to your prefered editor in: export EDITOR=/usr/bin/emacs
 
 
+## References
 
 https://docs.ansible.com/ansible/latest/collections/openstack/cloud/server_module.html
 

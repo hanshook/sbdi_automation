@@ -1,0 +1,17 @@
+--- 
+- name: Remove ubntu user on servers
+  hosts: servers
+  become: true
+  tasks:
+  - name: Remove ubuntu user 
+    user:
+      name: ubuntu
+      state: absent
+- name: Remove ubuntu user on gateways
+  hosts: gateways
+  become: true
+  tasks:
+  - name: Remove ubuntu user 
+    user:
+      name: ubuntu
+      state: absent

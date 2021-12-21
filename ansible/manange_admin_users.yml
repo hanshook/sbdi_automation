@@ -1,0 +1,45 @@
+--- 
+- name: Manage admin users on gateways
+  hosts: gateways
+  become: true
+  tasks:
+  - name: Ensure admin users 
+    user:
+      name: "{{ item.key }}"
+      comment: "{{ item.value['full_name'] }}"
+      uid: "{{ item.value['uuid'] }}"
+      groups: sudo
+      append: yes
+      shell: /bin/bash
+      password: "{{ item.value['password_hash'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+  - name: Set authorized key for admin users
+    authorized_key:
+      user: "{{ item.key }}"
+      key: "{{ item.value['access_key'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+    when: item.value['state'] == "present"
+- name: Manage users on servers
+  hosts: servers
+  become: true
+  tasks:
+  - name: Ensure admin users 
+    user:
+      name: "{{ item.key }}"
+      comment: "{{ item.value['full_name'] }}"
+      uid: "{{ item.value['uuid'] }}"
+      groups: sudo
+      append: yes
+      shell: /bin/bash
+      password: "{{ item.value['password_hash'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+  - name: Set authorized key for admin users
+    authorized_key:
+      user: "{{ item.key }}"
+      key: "{{ item.value['access_key'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+    when: item.value['state'] == "present"

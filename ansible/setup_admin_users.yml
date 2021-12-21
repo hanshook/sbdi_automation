@@ -1,0 +1,49 @@
+---
+- name: Configure admin users on gateways
+  hosts: gateways
+  remote_user: ubuntu
+  become: true
+  tasks:
+  - name: Create admin users 
+    user:
+      name: "{{ item.key }}"
+      comment: "{{ item.value['full_name'] }}"
+      uid: "{{ item.value['uuid'] }}"
+      groups: sudo
+      append: yes
+      shell: /bin/bash
+      password: "{{ item.value['password_hash'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+  - name: Set authorized key for admin users
+    authorized_key:
+      user: "{{ item.key }}"
+      key: "{{ item.value['access_key'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+    when: item.value['state'] == "present"
+- name: Configure admin users on servers
+  hosts: servers
+  remote_user: ubuntu
+  become: true
+  vars:
+    ansible_ssh_common_args: "-J ubuntu@{{ deployment_prefix }}_{{ groups['gateways'][0] }}.{{ domain }}"
+  tasks:
+  - name: Create admin users 
+    user:
+      name: "{{ item.key }}"
+      comment: "{{ item.value['full_name'] }}"
+      uid: "{{ item.value['uuid'] }}"
+      groups: sudo
+      append: yes
+      shell: /bin/bash
+      password: "{{ item.value['password_hash'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+  - name: Set authorized key for admin users
+    authorized_key:
+      user: "{{ item.key }}"
+      key: "{{ item.value['access_key'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+    when: item.value['state'] == "present"
