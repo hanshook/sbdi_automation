@@ -7,11 +7,13 @@ This repository contains Ansible playbooks for:
 * Deploing all virtual servers, including access gateways
 * Setting up access vi ssh
 * Setting up and administrate admin users on all servers
+* Configuring security 
+* Installing software and configuring servers
 * ...
 
 ## Execution
 
-1. Prepare your host (i.e. prepare /etc/hosts): ```ansible-playbook local_reslove.yml --ask-become-pass```
+1. Prepare your host (i.e. prepare /etc/hosts): ```ansible-playbook local_resolve.yml --ask-become-pass```
 
 2. Deploy vms: ```ansible-playbook deploy.yml```
 
@@ -23,7 +25,9 @@ This repository contains Ansible playbooks for:
 
 6. Manage admin users: ```ansible-playbook manage_admin_users.yml --ask-become-pass```
 
-7. Install ... TBD
+6. Install software and configure servers and gateways: ```ansible-playbook setup.yml --ask-become-pass```
+
+7. ... TBD
 
 
 
@@ -36,7 +40,7 @@ Run on a specific group: ```ansible-playbook <playbook>.yml -l servers```
 Run on a specific tag: ```ansible-playbook <playbook>.yml --tags nagiosclient```
 
 
-Edit vault. '''export EDITOR=emacs; ansible-vault edit group_vars/all/vault'''
+Edit vault. ```export EDITOR=emacs; ansible-vault edit group_vars/all/vault```
 # Change to your prefered editor in: export EDITOR=/usr/bin/emacs
 
 
