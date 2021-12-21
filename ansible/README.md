@@ -40,8 +40,11 @@ Run on a specific group: ```ansible-playbook <playbook>.yml -l servers```
 Run on a specific tag: ```ansible-playbook <playbook>.yml --tags nagiosclient```
 
 
+
 Edit vault. ```export EDITOR=emacs; ansible-vault edit group_vars/all/vault```
-# Change to your prefered editor in: export EDITOR=/usr/bin/emacs
+
+Change to your prefered editor in: export EDITOR=/usr/bin/emacs
+
 
 
 ## References
