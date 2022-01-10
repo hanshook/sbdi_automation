@@ -2,7 +2,7 @@
 
 if [[ $EUID -eq 0 ]]
 then
-    >&2 echo "You may not be root - run as yourself..."
+    >&2 echo "You may be root - run as yourself..."
     exit 88
 fi
 
@@ -15,12 +15,12 @@ then
     exit 99
 fi
 
-# Read configuraion file
-# ----------------------
+# Read configuration file
+# -----------------------
 
 . ${INSTALL_CONFIG}
 
-# Check values form configuration file and set defaults
+# Check values from configuration file and set defaults
 # -----------------------------------------------------
 
 if [ -z "$ADMIN_PASSWORD" ]
