@@ -1,0 +1,6 @@
+---
+- name: Setup Gluster
+  hosts: storage
+  become: true
+  roles:
+  - role: glusterfs

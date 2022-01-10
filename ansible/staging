@@ -8,14 +8,24 @@ access-2 nbr=12 flavor=lb.tiny floating_ip=10.20.20.12
 [servers]
 master-1 nbr=21 flavor=lm.large.1d
 master-2 nbr=22 flavor=lm.large.1d
+master-3 nbr=23 flavor=lm.large.1d
 backup-director nbr=91 flavor=lb.tiny
 backup-target nbr=92 flavor=m.medium
+
+[storage]
+master-1 
+master-2 
+master-3 
 
 [gateways:vars]
 ansible_connection=ssh
 
 [servers:vars]
 ansible_connection=ssh
+
+[storage:vars]
+lvm_device=/dev/vdb
+size=1GB
 
 [all:vars]
 deployment_prefix=uat
