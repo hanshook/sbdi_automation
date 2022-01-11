@@ -3,11 +3,11 @@
   hosts: localhost
   tasks:
     - name: Remove previous hostname realted SSH keys from known hosts
-      shell: "ssh-keygen -R {{ deployment_prefix }}_{{ item }}"
+      shell: "ssh-keygen -R {{ deployment_prefix }}-{{ item }}"
       ignore_errors: yes
       with_items: "{{ groups['gateways']  + groups['servers'] }}"
     - name: Remove previous fqdn related SSH keys from known hosts
-      shell: "ssh-keygen -R {{ deployment_prefix }}_{{ item }}.{{ domain }}"
+      shell: "ssh-keygen -R {{ deployment_prefix }}-{{ item }}.{{ domain }}"
       ignore_errors: yes
       with_items: "{{ groups['gateways']  + groups['servers'] }}"
     - name: Remove previous ip related SSH keys from known host
@@ -15,10 +15,10 @@
       ignore_errors: yes
       with_items: "{{ groups['gateways']  }}"
     - name: Accept SSH host keys for gatway hostnames
-      shell:  "ssh-keyscan -H {{ deployment_prefix }}_{{ item }} >> ~/.ssh/known_hosts"
+      shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts"
       with_items: "{{ groups['gateways'] }}"
     - name: Accept SSH host keys for gateway fqdn
-      shell:  "ssh-keyscan -H {{ deployment_prefix }}_{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
+      shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
       with_items: "{{ groups['gateways'] }}"
       
 - name: Setup Name Resolution (i.e. generate /etc/hosts file) on Gateways
@@ -32,10 +32,10 @@
   hosts: localhost
   tasks:
   - name: Accept SSH host keys for server hostnames
-    shell:  "ssh ubuntu@{{ deployment_prefix }}_{{ groups['gateways'][0] }} ssh-keyscan -H {{ deployment_prefix }}_{{ item }} >> ~/.ssh/known_hosts"
+    shell:  "ssh ubuntu@{{ deployment_prefix }}-{{ groups['gateways'][0] }} ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts"
     with_items: "{{ groups['servers'] }}"
   - name: Accept SSH host keys for server fqdn
-    shell:  "ssh ubuntu@{{ deployment_prefix }}_{{ groups['gateways'][0] }} ssh-keyscan -H {{ deployment_prefix }}_{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
+    shell:  "ssh ubuntu@{{ deployment_prefix }}-{{ groups['gateways'][0] }} ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
     with_items: "{{ groups['servers'] }}"
       
 - name: Setup Name Resolution (i.e. generate /etc/hosts file) on Servers
@@ -43,7 +43,7 @@
   remote_user: ubuntu
   become: true
   vars:
-    ansible_ssh_common_args: "-J ubuntu@{{ deployment_prefix }}_{{ groups['gateways'][0] }}.{{ domain }}"
+    ansible_ssh_common_args: "-J ubuntu@{{ deployment_prefix }}-{{ groups['gateways'][0] }}.{{ domain }}"
   roles:
     - role: etchosts
       tags: etchosts

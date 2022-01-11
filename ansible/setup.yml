@@ -1,6 +1,6 @@
 --- 
 - name: Install and configure servers and gatways 
-  hosts: servers + gateways
+  hosts: servers:gateways
   become: true
   tasks:
   - name: Add docker repo key

@@ -1,0 +1,37 @@
+---
+- name: Remove Cloud Servers and Networking for Deployment
+  hosts: localhost
+
+  tasks:
+    - name: "Look for all servers in deployment: {{ deployment_prefix }}"
+      openstack.cloud.server_info:
+        server: "{{ deployment_prefix }}-*"
+      register: deployed_servers
+    - name: "Remove all servers in deployment: {{ deployment_prefix }}"
+      openstack.cloud.server:
+        name: "{{ item['name'] }}"
+        state: absent
+      with_items:  "{{ deployed_servers.openstack_servers }}"
+    - name: "Look for all internal ports"
+      openstack.cloud.port_info:
+        interface: internal
+      register: cloud_ports
+
+    - name: "Remove all internal ports in deployment {{ deployment_prefix }}, i.e. those matching {{ '^port_of_'+deployment_prefix+'-.+' }}"
+      openstack.cloud.port:
+        state: absent
+        name: "{{ item.name }}"
+      with_items: "{{ cloud_ports.openstack_ports | selectattr('name', 'match', '^port_of_'+deployment_prefix+'-.+') | list }}"
+    - name: "Remove router: {{ deployment_prefix  }}_sbdi_router (if it is present)"
+      openstack.cloud.router:
+        state: absent
+        name: "{{ deployment_prefix  }}_sbdi_router"
+    - name: "Remove subnet {{ deployment_prefix }}_sbdi_subnet (if it is present)"
+      openstack.cloud.subnet: 
+        state: absent
+        name: "{{ deployment_prefix }}_sbdi_subnet"
+    - name: "Remove network: {{ deployment_prefix  }}_sbdi_network (if it is present)"
+      openstack.cloud.network:
+        state: absent
+        name: "{{ deployment_prefix  }}_sbdi_network"
+

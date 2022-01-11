@@ -27,7 +27,7 @@
   remote_user: ubuntu
   become: true
   vars:
-    ansible_ssh_common_args: "-J ubuntu@{{ deployment_prefix }}_{{ groups['gateways'][0] }}.{{ domain }}"
+    ansible_ssh_common_args: "-J ubuntu@{{ deployment_prefix }}-{{ groups['gateways'][0] }}.{{ domain }}"
   tasks:
   - name: Create admin users 
     user:

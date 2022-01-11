@@ -1,1 +1,1 @@
-ansible_host: "{{deployment_prefix}}_{{  inventory_hostname }}.{{ domain }}"
+ansible_host: "{{deployment_prefix}}-{{ inventory_hostname }}.{{ domain }}"

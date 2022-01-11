@@ -1,2 +1,2 @@
-ansible_ssh_common_args: "-J {{ deployment_prefix }}_{{ groups['gateways'][0] }}.{{ domain }}"
-ansible_host: "{{deployment_prefix}}_{{  inventory_hostname }}.{{ domain }}"
+ansible_ssh_common_args: "-J {{ deployment_prefix }}-{{ groups['gateways'][0] }}.{{ domain }}"
+ansible_host: "{{deployment_prefix}}-{{  inventory_hostname }}.{{ domain }}"

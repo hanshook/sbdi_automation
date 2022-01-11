@@ -21,11 +21,11 @@ This repository contains Ansible playbooks for:
 
 4. Setup admin users: ```ansible-playbook setup_admin_users.yml```
 
-5. "Harden" deployment (for now remove ubuntu user) : ```ansible-playbook harden.yml --ask-become-pass```
+5. "Harden" deployment (for now remove ubuntu user) : ```ansible-playbook harden.yml```
 
-6. Manage admin users: ```ansible-playbook manage_admin_users.yml --ask-become-pass```
+6. Manage admin users: ```ansible-playbook manage_admin_users.yml```
 
-6. Install software and configure servers and gateways: ```ansible-playbook setup.yml --ask-become-pass```
+6. Install software and configure servers and gateways: ```ansible-playbook setup.yml```
 
 7. ... TBD
 
@@ -53,4 +53,52 @@ https://docs.ansible.com/ansible/latest/collections/openstack/cloud/server_modul
 
 
 
+## Prerequsites
 
+Currently the playbooks will run if gnu pass is installed and there exists an executable file ```~/.bin/ansible-vault-pass.sh```
+with the following content:
+
+```
+#!/bin/sh
+pass show ansible-vault-password
+
+```
+
+To install pass: ```sudo apt-get install pass```
+
+To setup a password store follow instructions in this [link](https://www.passwordstore.org/).
+
+With a password store in place finally add the ```ansible-vault-password``` to it.
+
+Also add a private (do not check into github) vault file ```group_vars/all/become.yml``` with
+your sudo password, i.e. with the (*encrypted*) content:
+
+```
+ansible_become_pass: <your sudo password here>
+
+```
+
+Whith this setup it should be possible to run the playbooks (safely) without manually entering sudo passwords and vault passwords.
+
+Note:
+
+You may alternative run the playbooks with ```--ask-become-pass``` after chaning the  file ```ansible.cfg```  from
+
+
+```
+...
+#ask_vault_pass = True
+vault_password_file = ~/.bin/ansible-vault-pass.sh
+...
+
+```
+
+to
+
+```
+...
+ask_vault_pass = True
+#vault_password_file = ~/.bin/ansible-vault-pass.sh
+...
+
+```
