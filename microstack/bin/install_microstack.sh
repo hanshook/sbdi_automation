@@ -257,3 +257,7 @@ then
 	log_warn "Failed to add Cloud Image: ${CLOUD_IMAGE_DOWNLOAD_DIR}/${CLOUD_IMAGE_FILE} as: ${CLOUD_IMAGE_NAME}"
     fi
 fi
+
+# https://forum.snapcraft.io/t/snapd-not-installing-microstack/28280
+# https://review.opendev.org/c/x/microstack/+/824276
+# https://kubesphere.com.cn/en/docs/reference/storage-system-installation/glusterfs-server/

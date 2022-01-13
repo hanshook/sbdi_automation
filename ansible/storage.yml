@@ -4,3 +4,7 @@
   become: true
   roles:
   - role: glusterfs
+
+# http://manpages.ubuntu.com/manpages/xenial/man7/lvmthin.7.html
+# https://medium.com/@mshajeer/pre-requisites-for-installing-glusterfs-with-ibm-cloud-private-a18c2b0ebafb
+# https://kubesphere.com.cn/en/docs/reference/storage-system-installation/glusterfs-server/
