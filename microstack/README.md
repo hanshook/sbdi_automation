@@ -10,6 +10,6 @@ To install a MicroStack test environament
 
 3. Run the install script:
 
-```bin/ install_microstack```
+```bin/install_microstack.sh```
 
 
