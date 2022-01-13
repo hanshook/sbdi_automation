@@ -2,7 +2,7 @@
 
 if [[ $EUID -eq 0 ]]
 then
-    >&2 echo "You may be root - run as yourself..."
+    >&2 echo "You are running as root - run as yourself..."
     exit 88
 fi
 
@@ -41,10 +41,10 @@ for flavor in "${FLAVOR[@]}"   #${#FLAVOR[@]}
 do
     #echo "Checking flavor (${flavor}) with nbr ${FLAVOR_NBR} i.e. ${FLAVOR[$FLAVOR_NBR]}"
     [ -z "${flavor}" ] &&  log_fatal 91 "Flavor number ${FLAVOR_NBR} in ${INSTALL_CONFIG} has no name"
-    [ -z "${FLAVOR_CPU[$FLAVOR_NBR]}" ]  log_fatal 91 "Number of CPUs not defined for flavour ${flavour} in ${INSTALL_CONFIG}"
-    [ -z "${FLAVOR_RAM[$FLAVOR_NBR]}" ]  log_fatal 91 "RAM not defined for flavour ${flavour} in ${INSTALL_CONFIG}"
-    [ -z "${FLAVOR_DISK[$FLAVOR_NBR]}" ]  log_fatal 91 "Disk size not defined for flavour ${flavour} in ${INSTALL_CONFIG}"
-    [ -z "${FLAVOR_EPHEMERAL[$FLAVOR_NBR]}" ]  log_fatal 91 "Ephemeral disk size not defined for flavour ${flavour} in ${INSTALL_CONFIG}"
+    [ -z "${FLAVOR_CPU[$FLAVOR_NBR]}" ]  && log_fatal 91 "Number of CPUs not defined for flavour ${flavour} in ${INSTALL_CONFIG}"
+    [ -z "${FLAVOR_RAM[$FLAVOR_NBR]}" ]  && log_fatal 91 "RAM not defined for flavour ${flavour} in ${INSTALL_CONFIG}"
+    [ -z "${FLAVOR_DISK[$FLAVOR_NBR]}" ]  && log_fatal 91 "Disk size not defined for flavour ${flavour} in ${INSTALL_CONFIG}"
+    [ -z "${FLAVOR_EPHEMERAL[$FLAVOR_NBR]}" ]  && log_fatal 91 "Ephemeral disk size not defined for flavour ${flavour} in ${INSTALL_CONFIG}"
     FLAVOR_NBR=$((FLAVOR_NBR+1))
 done
     
@@ -191,7 +191,7 @@ then
     . ${OS_CLI_VENV_DIR}/bin/activate
 fi
 
-if ! ps -p $SSH_AGENT_PID > /dev/null
+if ! ssh-add -l &>/dev/null
 then
    # We are running in a shell without ssh-agent
    eval `ssh-agent -s`
@@ -255,4 +255,5 @@ then
 	log_info "Added Cloud Image: ${CLOUD_IMAGE_DOWNLOAD_DIR}/${CLOUD_IMAGE_FILE} as: ${CLOUD_IMAGE_NAME}"
     else
 	log_warn "Failed to add Cloud Image: ${CLOUD_IMAGE_DOWNLOAD_DIR}/${CLOUD_IMAGE_FILE} as: ${CLOUD_IMAGE_NAME}"
+    fi
 fi
