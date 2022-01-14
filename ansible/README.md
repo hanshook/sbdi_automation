@@ -66,23 +66,44 @@ pass show ansible-vault-password
 
 To install pass: ```sudo apt-get install pass```
 
-To setup a password store follow instructions in this [link](https://www.passwordstore.org/).
+You need a personal GPG key.
 
-With a password store in place finally add the ```ansible-vault-password``` to it.
+If you do not have one generate one with: ```gpg --gen-key```
 
-Also add a private (do not check into github) vault file ```group_vars/all/become.yml``` with
-your sudo password, i.e. with the (*encrypted*) content:
+Create a password store with: ```pass init "...your email from your GPG key"```
+
+Add the ansible-vault-password to the password store with: ```pass insert ansible-vault-password```
+
+
+Som info on password is found [here](https://www.passwordstore.org/).
+
+Finally add a private (do not check into github) vault file ```group_vars/all/become.yml``` with
+your sudo password.
+
+Do this by:
+
+```
+touch group_vars/all/become.yml
+ansible-vault encrypt group_vars/all/become.yml
+export EDITOR=emacs; ansible-vault edit group_vars/all/become.yml
+
+```
+Now edit in the following content in the file:
 
 ```
 ansible_become_pass: <your sudo password here>
 
 ```
 
+Finally save the vault file.
+
 Whith this setup it should be possible to run the playbooks (safely) without manually entering sudo passwords and vault passwords.
 
 Note:
 
-You may alternative run the playbooks with ```--ask-become-pass``` after chaning the  file ```ansible.cfg```  from
+You may alternative run the playbooks with ```--ask-become-pass```.
+
+You may also run the playbooks and get prompted for the vault password after chaning the  file ```ansible.cfg```  from
 
 
 ```
