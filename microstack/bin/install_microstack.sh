@@ -1,26 +1,19 @@
 #! /bin/bash
 
-if [[ $EUID -eq 0 ]]
-then
-    >&2 echo "You are running as root - run as yourself..."
-    exit 88
-fi
-
 cd $(dirname $0)
 . log_utils
 
+[[ $EUID -eq 0 ]] && log_fatal 88 "You are running as root - run as yourself..."
+
 INSTALL_CONFIG=../etc/microstack.cfg
+
+log_info "Reading configuration file ${INSTALL_CONFIG}"
 
 [ ! -e ${INSTALL_CONFIG} ] && log_fatal 99 "Configuration file ${INSTALL_CONFIG} not found"
 
-
-# Read configuration file
-# -----------------------
-
 . ${INSTALL_CONFIG}
 
-# Check values from configuration file and set defaults
-# -----------------------------------------------------
+log_info "Checking configuration values and setting defaults"
 
 [ -z "$ADMIN_PASSWORD" ] && log_fatal 90 "ADMIN_PASSWORD is not defined in ${INSTALL_CONFIG}"
 
@@ -48,6 +41,7 @@ do
     FLAVOR_NBR=$((FLAVOR_NBR+1))
 done
     
+log_info "Configuration seems valid - OK"
 
 log_info "Check that the user has an ssh public key"
 
@@ -58,21 +52,35 @@ else
     log_info "Found ${HOME}/.ssh/id_rsa.pub - ok"
 fi
 
-log_info "Install the ubuntu packages we need"
+log_info "Install required ubuntu packages"
 
-sudo apt-get install -qq -y python3-dev python3-pip virtualenvwrapper build-essential wget snapd ca-certificates pass > /dev/null
-
+if sudo apt-get install -qq -y python3-dev python3-pip virtualenvwrapper build-essential wget snapd ca-certificates pass > /dev/null
+then
+    log_info "Required ubuntu packages installed - ok"
+else
+    log_fatal 92 "Unable to install required ubuntu packages"
+fi
 
 log_info "Check if MicroStack is already installed"
 
 if snap list | grep -q microstack 
 then
-    # 
-    echo "MicroStack is already installed"
-    echo "If you desire a clean install removit it with:"
-    echo "sudo snap remove --purge microstack"
-    echo "and rerun this script."
-    exit 1
+    log_warn "MicroStack is already installed"
+    read -r -p "Do you want to remove and reinstall? [y/N] " response
+    response=${response,,}    # tolower
+    if [[ "$response" =~ ^(yes|y)$ ]]
+    then
+	log_info "Removing current MicroStack installation"
+	if sudo snap remove --purge microstack
+	then
+	    log_info "Removed current MicroStack installation - OK"
+	else
+	    log_error "Unable to remove current MicroStack installation... - giving up"
+	fi
+    else
+	log_info "Exiting..."
+	exit 1
+    fi
 else
     log_info "MicroStack is not installed - OK"
 fi
@@ -81,7 +89,7 @@ log_info "Try to install MicroStack beta in devmode"
 
 if  sudo snap install microstack --devmode --beta
 then
-    log_info "Installed MicroStack beta in devmode"
+    log_info "Installed MicroStack beta in devmode - OK"
 else
     log_warn "Failed to install MicroStack beta in devmode..."
     # --devmode --beta (use edge since beta is not istalling today - jan 13th 2022)
@@ -97,15 +105,19 @@ fi
 
 log_info "Setting MicroStack admin password"
 
-if ! sudo snap set microstack config.credentials.keystone-password=${ADMIN_PASSWORD}
+if sudo snap set microstack config.credentials.keystone-password=${ADMIN_PASSWORD}
 then
+    log_info "MicroStack admin password set -ok"
+else
     log_warn "Failed to setting MicroStack admin password"
 fi
 
 log_info "Initializing MicroStack"
 
-if ! sudo microstack init --auto --control --setup-loop-based-cinder-lvm-backend --loop-device-file-size ${LOOP_DEVICE_FILE_SIZE}
+if sudo microstack init --auto --control --setup-loop-based-cinder-lvm-backend --loop-device-file-size ${LOOP_DEVICE_FILE_SIZE}
 then
+    log_info "MicroStack initialized - OK"
+else
     log_warn "MicroStack initialization failed for some reason"
 fi
 
@@ -127,7 +139,7 @@ deactivate
 
 log_info "Installed an  Openstack CLI Python venv at ${HOME}/${OS_CLI_VENV_DIR}"
 
-log_info "Fix MicroStak self signed ca cert issues"
+log_info "Fixing MicroStak self signed CA cert issues"
 
 
 # Microstack uses a self signed ca cert that will cause ssl access problem with ansible
@@ -143,11 +155,11 @@ fi
 sudo cp ${MICROSTACK_SELF_SIGNED_CA} /usr/share/ca-certificates/ca.${HOSTNAME}.crt
 sudo update-ca-certificates --fresh
 
-log_info "Also fix the Openstack CLI Python venv wrt this CA"
+log_info "Fixing the Openstack CLI Python venv wrt this CA"
 
 cat ${MICROSTACK_SELF_SIGNED_CA}  >> ${HOME}/${OS_CLI_VENV_DIR}/lib/python3.*/site-packages/certifi/cacert.pem
 
-log_info "Create an Openstack CLI env file"
+log_info "Creating an Openstack CLI env file"
 
 # Preferably in ${HOME}/bin else in ${HOME}/.bin if it exists or create ${HOME}/bin as a last resort
 
@@ -209,8 +221,6 @@ EOF
 chmod 600 ${OS_CLI_ENV_FILE}
 
 log_info "Openstack CLI env file created in ${OS_CLI_ENV_FILE}"
-log_info "To access MicroStack CLI (and run ansible playbooks etc..) issue the commmand: .  ${OS_CLI_ENV_FILE}"
-
 
 log_info "Ensure user ssh keys are added to microstack"
 
@@ -257,6 +267,12 @@ then
 	log_warn "Failed to add Cloud Image: ${CLOUD_IMAGE_DOWNLOAD_DIR}/${CLOUD_IMAGE_FILE} as: ${CLOUD_IMAGE_NAME}"
     fi
 fi
+
+
+log_info "MicroStack is installed - enjoy!"
+log_info "Access the GUI at https://10.20.20.1"
+log_info "To access MicroStack CLI (and run ansible playbooks etc..) issue the commmand: .  ${OS_CLI_ENV_FILE}"
+
 
 # https://forum.snapcraft.io/t/snapd-not-installing-microstack/28280
 # https://review.opendev.org/c/x/microstack/+/824276
