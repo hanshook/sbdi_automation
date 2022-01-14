@@ -21,6 +21,8 @@ To access OpenStack commands and enable execution of Ansible scripts execute
 
 in a terminal.
 
+To access the MicroStack admin WEB GUI point your broswer at [https://10.20.20.1](https://10.20.20.1) 
+
 ## Useful commands
 
 To disable MicroStack and free resource:
