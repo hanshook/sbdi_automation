@@ -277,3 +277,7 @@ log_info "To access MicroStack CLI (and run ansible playbooks etc..) issue the c
 # https://forum.snapcraft.io/t/snapd-not-installing-microstack/28280
 # https://review.opendev.org/c/x/microstack/+/824276
 # https://kubesphere.com.cn/en/docs/reference/storage-system-installation/glusterfs-server/
+
+
+sudo sed -i 's/DEBUG = False/DEBUG = True/g' /var/snap/microstack/common/etc/horizon/local_settings.d/_05_snap_tweaks.py
+sudo snap restart microstack.horizon-uwsgi
