@@ -4,7 +4,7 @@
 ADMIN_PASSWORD="topsecret"
 
 # How much space do we allocate for disks
-LOOP_DEVICE_FILE_SIZE=50
+LOOP_DEVICE_FILE_SIZE=100
 
 # In our homedir a venv will be created for accesing the Openstack CLI
 
@@ -46,17 +46,17 @@ FLAVOR[2]=lm.large.1d
 FLAVOR_CPU[2]=2   
 FLAVOR_RAM[2]=2048 
 FLAVOR_DISK[2]=4
-FLAVOR_EPHEMERAL[2]=2  
+FLAVOR_EPHEMERAL[2]=10  
 
 FLAVOR[3]=lb.xlarge.1d
 FLAVOR_CPU[3]=2   
 FLAVOR_RAM[3]=2048 
 FLAVOR_DISK[3]=4
-FLAVOR_EPHEMERAL[3]=2  
+FLAVOR_EPHEMERAL[3]=10 
 
 FLAVOR[4]=lm.xlarge.2d
 FLAVOR_CPU[4]=2   
 FLAVOR_RAM[4]=2048 
 FLAVOR_DISK[4]=4
-FLAVOR_EPHEMERAL[4]=2  
+FLAVOR_EPHEMERAL[4]=10 
 

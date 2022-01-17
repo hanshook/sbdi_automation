@@ -87,16 +87,18 @@ fi
 
 log_info "Try to install MicroStack beta in devmode"
 
+installed_edge=false
 if  sudo snap install microstack --devmode --beta
 then
     log_info "Installed MicroStack beta in devmode - OK"
 else
     log_warn "Failed to install MicroStack beta in devmode..."
     # --devmode --beta (use edge since beta is not istalling today - jan 13th 2022)
-    log_info "Will try to install microstack edge as a fallback"
+    log_info "Will try to install MicroStack edge as a fallback"
     sudo snap remove --purge microstack
-    if sudo snap install microstack --edge
+    if sudo snap install microstack --devmode --edge 
     then
+	installed_edge=true
 	log_info "Installed MicroStack edge - OK"
     else
 	log_fatal 93 "Failed to install MicroStack... - giving up"
@@ -269,15 +271,58 @@ then
 fi
 
 
-log_info "MicroStack is installed - enjoy!"
-log_info "Access the GUI at https://10.20.20.1"
-log_info "To access MicroStack CLI (and run ansible playbooks etc..) issue the commmand: .  ${OS_CLI_ENV_FILE}"
 
 
 # https://forum.snapcraft.io/t/snapd-not-installing-microstack/28280
 # https://review.opendev.org/c/x/microstack/+/824276
 # https://kubesphere.com.cn/en/docs/reference/storage-system-installation/glusterfs-server/
 
+if $installed_edge
+then
+    log_info "Fixing web interface bug in edge"
+    sudo sed -i 's/DEBUG = False/DEBUG = True/g' /var/snap/microstack/common/etc/horizon/local_settings.d/_05_snap_tweaks.py
+    sudo snap restart microstack.horizon-uwsgi
+fi
 
-sudo sed -i 's/DEBUG = False/DEBUG = True/g' /var/snap/microstack/common/etc/horizon/local_settings.d/_05_snap_tweaks.py
-sudo snap restart microstack.horizon-uwsgi
+log_info "Tweeking sysctl for performace"
+
+if ! grep -q -e "^[[:space:]]*fs.inotify.max_queued_events" /etc/sysctl.conf
+then
+    echo fs.inotify.max_queued_events=1048576 | sudo tee -a /etc/sysctl.conf
+else
+    sudo sed -i "/^[[:space:]]*fs.inotify.max_queued_events/c\fs.inotify.max_queued_events=1048576" /etc/sysctl.conf
+fi
+
+if ! grep -q -e "^[[:space:]]*fs.inotify.max_user_instances" /etc/sysctl.conf
+then
+    echo fs.inotify.max_user_instances=1048576 | sudo tee -a /etc/sysctl.conf
+else
+    sudo sed -i "/^[[:space:]]*fs.inotify.max_user_instances/c\fs.inotify.max_user_instances=1048576" /etc/sysctl.conf
+fi
+
+if ! grep -q -e "^[[:space:]]*fs.inotify.max_user_watches" /etc/sysctl.conf
+then
+    echo fs.inotify.max_user_watches=1048576 | sudo tee -a /etc/sysctl.conf
+else
+    sudo sed -i "/^[[:space:]]*fs.inotify.max_user_watches/c\fs.inotify.max_user_watches=1048576" /etc/sysctl.conf
+fi
+
+if ! grep -q -e "^[[:space:]]*vm.max_map_count" /etc/sysctl.conf
+then
+   echo vm.max_map_count=262144 | sudo tee -a /etc/sysctl.conf 
+else
+    sudo sed -i "/^[[:space:]]*vm.max_map_count/c\vm.max_map_count=262144" /etc/sysctl.conf
+fi
+
+if ! grep -q -e "^[[:space:]]*vm.swappiness" /etc/sysctl.conf
+then
+    echo vm.swappiness=1 | sudo tee -a /etc/sysctl.conf
+else
+    sudo sed -i "/^[[:space:]]/c\vm.swappiness=1" /etc/sysctl.conf
+fi
+sudo sysctl -p
+
+
+log_info "MicroStack is installed - enjoy!"
+log_info "Access the GUI at https://10.20.20.1"
+log_info "To access MicroStack CLI (and run ansible playbooks etc..) issue the commmand: .  ${OS_CLI_ENV_FILE}"

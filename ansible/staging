@@ -2,7 +2,7 @@
 # =============
 
 [gateways]
-access-1 nbr=11 flavor=lb.tiny floating_ip=10.20.20.11
+access-1 nbr=11 flavor=lb.tiny floating_ip=10.20.20.111
 access-2 nbr=12 flavor=lb.tiny floating_ip=10.20.20.112
 
 [servers]
