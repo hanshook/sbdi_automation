@@ -1,12 +1,26 @@
 ---
-- name: Setup Gluster
+- name: Setup Gluster disk on all storage nodes 
   hosts: storage
   become: true
   roles:
-  - role: glusterfs
+  - role: gluster_disk
+- name: Setup Gluster Server on  all storage nodes 
+  hosts: storage
+  become: true
+  roles:
+  - role: gluster_server
+- name: Setup Gluster Docker Share 
+  hosts: "{{ groups['storage'][0] }}"
+  become: true
+  roles:
+  - role: gluster_docker_share
+
 
 # http://manpages.ubuntu.com/manpages/xenial/man7/lvmthin.7.html
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/logical_volume_manager_administration/thinly_provisioned_volume_creation
+# https://www.theurbanpenguin.com/thin-provisioning-lvm2/
+
 # https://medium.com/@mshajeer/pre-requisites-for-installing-glusterfs-with-ibm-cloud-private-a18c2b0ebafb
 # https://kubesphere.com.cn/en/docs/reference/storage-system-installation/glusterfs-server/
-#
-#https://docs.ansible.com/ansible/latest/collections/community/general/lvol_module.html
+
+

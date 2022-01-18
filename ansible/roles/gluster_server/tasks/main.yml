@@ -1,0 +1,12 @@
+- name: Add gluster fs repo
+  ansible.builtin.apt_repository:
+    repo: 'ppa:gluster/glusterfs-10'
+    state: present    
+- name: Install basic packages
+  apt:
+    pkg:
+    - glusterfs-server
+- name: Make sure the gluster service is running
+  ansible.builtin.systemd:
+    state: started
+    name: glusterd.service
