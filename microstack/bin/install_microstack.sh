@@ -204,7 +204,7 @@ log_info "Creating an OpenStack CLI env file"
 # First get access data from MicroStack
 
 openstack_accessable=false
-while 1 $openstack_accessable
+while ! $openstack_accessable
 do
     log_info "Trying to get the OS_AUTH_URL and OS_PROJECT_ID from the microstack.openstack command"
     OS_AUTH_URL=$(microstack.openstack endpoint list -f value | grep admin | grep '/v3/$' | grep -oE '[^ ]+$')
@@ -354,8 +354,6 @@ fi
 # Performace Tweeks
 # =================
 
-sudo sysctl net.ipv4.ip_forward=1
-
 
 log_info "Tweeking sysctl for performace"
 
@@ -393,6 +391,14 @@ then
 else
     sudo sed -i "/^[[:space:]]/c\vm.swappiness=1" /etc/sysctl.conf
 fi
+
+if ! grep -q -e "^[[:space:]]*net.ipv4.ip_forward" /etc/sysctl.conf
+then
+    echo net.ipv4.ip_forward=1 | sudo tee -a /etc/sysctl.conf
+else
+    sudo sed -i "/^[[:space:]]*net.ipv4.ip_forward/c\net.ipv4.ip_forward=1" /etc/sysctl.conf
+fi
+
 sudo sysctl -p
 
 
