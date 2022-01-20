@@ -5,6 +5,9 @@ cd $(dirname $0)
 
 [[ $EUID -eq 0 ]] && log_fatal 88 "You are running as root - run as yourself..."
 
+# Load and check configuration
+# ============================
+
 INSTALL_CONFIG=../etc/microstack.cfg
 
 log_info "Reading configuration file ${INSTALL_CONFIG}"
@@ -43,6 +46,9 @@ done
     
 log_info "Configuration seems valid - OK"
 
+# Dependencies
+# ============
+
 log_info "Check that the user has an ssh public key"
 
 if [ ! -e ${HOME}/.ssh/id_rsa.pub ]
@@ -61,7 +67,12 @@ else
     log_fatal 92 "Unable to install required ubuntu packages"
 fi
 
+# Install and configure the snap
+# ==============================
+
 log_info "Check if MicroStack is already installed"
+
+previous_installation=false
 
 if snap list | grep -q microstack 
 then
@@ -75,52 +86,75 @@ then
 	then
 	    log_info "Removed current MicroStack installation - OK"
 	else
-	    log_error "Unable to remove current MicroStack installation... - giving up"
+	    log_fatal 77 "Unable to remove current MicroStack installation... - giving up"
 	fi
     else
-	log_info "Exiting..."
-	exit 1
+	log_info "Keeping current MicorStack installation"
+	previous_installation=true
     fi
 else
     log_info "MicroStack is not installed - OK"
 fi
 
-log_info "Try to install MicroStack beta in devmode"
-
-installed_edge=false
-if  sudo snap install microstack --devmode --beta
+if ! $previous_installation
 then
-    log_info "Installed MicroStack beta in devmode - OK"
-else
-    log_warn "Failed to install MicroStack beta in devmode..."
-    # --devmode --beta (use edge since beta is not istalling today - jan 13th 2022)
-    log_info "Will try to install MicroStack edge as a fallback"
-    sudo snap remove --purge microstack
-    if sudo snap install microstack --devmode --edge 
+    log_info "Try to install MicroStack beta in devmode"
+    
+    log_info "Esnuring net.ipv4.ip_forward=1"
+    sudo sysctl net.ipv4.ip_forward=1
+    
+    installed_edge=false
+    if  sudo snap install microstack --devmode --beta
     then
-	installed_edge=true
-	log_info "Installed MicroStack edge - OK"
+	log_info "Installed MicroStack beta in devmode - OK"
     else
-	log_fatal 93 "Failed to install MicroStack... - giving up"
+	log_warn "Failed to install MicroStack beta in devmode..."
+	# --devmode --beta (use edge since beta is not istalling today - jan 13th 2022)
+	log_info "Will try to install MicroStack edge as a fallback"
+	sudo snap remove --purge microstack
+	if sudo snap install microstack --devmode --edge 
+	then
+	    installed_edge=true
+	    log_info "Installed MicroStack edge - OK"
+	else
+	    log_fatal 93 "Failed to install MicroStack... - giving up"
+	fi
     fi
-fi
 
-log_info "Setting MicroStack admin password"
+    log_info "Setting MicroStack admin password"
 
-if sudo snap set microstack config.credentials.keystone-password=${ADMIN_PASSWORD}
-then
-    log_info "MicroStack admin password set -ok"
+    if sudo snap set microstack config.credentials.keystone-password=${ADMIN_PASSWORD}
+    then
+	log_info "MicroStack admin password set -ok"
+    else
+	log_warn "Failed to setting MicroStack admin password"
+    fi
+
+
+    
+    log_info "Initializing MicroStack"
+
+    if sudo microstack init --auto --control --setup-loop-based-cinder-lvm-backend --loop-device-file-size ${LOOP_DEVICE_FILE_SIZE}
+    then
+	log_info "MicroStack initialized - OK"
+    else
+	log_warn "MicroStack initialization failed for some reason"
+    fi
+
+    if $installed_edge
+    then
+	log_info "Fixing web interface bug in edge"
+	sudo sed -i 's/DEBUG = False/DEBUG = True/g' /var/snap/microstack/common/etc/horizon/local_settings.d/_05_snap_tweaks.py
+	sudo snap restart microstack.horizon-uwsgi
+    fi
 else
-    log_warn "Failed to setting MicroStack admin password"
-fi
-
-log_info "Initializing MicroStack"
-
-if sudo microstack init --auto --control --setup-loop-based-cinder-lvm-backend --loop-device-file-size ${LOOP_DEVICE_FILE_SIZE}
-then
-    log_info "MicroStack initialized - OK"
-else
-    log_warn "MicroStack initialization failed for some reason"
+    read -r -p "Do you want to continue with the rest of the setup (i.e without reinstalling)? [y/N] " response
+    response=${response,,}    # tolower
+    if ! [[ "$response" =~ ^(yes|y)$ ]]
+    then
+	log_info "Exiting..."
+	exit 0
+    fi    
 fi
 
 log_info "Create an Openstack CLI Python venv"
@@ -161,9 +195,32 @@ log_info "Fixing the Openstack CLI Python venv wrt this CA"
 
 cat ${MICROSTACK_SELF_SIGNED_CA}  >> ${HOME}/${OS_CLI_VENV_DIR}/lib/python3.*/site-packages/certifi/cacert.pem
 
-log_info "Creating an Openstack CLI env file"
 
-# Preferably in ${HOME}/bin else in ${HOME}/.bin if it exists or create ${HOME}/bin as a last resort
+# Create OpenStack CLI env file
+# =============================
+
+log_info "Creating an OpenStack CLI env file"
+
+# First get access data from MicroStack
+
+openstack_accessable=false
+while 1 $openstack_accessable
+do
+    log_info "Trying to get the OS_AUTH_URL and OS_PROJECT_ID from the microstack.openstack command"
+    OS_AUTH_URL=$(microstack.openstack endpoint list -f value | grep admin | grep '/v3/$' | grep -oE '[^ ]+$')
+    OS_PROJECT_ID=$(microstack.openstack project show -f shell admin | grep "^id=" | cut -d'"' -f 2)
+    if [ -z "$OS_AUTH_URL" ] || [ -z "$OS_PROJECT_ID" ]
+    then
+	log_warn "microstack.openstack command is not responding - waiting for it 5 seconds"
+	sleep 5
+    else
+	openstack_accessable=true
+    fi
+done
+
+# Decide where to put the CLI env file
+# Preferrably in ${HOME}/bin else in ${HOME}/.bin if it exists or create ${HOME}/bin as a last resort
+
 
 if [ -d ${HOME}/bin ]
 then
@@ -177,15 +234,16 @@ else
     if [ ! -d ${HOME}/bin ]
     then
 	mkdir ${HOME}/bin 
-    fi
+    fi 
 fi
+
 
 
 cat <<EOF > ${OS_CLI_ENV_FILE}
 #!/usr/bin/env bash
 
-export OS_AUTH_URL=$(microstack.openstack endpoint list -f value | grep admin | grep '/v3/$' | grep -oE '[^ ]+$')
-export OS_PROJECT_ID=$(microstack.openstack project show -f shell admin | grep "^id=" | cut -d'"' -f 2)
+export OS_AUTH_URL=$OS_AUTH_URL
+export OS_PROJECT_ID=$OS_PROJECT_ID
 export OS_PROJECT_NAME="admin"
 export OS_USER_DOMAIN_NAME="Default"
 unset OS_PROJECT_DOMAIN_ID
@@ -224,6 +282,9 @@ chmod 600 ${OS_CLI_ENV_FILE}
 
 log_info "Openstack CLI env file created in ${OS_CLI_ENV_FILE}"
 
+# Add SSH Key
+# ==========
+
 log_info "Ensure user ssh keys are added to microstack"
 
 # Source the env file so that we get access to openstack commands
@@ -231,8 +292,16 @@ log_info "Ensure user ssh keys are added to microstack"
 
 if ! openstack keypair list | grep -q "${USER}_key"
 then
-    openstack keypair create --public-key ${HOME}/.ssh/id_rsa.pub ${USER}_key
+    if openstack keypair create --public-key ${HOME}/.ssh/id_rsa.pub ${USER}_key
+    then
+	log_info "Added ${HOME}/.ssh/id_rsa.pub to MicroStack as ${USER}_key - OK"
+    else
+	log_warn "Failed to add ${HOME}/.ssh/id_rsa.pub to MicroStack as ${USER}_key"
+    fi
 fi
+
+# Add Flavors
+# ===========
 
 log_info "Ensure needed flavors are present in MicroStack"
 
@@ -247,6 +316,9 @@ do
     FLAVOR_NBR=$((FLAVOR_NBR+1))
 done
 
+# Add Images
+# ==========
+
 log_info "Ensure needed images are present in MicroStack"
 
 CLOUD_IMAGE_FILE=${CLOUD_IMAGE_URL##*/}
@@ -257,8 +329,17 @@ then
     then
 	mkdir -p "${CLOUD_IMAGE_DOWNLOAD_DIR}"
     fi
-    if [ ! -e "${CLOUD_IMAGE_DOWNLOAD_DIR}/${CLOUD_IMAGE_FILE}" ]
+    if [ -e "${CLOUD_IMAGE_DOWNLOAD_DIR}/${CLOUD_IMAGE_FILE}" ]
     then
+	log_info "Found ${CLOUD_IMAGE_DOWNLOAD_DIR}/${CLOUD_IMAGE_FILE}"
+	read -r -p "Do you want to download it again? [y/N] " response
+	response=${response,,}    # tolower
+	if [[ "$response" =~ ^(yes|y)$ ]]
+	then
+	    log_info "Downloading Cloud Image: ${CLOUD_IMAGE_URL}"
+	    wget -P "${CLOUD_IMAGE_DOWNLOAD_DIR}" "${CLOUD_IMAGE_URL}"
+	fi
+    else
 	log_info "Downloading Cloud Image: ${CLOUD_IMAGE_URL}"
 	wget -P "${CLOUD_IMAGE_DOWNLOAD_DIR}" "${CLOUD_IMAGE_URL}"
     fi
@@ -270,19 +351,11 @@ then
     fi
 fi
 
+# Performace Tweeks
+# =================
 
+sudo sysctl net.ipv4.ip_forward=1
 
-
-# https://forum.snapcraft.io/t/snapd-not-installing-microstack/28280
-# https://review.opendev.org/c/x/microstack/+/824276
-# https://kubesphere.com.cn/en/docs/reference/storage-system-installation/glusterfs-server/
-
-if $installed_edge
-then
-    log_info "Fixing web interface bug in edge"
-    sudo sed -i 's/DEBUG = False/DEBUG = True/g' /var/snap/microstack/common/etc/horizon/local_settings.d/_05_snap_tweaks.py
-    sudo snap restart microstack.horizon-uwsgi
-fi
 
 log_info "Tweeking sysctl for performace"
 
@@ -323,6 +396,10 @@ fi
 sudo sysctl -p
 
 
-log_info "MicroStack is installed - enjoy!"
+log_info "MicroStack is installed and configured - enjoy!"
 log_info "Access the GUI at https://10.20.20.1"
 log_info "To access MicroStack CLI (and run ansible playbooks etc..) issue the commmand: .  ${OS_CLI_ENV_FILE}"
+
+
+# https://forum.snapcraft.io/t/snapd-not-installing-microstack/28280
+# https://review.opendev.org/c/x/microstack/+/824276

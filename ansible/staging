@@ -6,16 +6,18 @@ access-1 nbr=11 flavor=lb.tiny floating_ip=10.20.20.111
 access-2 nbr=12 flavor=lb.tiny floating_ip=10.20.20.112
 
 [servers]
-master-1 nbr=21 flavor=lm.large.1d
-master-2 nbr=22 flavor=lm.large.1d
-master-3 nbr=23 flavor=lm.large.1d
+manager-1 nbr=21 flavor=lm.large.1d
+manager-2 nbr=22 flavor=lm.large.1d
+worker-1 nbr=23 flavor=lm.large.1d
+worker-2 nbr=24 flavor=lb.tiny
 backup-director nbr=91 flavor=lb.tiny
 backup-target nbr=92 flavor=m.medium
 
 [storage]
-master-1 
-master-2 
-master-3 
+manager-1 
+manager-2
+worker-1
+
 
 [gateways:vars]
 ansible_connection=ssh
