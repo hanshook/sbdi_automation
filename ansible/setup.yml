@@ -25,3 +25,10 @@
       dest: /usr/local/bin/docker-compose
       owner: root
       mode: 755
+
+  roles:
+    - role: sbdi_utility_scripts
+    - role: autoupdate
+      tags:
+        - autoupdate
+        - nrpeclient      

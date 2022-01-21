@@ -1,0 +1,29 @@
+- name: Ensure /opt/sbdi folder
+  file: 
+    path: /opt/sbdi
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
+
+- name: Ensure /opt/sbdi/lib folder
+  file: 
+    path: /opt/sbdi/lib
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
+
+- name: Copy library files
+  copy:
+    src: "lib/{{ item }}"
+    dest: /opt/sbdi/lib/{{ item }}
+    owner: root
+    group: root
+    mode: 0444
+  with_items:
+    - log_utils
+    - lvm_utils
+    - mount_utils
+    - set_utils
+    - string_utils

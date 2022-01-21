@@ -1,0 +1,76 @@
+- name: Install nagios packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: no
+  with_items:
+    - libcrypt-ssleay-perl
+    - libwww-perl
+    - nagios-nrpe-plugin
+    - nagios4
+    - nagios-plugins-contrib
+  notify:
+    - restart nagios
+    - reload apache
+
+- name: add nagios password
+  command: htpasswd -bc /etc/nagios4/htpasswd.users nagiosadmin nagiosadmin
+  notify:
+    - reload apache
+
+# - name: delete nagios configuration
+#   file:
+#     path: /etc/nagios4/conf.d/{{ item }}
+#     state: absent
+#   with_items:
+#     - contacts_nagios2.cfg
+#     - extinfo_nagios2.cfg
+#     - hostgroups_nagios2.cfg
+#     - localhost_nagios2.cfg
+#   notify:
+#     - restart nagios
+
+# - name: copy /etc/hosts
+#   template:
+#     src: etc_hosts
+#     dest: /etc/hosts
+#     owner: root
+#     group: root
+#     mode: 0644
+#   notify:
+#     - restart nagios
+
+# - name: copy nagios configuration
+#   template:
+#     src: "{{ item }}"
+#     dest: /etc/nagios4/conf.d/{{ item }}
+#     owner: root
+#     group: root
+#     mode: 0644
+#   with_items:
+#     - commands.cfg
+#     - contactgroups.cfg
+#     - contacts.cfg
+#     - generic-noping-http-webhost.cfg
+#     - generic-noping-https-webhost.cfg
+#     - hostgroups.cfg
+#     - hosts.cfg
+#     - services.cfg
+#   notify:
+#     - restart nagios
+
+ # - name: copy nagios slack notify scripts
+ #  copy:
+ #    src: "{{ item }}"
+ #    dest: /usr/local/bin/{{ item }}
+ #    owner: root
+ #    group: root
+ #    mode: 0755
+ #  with_items:
+ #    - slack_nagios.sh
+ #    - slack_nagios.pl
+ #  notify:
+ #    - restart nagios
+
+#- name: verify nagios configuration
+#  command: /usr/sbin/nagios4 -v /etc/nagios4/nagios.cfg

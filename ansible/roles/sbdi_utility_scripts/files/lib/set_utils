@@ -1,0 +1,174 @@
+#! /bin/bash
+#
+# Set Utilites
+# ============
+#
+# Some usefull operations on sets
+#
+# USAGE
+# . <path/to/directory/of/this/file>/set_utils
+#
+# -------------------------
+# 
+# AltruSOMO project
+# 
+# Hans Hook (hans.hook@altrusoft.se) Altrusoft AB 2009-04-16
+#
+# Copyright (c) 2009, Altrusoft AB
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# --
+
+# Source these library functions only once:
+if ${__SET_UTILS_LOADED:-false} && [[ "$0" != "$BASH_SOURCE" ]]
+then
+    ${SOMO_DEBUG:-false} && echo "SOMO: Set Utilities already loaded"
+    return 0
+fi
+${SOMO_DEBUG:-false} && echo "SOMO: Loading Set Utilities"
+
+# Load dependencies:
+dir_of_this_file=$(dirname "$(readlink -f "$BASH_SOURCE")")
+lib_dir=${SOMO_LIBDIR:-$dir_of_this_file}
+${SOMO_DEBUG:-false} && echo "SOMO: Lib dir: ${lib_dir}"
+
+. $lib_dir/string_utils
+
+
+
+# TO BE BETTER DOCUMENTED
+
+# Usage set_get [-s <separator>] <set_name> <input_string>
+set_get() {
+
+    local separator=""
+
+    while true 
+    do
+	case $1 in
+	    -s) separator="-s $2"
+		shift
+		shift
+		;;
+	    *)  break	    
+		;;
+	esac
+    done
+    
+    local set="_set$1"
+    shift
+
+    local _result="$(str_split $separator -so '\n' $1 | sort -u)"
+
+    eval "$set=\"\$_result\""
+}
+
+# Usage set_print [-s <separator>] <set_name>
+set_print() {
+
+    local separator=""
+
+    while true 
+    do
+	case $1 in
+	    -s) separator="$2"
+		shift
+		shift
+		;;
+	    *)  break	    
+		;;
+	esac
+    done
+    if [ -z "$separator" ]
+    then
+	eval "echo \$_set$1"
+    else
+	eval "echo -n \"\$_set$1\" | tr '\n' '$separator'" ; echo ""
+    fi
+}
+
+# Usage set_has_member <set_name> <element>
+set_has_member() {
+    eval "set1=\"\$_set$1\""  
+    local element=$2
+    grep -xq "$element" <<< "$set1"
+}
+
+# Usage set_equals <set1_name> <set2_name> 
+set_equals() {
+    eval "set1=\"\$_set$1\"" 
+    eval "set2=\"\$_set$2\"" 
+    diff -q <(sort <<< "$set1") <(sort <<< "$set2") > /dev/null
+}
+
+set_are_disjoint() {
+    eval "set1=\"\$_set$1\"" 
+    eval "set2=\"\$_set$2\"" 
+    [ $(comm -12 <(sort <<< "$set1") <(sort <<< "$set2") | wc -l) -eq 0 ]
+}
+
+set_is_subset() {
+    eval "set1=\"\$_set$1\"" 
+    eval "set2=\"\$_set$2\"" 
+    [ $(comm -23 <(sort <<< "$set1" | uniq) <(sort <<< "$set2" | uniq) | wc -l) -eq 0 ]
+}
+
+# create a set $1 with elements that are memebers of both set $2 and set $3
+set_intersection()  {
+    eval "set1=\"\$_set$2\""  
+    eval "set2=\"\$_set$3\"" 
+    _result=$(comm -12 <(sort <<< "$set1") <(sort <<< "$set2"))
+    eval "_set$1=\"\$_result\"" 
+}
+
+# outputs elements in set $2 that are not in set $3
+set_complement()  {    
+    eval "set1=\"\$_set$2\"" 
+    eval "set2=\"\$_set$3\"" 
+    _result=$(comm -23 <(sort <<< "$set1") <(sort <<< "$set2"))
+    eval "_set$1=\"\$_result\""
+}
+
+# outputs (as set $1) elements in set $2 and set $3 that are not part of their intersection
+set_difference()  {    
+    eval "set1=\"\$_set$2\"" 
+    eval "set2=\"\$_set$3\"" 
+    _result=$(comm -3 <(sort <<< "$set1") <(sort <<< "$set2"))
+    eval "_set$1=\"\$_result\""
+}
+
+set_union()  {    
+    eval "set1=\"\$_set$2\"" 
+    eval "set2=\"\$_set$3\"" 
+    _result=$(sort -u <<< "${set1}"$'\n'"${set2}") 
+    eval "_set$1=\"\$_result\""   
+}
+
+set_remove_element()  {
+    eval "set1=\"\$_set$1\""  
+    local element=$2
+    _result=$(grep -vx "$element" <<< "$set1")
+    eval "_set$1=\"\$_result\"" 
+}
+
+set_add_element()  {
+    eval "set1=\"\$_set$1\""  
+    local element=$2
+    _result=$(sort -u <<< "${set1}"$'\n'"${element}")
+    eval "_set$1=\"\$_result\"" 
+}
+
+__SET_UTILS_LOADED=true

@@ -1,0 +1,45 @@
+- name: install unattended upgrades packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: no
+  with_items:
+    - unattended-upgrades
+  notify:
+    - restart unattended-upgrades
+
+- name: copy nrpe commands
+  copy:
+    src: "{{ item }}"
+    dest: /usr/lib/nagios/plugins/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - check_reboot-required
+  notify:
+    - restart nrpe
+
+- name: copy nrpe configuration
+  copy:
+    src: "{{ item }}"
+    dest: /etc/nagios/nrpe.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - check_reboot-required.cfg
+  notify:
+    - restart nrpe
+
+- name: copy configuration
+  copy:
+    src: "{{ item }}"
+    dest: /etc/apt/apt.conf.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - 10periodic
+  notify:
+    - restart unattended-upgrades

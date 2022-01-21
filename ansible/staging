@@ -42,3 +42,81 @@ domain=sbdi-uat.local
 server_image=ubuntu-20.40-server-cloudimg-amd64
 access_ip=10.20.20.47
 
+# Nagios
+# ======
+
+# Under construction
+
+[nagios_servers]
+access-2
+
+# [nrpe_clients]
+# server-x
+
+# [nrpe_clients:children]
+# hardware-servers
+# unattended-upgrades
+
+# # Nagios host groups
+# # ------------------
+
+[nagios_internal_clients:children]
+# # external, i.e. external-http-servers and external-https-servers should not be in here
+# dns-servers
+# gluster-servers
+# http-servers
+# http8080-servers
+# http9000-servers
+# imap-servers
+# ldap-servers
+# mdraid-servers
+# nrpe-clients
+# ntp-servers
+# smtp-servers
+ssh_servers
+# unattended-upgrades
+
+[ssh_servers]
+uat-manager-1
+
+# [http-servers]
+# server-x
+# server-y
+
+
+# [http8080-servers]
+# server-x
+
+# [http9000-servers]
+# server-x
+# server-y
+
+
+# [dns-servers]
+# server-x
+# server-y
+
+
+# [ldap-servers]
+# server-x
+# server-y
+
+
+[ntp-servers]
+uat-acces-1
+uat-access-2
+
+
+# [smtp-servers]
+# mailserver
+
+# [imap-servers]
+# mailserver
+
+[external_http_servers]
+# server-x
+
+[external_https_servers]
+# server-x
+# server-y
+

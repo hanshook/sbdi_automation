@@ -1,0 +1,30 @@
+- name: install nrpe packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: no
+  with_items:
+    - nagios-nrpe-server
+    - monitoring-plugins
+  notify:
+    - restart nrpe
+
+# - name: update allowed hosts
+#   lineinfile:
+#     dest: /etc/nagios/nrpe.cfg
+#     regexp: allowed_hosts
+#     line: "allowed_hosts=10.201.0.0/24,10.20.20.1/32,127.0.0.1,::1"
+#   notify:
+#     - restart nrpe
+
+- name: copy nrpe configuration
+  copy:
+    src: "{{ item }}"
+    dest: /etc/nagios/nrpe.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - check_nrpe.cfg
+  notify:
+    - restart nrpe

@@ -1,0 +1,400 @@
+#! /bin/bash
+#
+# String Utilities
+# ================
+#
+# USAGE
+# . <path/to/directory/of/this/file>/string_utils
+#
+# ------------------------------
+# 
+# AltruSOMO project
+# 
+# Hans Hook (hans.hook@altrusoft.se) Altrusoft AB 2009-04-16
+#
+# Copyright (c) 2009, Altrusoft AB
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# Source these library functions only once:
+if ${__STRING_UTILS_LOADED:-false} && [[ "$0" != "$BASH_SOURCE" ]]
+then
+    ${SOMO_DEBUG:-false} && echo "SOMO: String Utilities already loaded"
+    return 0
+fi
+${SOMO_DEBUG:-false} && echo "SOMO: Loading String Utilities"
+
+# first off 
+# =========
+
+# Note! not a str_ function - where does it belong?
+
+
+# Function first_of is simple but handy when deciding what value to
+# use.
+# intended use:     
+#    my_param=$(first_of "$prio1" "$prio2" "default value")
+# returns value of prio1 if defined else value of prio2 if 
+# defined else "default value"
+# note the qoutations around $prio1 that allows prio1 to 
+# actually contain a list of values.
+
+first_of() {
+    while [ $# -gt 0 ]
+    do
+	if [ -z "$1" ]
+	then
+	    shift
+	else
+	    /bin/echo $1
+	    break
+	fi
+    done
+
+}
+
+
+# Inverted net
+# ============
+
+# Note! not a str_ function - where does it belong?
+
+# Return an inverted net (as used in DNS) from an ip
+# The following will for example make "2.1.10." out of "10.1.2.0"
+inverted_net_from_ip() {
+    local result=$(/usr/bin/awk '{ n=split($0,parts,"."); \
+         for (k=n-1;k>0;k--) \
+           printf "%s.",parts[k] }' <<< $1 )
+    /usr/bin/printf "%s\n" "$result"
+}
+
+
+
+# Test if a string is an integer
+# ==============================
+
+str_is_int() {
+    [ $1 -eq $1 2> /dev/null ]
+}
+
+# Test if a string is a natural number greater than zero
+# ======================================================
+
+str_is_nat() {
+    [ $1 -eq $1 2> /dev/null ] && [ $1 -ge 1 ] 
+}
+
+# Test if a string is a natural number or zero
+# ============================================
+
+str_is_nat0() {
+    [ $1 -eq $1 2> /dev/null ] && [ $1 -ge 0 ] 
+}
+
+# Convert a string to upper case
+# ==============================
+#
+# NOTE: Does not work with swedish characters å ä ö
+
+str_to_upper() {
+    tr  "[:lower:]" "[:upper:]" <<< "$1"
+}
+
+
+# Convert a string to lower case
+# ==============================
+#
+# NOTE: Does not work with swedish characters ÅÄÖ
+
+str_to_lower() {
+    tr "[:upper:]" "[:lower:]" <<< "$1"
+}
+
+# Trim spaces (or char in $2) from left-hand *and* right-hand side of $1
+# ======================================================================
+
+str_trim() 
+{ 
+    local arg="$1"
+    local trim_string=${arg%%[!${2:- }]*}
+    arg=${arg#"$trim_string"}
+    trim_string=${arg##*[!${2:- }]}
+    arg=${arg%"$trim_string"}
+    /usr/bin/printf "%s\n" "$arg"
+}
+
+
+# Trim spaces (or char in $2) from right-hand side of $1
+# ======================================================
+
+str_rtrim() 
+{ 
+    local arg="$1"
+    local trim_string=${arg##*[!${2:- }]}
+    /usr/bin/printf "%s\n" "${arg%"$trim_string"}"
+}
+
+
+
+# Trim spaces (or char in $2) from left-hand side of $1
+# =====================================================
+
+str_ltrim() 
+{ 
+    local arg="$1"
+    local trim_string=${arg%%[!${2:- }]*}
+    /usr/bin/printf "%s\n" "${arg#"$trim_string"}"
+}
+
+
+# Print a comma (,) separted list of tokens separated by spaces in $1
+# ===================================================================
+#
+# Example: str_comma_separated "a b c" -> "a, b, c"
+# NOTE: no trailing comma and the space after each comma
+# NOTE: separators at the end are removed:
+# str_comma_separated " a b c "  -> "a, b, c"
+
+str_comma_separated() {
+
+    local result=$(awk '{ n=split($0,parts,"[[:space:]]+"); \
+         for (k=1;k<n;k++) \
+           printf "%s, ",parts[k] ; printf "%s",parts[n]}' <<< $1 )
+    /usr/bin/printf "%s\n" "$result"
+}
+
+# Invert a string of "items"
+# ===========================
+
+# Usage: str_invert [ -s <item-separator> ] <string-of-items>
+#
+# default item separator is space
+
+# WARNING: separators at the end and begining might get unexpected results:
+# str_invert "a b c "  -> " c b a" 
+# str_invert  $(str_trim "a b c ") -> "a b c"
+
+str_invert() {
+    local separatorp="[[:space:]]+"
+    local separator=" "
+
+    while true 
+    do
+	case $1 in
+	    -s) separator=$2
+		separatorp=$2
+		shift
+		shift
+		;;
+	    *)  break	    
+		;;
+	esac
+    done
+
+    /usr/bin/awk "{ n=split(\$0,parts,\"$separatorp\"); \
+         for (k=n;k>1;k--) printf \"%s$separator\",parts[k]; \
+         printf \"%s\\n\",parts[1] }" <<< "$@"
+}
+
+
+# Split a string into "items"
+# ============================
+
+# Usage: str_split [ -s <item-input-separator> ] [ -so <item-output-separator> ] <string-of-items>
+#
+# default item separators are space
+#
+# WARNING: separators at the end and begining might get unexpected results:
+# str_split -so ',' "  a b c "  -> ",a,b,c," 
+# str_split -so ',' $(str_trim "  a b c ") -> "a,b,c"
+
+str_split() 
+{
+    local separatorp="[[:space:]]+"
+    local separator=" "
+
+    while true 
+    do
+	case $1 in
+	    -s) separatorp=$2
+		shift
+		shift
+		;;
+	    -so) separator=$2
+		shift
+		shift
+		;;
+	    *)  break	    
+		;;
+	esac
+    done
+
+    /usr/bin/awk "{ n=split(\$0,parts,\"$separatorp\"); \
+         for (k=1;k<n;k++) printf \"%s$separator\",parts[k]; \
+         printf \"%s\\n\",parts[n] }" <<< "$@"
+}
+
+
+# Get item number n of a string of "items"
+# ========================================
+
+# Usage: str_split [ -s <item-separator> ] <n> <string-of-items>
+#
+# default item separator is space
+# WARNING! whatch out for separators at the begining
+# str_get_item 3 "  a b c " -> "b" !!!
+# str_get_item 3  $(str_trim " a b c ") -> "c"
+
+
+str_get_item() 
+{
+    local separatorp="[[:space:]]+"
+
+    while true 
+    do
+	case $1 in
+	    -s) separatorp=$2
+		shift
+		shift
+		;;
+	    *)  break	    
+		;;
+	esac
+    done
+
+    local n=$1
+    shift
+
+    /usr/bin/awk "{ n=split(\$0,parts,\"$separatorp\"); \
+         printf \"%s\\n\",parts[$n] }" <<< "$@"
+}
+
+# Get the last item of a string of "items"
+# ========================================
+
+# Usage: str_split [ -s <item-separator> ] <string-of-items>
+#
+# default item separator is space
+#
+# WARNING! whatch out for trailing separators
+# str_get_last_item "  a b c " -> "" !!!
+# str_get_last_item $(str_trim " a b c ") -> "c"
+
+str_get_last_item() 
+{
+    local separatorp="[[:space:]]+"
+
+    while true 
+    do
+	case $1 in
+	    -s) separatorp=$2
+		shift
+		shift
+		;;
+	    *)  break	    
+		;;
+	esac
+    done
+
+    /usr/bin/awk "{ n=split(\$0,parts,\"$separatorp\"); \
+         printf \"%s\\n\",parts[n] }" <<< "$@"
+}
+
+
+## OBSOLET - KEPT FOR COMPATIBILITY
+## TBD - total cleanup ....
+
+# - obsolete - use str_is_int
+is_integer() {
+    [ $1 -eq $1 2> /dev/null ]
+}
+# - obsolete - use str_is_nat
+is_nat() {
+    [ $1 -eq $1 2> /dev/null ] && [ $1 -ge 1 ] 
+}
+# - obsolete - use str_is_nat0
+is_nat0() {
+    [ $1 -eq $1 2> /dev/null ] && [ $1 -ge 0 ] 
+}
+
+# - obsolete - use str_to_lower
+toLower() {
+    tr "[:upper:]" "[:lower:]" <<< "$1"
+}
+
+# - obsolete - use str_to_lower
+toUpper() {
+    tr  "[:lower:]" "[:upper:]" <<< "$1"
+}
+
+# - obsolete - use str_rtrim
+rtrim() 
+{ 
+    local arg="$1"
+    local trim_string=${arg##*[!${2:- }]}
+    /usr/bin/printf "%s\n" "${arg%"$trim_string"}"
+}
+
+# - obsolete - use str_ltrim
+ltrim() 
+{ 
+    local arg="$1"
+    local trim_string=${arg%%[!${2:- }]*}
+    /usr/bin/printf "%s\n" "${arg#"$trim_string"}"
+}
+
+# - obsolete - use str_trim
+trim() 
+{ 
+    local arg="$1"
+    local trim_string=${arg%%[!${2:- }]*}
+    arg=${arg#"$trim_string"}
+    trim_string=${arg##*[!${2:- }]}
+    arg=${arg%"$trim_string"}
+    /usr/bin/printf "%s\n" "$arg"
+}
+
+# - obsolete - use str_comma_separated
+comma_separated() {
+    str_comma_separated "$@"
+}
+
+# - obsolete - use str_invert instead
+invert() 
+{
+    str_invert "$@"
+}
+
+# - obsolete - use str_split instead
+splitstring() 
+{
+    str_split "$@"
+}
+
+# - obsolete - use str_get_item instead
+get_item() 
+{
+    str_get_item "$@"
+}
+
+# - obsolete - use str_get_last_item instead
+get_last_item() 
+{
+    str_get_last_item "$@"
+}
+
+
+
+__STRING_UTILS_LOADED=true

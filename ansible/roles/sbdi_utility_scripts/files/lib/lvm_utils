@@ -1,0 +1,643 @@
+#! /bin/bash
+#
+# LVM Utilities
+# =============
+#
+# USAGE
+# . <path/to/directory/of/this/file>/lvm_utils
+#
+# ------------------------------
+# 
+# AltruSOMO project
+# 
+# Hans Hook (hans.hook@altrusoft.se) Altrusoft AB 2009-05-01
+#
+# Copyright (c) 2009, Altrusoft AB
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# --
+
+# Source these library functions only once:
+if ${__LVM_UTILS_LOADED:-false} && [[ "$0" != "$BASH_SOURCE" ]]
+then
+    ${SOMO_DEBUG:-false} && echo "SOMO: LVM Utilities already loaded"
+    return 0
+fi
+${SOMO_DEBUG:-false} && echo "SOMO: Loading LVM Utilities"
+
+# Load dependencies:
+dir_of_this_file=$(dirname "$(readlink -f "$BASH_SOURCE")")
+lib_dir=${SOMO_LIBDIR:-$dir_of_this_file}
+${SOMO_DEBUG:-false} && echo "SOMO: Lib dir: ${lib_dir}"
+
+. $dir_of_this_file/mount_utils
+
+#TBD - LVM resize functions
+
+# Check if a logical volume exists
+# ================================
+# 
+# usage:
+#   lvm_exists <volume_group> <volume_name> 
+
+lvm_exists() {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+    # remove above if sudoers includes lvdisplay
+
+    local vg=$1
+    local vol=$2
+    
+    [ -z "$vg" ] && echo "$FUNCNAME: No volume group provided" 1>&2 && return 91
+    [ -z "$vol" ] && echo "$FUNCNAME: No volume name provided" 1>&2 && return 92
+
+    local device="/dev/$vg/$vol"
+    
+    lvdisplay -c $device 2> /dev/null | grep -qE "[[:space:]]*$device.*"
+}
+
+# Check if a logical volume is a snapshot
+# =======================================
+# 
+# usage:
+#   lvm_is_snapshot <volume_group> <snapshot_name> 
+
+lvm_is_snapshot() {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+
+
+    local vg=$1
+    local snap=$2
+    
+    [ -z "$vg" ] && echo "$FUNCNAME: No volume group provided" 1>&2 && return 91
+    [ -z "$snap" ] && echo "$FUNCNAME: No snapshot name provided" 1>&2 && return 92
+
+    local device="/dev/$vg/$snap"    
+    lvdisplay $device 2> /dev/null | grep -q "LV snapshot.*active destination"
+
+}
+
+# Ensure a logical volume exist (create if not)
+# ============================================
+#
+# Ensure a logical volume exist is mounted and formated as specified.
+# Create, resize, reformat it if neded
+# 
+# usage:
+#   lvm_ensure <options> <volume_group> <volume_name> <size> 
+#
+#   where 
+#         <options> = [-v] [-t] [-f]
+#                        [-fstype <filesystem_type> 
+#                          [-p <mount_point> [-o <opt>[,<opt>]*] 
+#                            [-fstab] [-mount] [-mvfiles]
+#                          ]
+#                        ] 
+#             
+
+#   -v       : verbose output - default false
+#   -t       : dry run and only output info  - default false
+#   -f       : do not create actual volume - default false
+#   -fstype  : create filesystem - default no filsystem created
+#   -o       : comma separted list of mount options - default none
+#   -p       : mount point
+#   -mount   : in combination with -p will mount device - default false
+#   -fstab   : in combination with -p will generate an fstab entry - default false
+#   -mvfiles : in combination with -fstab 
+#              will transfer files from where logical volume will
+#              now be mounted location - default false
+#
+##lvm_ensure() { TBD
+
+# Create a logical volume
+# =======================
+# 
+# usage:
+#   lvm_create <options> <volume_group> <volume_name> <size> 
+#
+#   where 
+#         <options> = [-v] [-t] [-f]
+#                        [-fstype <filesystem_type> 
+#                          [-p <mount_point> [-o <opt>[,<opt>]*] 
+#                            [-fstab] [-mount] [-mvfiles]
+#                          ]
+#                        ] 
+#             
+
+#   -v       : verbose output - default false
+#   -t       : dry run and only output info  - default false
+#   -f       : do not create actual volume - default false
+#   -fstype  : create filesystem - default no filsystem created
+#   -o       : comma separted list of mount options - default none
+#   -p       : mount point
+#   -mount   : in combination with -p will mount device - default false
+#   -fstab   : in combination with -p will generate an fstab entry - default false
+#   -mvfiles : in combination with -fstab 
+#              will transfer files from where logical volume will
+#              now be mounted location - default false (Not implemented - YET!)
+#
+lvm_create() {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+
+    # Read arguments and switches
+    local verbose=""       
+    local dry_run=""       
+    local keep_config=""  
+    local fstype=""           
+    local encrypted=""
+    local encryptkey=""
+    local mount_point=""
+    local options=""       
+    local mount=""   
+    local fstab=""    
+    local move_files=""    
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-t"
+		shift
+		;;
+	    -f) keep_config="-f"
+		shift
+		;;
+	    -fstype) fstype=$2
+		shift
+		shift
+		;;
+	    -encrypted) encrypted="-encrypted"
+		shift
+		;;
+	    -encryptkey) encryptkey="-key $2"
+		shift
+		shift
+		;;
+	    -p) mount_point=$2
+		shift
+		shift
+		;;
+	    -o) options="-o $2"
+		shift
+		shift
+		;;
+	    -mount) mount="-mount"
+		shift
+		;;
+	    -mvfiles) move_files="-mvfiles"
+		shift
+		;;
+	    -fstab) fstab="-fstab"
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done  
+
+    local vg=$1
+    local vol=$2
+    local size=$3
+
+    [ -z "$vg" ] && echo "$FUNCNAME: No volume group provided" 1>&2 && return 91
+    [ -z "$vol" ] && echo "$FUNCNAME: No volume provided" 1>&2 && return 92
+
+    verbose_echo()
+    {
+	[ -z "$verbose" ] || echo "${FUNCNAME[1]}: $@"
+    }
+
+    local device="/dev/$vg/$vol"
+
+    lvm_exists $vg $vol && echo "$FUNCNAME: Logical volume $logical_volume already exists" 1>&2 && return 95
+
+    if [ -z "$size" ]
+    then
+	verbose_echo "Creating logical volume $device with minimal size (256M)" 
+	size="256M"
+    else
+	verbose_echo "Creating logical volume $device with size: $size"
+    fi 
+    
+    
+    if [ ! -z "$dry_run" ]
+    then
+	echo "$FUNCNAME - dryrun: lvcreate -L  $size -n $vol $vg"
+	if [ ! -z "$encrypted" ]
+	then
+	    if enc_setup_encrypted_device $verbose $dry_run $encryptkey $device $vol
+	    then
+		verbose_echo "$FUNCNAME: encrypted logical volume"
+		return 0
+	    else
+		local error=$?
+		echo "$FUNCNAME: Failed to encrypt logical volume $vg $vol" 1>&2
+		return $error
+	    fi
+	    device=/dev/mapper/$vol	   
+	fi
+    elif [ ! -z "$keep_config" ]
+    then
+	echo "$FUNCNAME - keeping config, not creating logical volume"
+	if [ ! -z "$encrypted" ]
+	then
+	    device=/dev/mapper/$vol	
+	fi
+    else
+	if lvcreate -L  $size -n $vol -qq $vg
+	then
+	    verbose_echo "Created logical volume."
+	else
+	    local error=$?
+	    echo "$FUNCNAME: Failed to create logical volume $vg $vol" 1>&2
+	    return $error
+	fi
+	if [ ! -z "$encrypted" ]
+	then
+	    if enc_setup_encrypted_device $verbose $encryptkey $device $vol
+	    then
+		verbose_echo "$FUNCNAME: encrypted logical volume"
+	    else
+		local error=$?
+		echo "$FUNCNAME: Failed to encrypt logical volume $vg $vol" 1>&2
+		return $error
+	    fi
+	    device=/dev/mapper/$vol	   
+	fi	    
+    fi
+
+
+    if [ ! -z "$fstype" ]
+    then
+	echo "Creating file system $fstype on logical volume $device"
+	if [ ! -z "$dry_run" ]
+	then
+	    echo "$FUNCNAME - dryrun: mkfs.$fstype $verbose $device"
+	elif [ ! -z "$keep_config" ]
+	then
+	    echo "$FUNCNAME - keeping config, not creating file system"
+	else
+	    if mkfs.$fstype $verbose $device
+	    then
+		verbose_echo "Created filesystem"
+	    else
+		local error=$?
+		echo "$FUNCNAME: Failed to create file system" 1>&2
+		return $error
+	    fi
+	fi
+    fi
+
+    if [ ! -z "$mount_point" ]
+    then
+	if [ ! -z "$fstab" ]
+	then
+	    [ -z "$fstype" ] && "$FUNCNAME: No fstype provided - failed to create fstab entry" 1>&2 && return 93
+	    if create_fstab_entry $verbose $dry_run $keep_config $options $mount $move_files $device $fstype $mount_point
+	    then
+		verbose_echo "Created fstab entry"
+	    else
+		local error=$?
+		echo "$FUNCNAME: Failed to create fstab entry" 1>&2
+		return 98
+	    fi
+	fi
+	if [ ! -z "$mount" ]
+	then
+	    if mount_device $verbose $dry_run $options $device $mount_point
+	    then
+		verbose_echo "Mounted logical volume: ${device} at: ${mount_point} with options: ${options}"
+	    else
+		local error=$?
+		echo "$FUNCNAME: Failed to mount: ${snapshot} at: ${mount_point} with options: ${options} error: ${error}" 1>&2
+		return 98
+	    fi
+	fi
+    fi
+}
+
+
+# Snapshot a logical volume 
+# =========================
+# 
+# usage:
+#   lvm_create_snapshot <options> <volume_group> <volume_name> <snapshot_name> <size>
+#
+#   where 
+#         <options> = [-v] [-t] [-p <mount_point> [-o <opt>[,<opt>]*]]
+#             
+#
+#   -v : verbose output - default false
+#   -t : dry run and only output info  - default false
+#   -o : comma separted list of mount options - default none
+#   -p : mount point - if provided will result in mounting 
+#   
+#
+lvm_create_snapshot() {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+
+    # Read arguments and switches
+    local verbose=""       
+    local dry_run="" 
+    local mount_point=""
+    local options=""            
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-t"
+		shift
+		;;
+	    -f) shift # not used here 
+		;;
+	    -p) mount_point=$2
+		shift
+		shift
+		;;
+	    -o) options="-o $2"
+		shift
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done
+    
+    local vg=$1
+    local vol=$2
+    local snap=$3
+    local size=$4
+
+    [ -z "$vg" ] && echo "$FUNCNAME: No volume group provided" 1>&2 && return 91
+    [ -z "$vol" ] && echo "$FUNCNAME: No volume provided" 1>&2 && return 92
+    [ -z "$snap" ] && echo "$FUNCNAME: No snapshot name provided" 1>&2 && return 93
+
+    verbose_echo()
+    {
+	[ -z "$verbose" ] || echo "${FUNCNAME[1]}: $@"
+    }
+
+    local logical_volume="/dev/$vg/$vol"
+    local snapshot="/dev/$vg/$snap"
+
+    
+    lvm_exists $vg $vol || { echo "$FUNCNAME: Logical volume $logical_volume does not exists" 1>&2; return 95; }
+	   
+    lvm_exists $vg $snap && echo "$FUNCNAME: A logical volume $snapshot already exists" 1>&2 && return 96
+
+    if [ -z "$size" ]
+    then
+	verbose_echo "Creating snap $snapshot of logical volume $device with minimal size (256M)" 
+	size="256M"
+    else
+	verbose_echo "Creating snap $snapshot of logical volume $device with size: $size"
+    fi 
+
+
+    if [ -z "$dry_run" ]
+    then
+	if lvcreate --size $size --snapshot --name $snap -qq $logical_volume
+	then
+	    verbose_echo "Created snapshot with: lvcreate --size $size --snapshot --name $snap $logical_volume"
+	else
+	    local error=$?
+	    echo "$FUNCNAME: Failed to create snapshot: ${snap} error: ${error}" 1>&2
+	    return 97
+	fi
+    else
+	echo "$FUNCNAME - dryrun: lvcreate --size $size --snapshot --name $snap $logical_volume"
+    fi
+
+    [ -z "$mount_point" ] && exit 0
+
+    # We have been requested to mount the newly created snapshot
+
+    # If the filesystem on the snapshot is XFS and if the origin of the snapshot is mounted
+    # THEN
+    # XFS will *not allow* mounting of two volumes with the *same uuid*
+    #
+    # In order avoid this we pass the XFS 'nouuid' option to 'mount' 
+
+    if is_mounted $logical_volume
+    then
+	local fstype=$(get_fstype $logical_volume)
+	verbose_echo "Fstype is ${fstype_on_snapshot}"
+	if [ "$fstype" == "xfs" ]
+	then
+	    verbose_echo "${logical_volume} is XFS and mounted"
+	    [ -z "$options" ] && options="-o nouuid" || options="${options},nouuid"
+	fi
+    fi
+
+    verbose_echo "Mounting snapshot: ${snapshot} at: ${mount_point} with options: ${options}"
+    if mount_device $verbose $dry_run $options $snapshot $mount_point
+    then
+	verbose_echo "Mounted snapshot: ${snapshot} at: ${mount_point} with options: ${options}"
+	return 0
+    else
+	local error=$?
+	echo "$FUNCNAME: Failed to mount: ${snapshot} at: ${mount_point} with options: ${options} error: ${error}" 1>&2
+	# Try to remove snapshot
+	if lvm_remove_snapshot $vg $snap
+	then
+	    echo "$FUNCNAME: Removed snapshot: ${snapshot}" 1>&2
+	    return 98
+	else
+	    echo "$FUNCNAME: WARNING: Failed to remove snapshot: ${snapshot}" 1>&2
+	    return 99
+	fi
+    fi
+    
+}
+
+
+
+# Remove logical volume 
+# =====================
+# 
+# usage:
+#   lvm_remove <options> <volume_group> <snapshot_name> 
+#
+#   where 
+#         <options> = [-v] [-t] [-force]
+#             
+#
+#   -v     : verbose output - default false
+#   -t     : dry run and only output info  - default false
+#   -force : force unmount and removal if needed
+#   
+#
+lvm_remove() {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+
+
+    # Read arguments and switches
+    local verbose=""       
+    local dry_run=""   
+    local force_arg=""
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-t"
+		shift
+		;;
+	    -f) shift     # not used here
+		;;
+	    -force) force_arg="-force"
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done
+
+    if [ "$force_arg" == "" ]
+    then
+	umount_force_arg=""
+	lv_force_arg=""
+    else
+	umount_force_arg="-uf"
+	lv_force_arg="--force"
+    fi
+
+    local vg=$1
+    local vol=$2
+    [ -z "$vg" ] && echo "$FUNCNAME: No volume group specified" 1>&2 && return 91
+    [ -z "$vol" ] && echo "$FUNCNAME: No volume specified" 1>&2 && return 92
+
+    verbose_echo()
+    {
+	[ -z "$verbose" ] || echo "${FUNCNAME[1]}: $@"
+    }
+
+    local device="/dev/$vg/$vol"
+    verbose_echo "Removing logical volume : $device"
+   
+    lvm_exists $vg $vol || { echo "$FUNCNAME:  No such logical volume: $device" 1>&2; return 95; }
+
+    verbose_echo "Logical volume: $device exists - OK"
+    
+    if is_mounted $verbose $dry_run $device
+    then
+	verbose_echo "Logical volume is mounted - try to unmount"
+	if umount_device $verbose $dry_run $umount_force_arg $device
+	then
+	    verbose_echo "Unmounted logical volume: $device"
+	else	
+	    local error=$?
+	    echo "$FUNCNAME: Failed to unmount logical volume: $device error: ${error}" 1>&2
+	    return 97
+	fi
+    fi
+
+    if [ -z "$dry_run" ]
+    then
+	if lvremove $verbose $lv_force_arg -y -qq $device
+	then
+	    verbose_echo "Removed logical volume with: lvremove $verbose $lv_force_arg -y $device"
+	    return 0
+	else
+	    local error=$?
+	    echo "$FUNCNAME: Failed to remove logical volume: $device error: ${error}" 1>&2
+	    return 98
+	fi
+    else
+	echo "$FUNCNAME - dryrun: lvremove $verbose $lv_force_arg -y $device"
+	return 0
+    fi
+}
+
+# Remove logical volume snapshot
+# ==============================
+# 
+# usage:
+#   lvm_remove_snapshot <options> <volume_group> <snapshot_name> 
+#
+#   where 
+#         <options> = [-v] [-t] [-force]
+#             
+#
+#   -v     : verbose output - default false
+#   -t     : dry run and only output info  - default false
+#   -force : force unmount and removal if needed
+#   
+#
+lvm_remove_snapshot() {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+
+
+    # Read arguments and switches
+    local verbose=""       
+    local dry_run=""   
+    local force_arg=""
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-t"
+		shift
+		;;
+	    -f) shift  # not used here   
+		;;
+	    -force) force_arg="-force"
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done
+    
+    vg=$1
+    snap=$2
+    [ -z "$vg" ] && echo "$FUNCNAME: No volume group specified" 1>&2 && return 91
+    [ -z "$snap" ] && echo "$FUNCNAME: No snapshot name specified" 1>&2 && return 92
+
+    verbose_echo()
+    {
+	[ -z "$verbose" ] || echo "${FUNCNAME[1]}: $@"
+    }
+    
+    lvm_is_snapshot $vg $snap || { echo "$FUNCNAME: No such snapshot: $vg $snap" 1>&2; return 96; }
+    
+    verbose_echo "Logical volume is snapshot - OK"
+    
+    lvm_remove $verbose $dry_run $force_arg $vg $snap || {
+	local error=$?
+	echo "$FUNCNAME: Failed to remove logical volume snapshot: $vg $snap error: ${error}" 1>&2
+	return $error
+    }
+    verbose_echo "Removed logical volume snapshot: $vg $snap"
+    return 0
+}
+
+__LVM_UTILS_LOADED=true

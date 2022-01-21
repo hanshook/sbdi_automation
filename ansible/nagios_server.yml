@@ -1,0 +1,6 @@
+- name: Install and configure Nagios server
+  hosts: nagios_servers
+  become: true
+  roles:
+    - role: nagiosserver
+      tags: nagiosserver

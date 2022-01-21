@@ -1,0 +1,924 @@
+#! /bin/bash
+#
+# Mount Utilities
+# ===============
+#
+# USAGE
+# . <path/to/directory/of/this/file>/mount_utils
+#
+# ------------------------------
+# 
+# AltruSOMO project
+# 
+# Hans Hook (hans.hook@altrusoft.se) Altrusoft AB 2009-05-01
+#
+# Copyright (c) 2009, Altrusoft AB
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#<path/to/directory/of/this/file>/
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# --
+
+# Source these library functions only once:
+if ${__MOUNT_UTILS_LOADED:-false} && [[ "$0" != "$BASH_SOURCE" ]]
+then
+    ${SOMO_DEBUG:-false} && echo "SOMO: Mount Utilities already loaded"
+    return 0
+fi
+${SOMO_DEBUG:-false} && echo "SOMO: Loading Mount Utilities"
+
+# Load dependencies:
+dir_of_this_file=$(dirname "$(readlink -f "$BASH_SOURCE")")
+lib_dir=${SOMO_LIBDIR:-$dir_of_this_file}
+${SOMO_DEBUG:-false} && echo "SOMO: Lib dir: ${lib_dir}"
+
+. $lib_dir/string_utils
+. $lib_dir/set_utils
+
+# Check to see how full a device is
+# ---------------------------------
+#
+# usage:
+#   get_disk_full_percentage <file_on_device>
+#
+
+get_disk_full_percentage() {
+    local a_file=$1
+    result=$(/bin/df $a_file | \
+       tr "\n" ' ' | awk '{print $12}' | grep -oE [0-9]+ )
+    echo $result
+}
+
+# Return all mount options
+# ------------------------
+#
+# usage:
+#   get_mount_options <device> [<mount_point>]
+#
+get_mount_options() {
+
+    local device=$1
+    local mount_point=$2
+    local mtab_records=''
+    if  mtab_records=$(get_mtab_records $device $mount_point)
+    then
+	get_mount_options_from_mtab_records "$mtab_records"
+    else
+	echo "$FUNCNAME: Failed to get mtab record for device $device" 1>&2
+	return 1
+    fi
+}
+
+# Return mount options other than ro/rw
+# -------------------------------------
+#
+# usage:
+#   get_plain_mount_options <device> [<mount_point>]
+#
+get_plain_mount_options() {
+
+    local device=$1
+    local mount_point=$2
+    local mtab_records=''
+    if  mtab_records=$(get_mtab_records $device $mount_point)
+    then
+	get_plain_mount_options_from_mtab_records "$mtab_records"
+    else
+	echo "$FUNCNAME: Failed to get mtab record for device $device" 1>&2
+	return 1
+    fi
+}
+
+# Return rw or ro mount option
+# ----------------------------
+#
+# usage:
+#   get_rw_mount_options <device> [<mount_point>]
+#
+get_rw_mount_options() {
+
+    local device=$1
+    local mount_point=$2
+    local mtab_records=''
+    if  mtab_records=$(get_mtab_records $device$mount_point)
+    then
+	get_rw_mount_options_from_mtab_records "$mtab_records"
+    else
+	echo "$FUNCNAME: Failed to get mtab record for device $device" 1>&2
+	return 1
+    fi
+}
+
+
+# Return fstype of a mounted device
+# ---------------------------------
+#
+# usage:
+#   get_fstype <device> [<mount_point>]
+#
+get_fstype() {
+
+    local device=$1
+    local mount_point=$2
+    local mtab_records=''
+    if  mtab_records=$(get_mtab_records $device $mount_point)
+    then
+	get_fstype_from_mtab_records "$mtab_records"
+    else
+	echo "$FUNCNAME: Failed to get mtab record for device $device" 1>&2
+	return 1
+    fi
+}
+
+# Return mountpoints of a device
+# ------------------------------
+#
+# usage:
+#    get_mount_points <device>
+#
+get_mount_points() {
+
+    local device=$1
+    local mtab_records=''
+    if  mtab_records=$(get_mtab_records $device)
+    then
+	get_mount_points_from_mtab_records "$mtab_records"
+    else
+	echo "$FUNCNAME: Failed to get mtab record for device $device" 1>&2
+	return 1
+    fi
+}
+
+# Create fstab entry
+# ------------------
+# 
+# usage:
+#   create_fstab_entry <options> <device> <filesystem_type> <mount_point> 
+#
+#   where 
+#         <options> = [-v] [-f] [-t] [-o <opt>[,<opt>]*] [-mount] [-mvfiles] 
+#             
+#   -v        : verbose output - default false
+#   -t        : dry run and only output info  - default false
+#   -f        : keep config - do not actual mount anything or move any files  
+#                - default false
+#   -o        : comma separted list of mount options - default none
+#   -mount    : mount the device - default false
+#   -mvfiles  : transfer (mv) files from old location - default false
+#
+create_fstab_entry() {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+
+    # Read arguments and switches
+    local verbose=""       # -v 
+    local dry_run=""       # -t 
+    local keep_config=""   # -f
+    local options=""       # -o 
+    local mount=""         # -mount 
+    local move_files=""    # -mvfiles 
+    local create_fs=""     # -c
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-t"
+		shift
+		;;
+	    -f) keep_config="-f"
+		shift
+		;;
+	    -c) create_fs="-c"
+		shift
+		;;
+	    -o) options=","$2
+		shift
+		shift
+		;;
+	    -mount) mount="-mount"
+		shift
+		;;
+	    -mvfiles) move_files="-mvfiles"
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done
+
+    device=$1
+    fstype=$2
+    mount_point=$3
+
+    [ -z "$device" ] && (echo "$FUNCNAME: No device provided" 1>&2; return 8)
+    [ -z "$fstype" ] && (echo "$FUNCNAME: No fstype provided" 1>&2 ; return 8)
+    [ -z "$mount_point" ] && (echo "$FUNCNAME: No mount point provided" 1>&2 ; return 8)
+
+    verbose_echo()
+    {
+	[ ! -z "$verbose" ] && echo $@
+    }
+
+    if [ ! -z "$create_fs" ]
+    then
+	echo "Creating file system $fstype on device $device"
+	if [ ! -z "$dry_run" ]
+	then
+	    echo "$FUNCNAME - dryrun: mkfs.$fstype $verbose $device"
+	elif [ ! -z "$keep_config" ]
+	then
+	    echo "$FUNCNAME - keeping config, not creating file system"
+	else
+	    if mkfs.$fstype $verbose $device
+	    then
+		verbose_echo "Created filesystem"
+	    else
+		local error=$?
+		echo "$FUNCNAME: Failed to create file system" 1>&2
+		return $error
+	    fi
+	fi
+    fi
+ 
+    fstab_entry="$device $mount_point $fstype defaults$options 0 2"
+    echo "Creating fstab entry: " $fstab_entry
+
+    if grep -q -e "^$device" /etc/fstab
+    then
+	echo "Fstab entry already exists - doing nothing"
+    else
+	if [ ! -z "$dry_run" ]
+	then
+	    echo "Dry run only - not actually updating /etc/fstab"
+	    echo "by appending $fstab_entry"
+	else
+	    verbose_echo "Updating /etc/fstab"
+	    echo "$fstab_entry" >> /etc/fstab
+	fi
+    fi
+	
+    if [ ! -z "$dry_run" ]
+    then
+	echo "Dry run - Not ensuring mount point exists"
+    else
+	echo "Ensuring mount point ($mount_point) exists"
+	mkdir $verbose -p $mount_point
+    fi
+    
+    if [ ! -z "$move_files" ]
+    then
+	if [ ! -z "$dry_run" ]
+	then
+	    if [ $(du -s $mount_point | awk '{print $1}') -gt 4 ]
+	    then
+		echo "Files to transfer but dry run only"
+	    else
+		 echo "No files to copy (Dry run only)"
+	    fi
+	elif [ ! -z "$keep_config" ]
+	then
+	    echo "Faking - not actually transfering files"
+	else
+	    echo "Checking to see if mountpoint holds files that needs transfer"
+	    pushd $mount_point
+	    if [ $(du -s | awk '{print $1}') -gt 4 ]
+	    then
+		echo "Mount point is not empty - transfering files"
+		local tmpmnt=$(mktemp -d /tmp/mnt.XXXXXX)
+		mount $verbose $device $tmpmnt
+		mv $verbose * $tmpmnt
+		umount $verbose $tmpmnt
+		rmdir $tmpmnt
+	    else
+		echo "Mount point is empty - not transfering files"
+	    fi
+	    popd
+	fi
+    fi 
+
+    if [ ! -z "$mount" ]
+    then
+	if [ ! -z "$dry_run" ]
+	then
+	    echo "Dry run only  - not actually mounting $device"
+	elif [ ! -z "$keep_config" ]
+	then
+	    echo "Faking - not actually mounting $device"
+	else
+	    echo "Mounting $device"
+	    mount $verbose "$device"
+	fi
+    fi
+}
+
+
+
+
+
+# Ensure that a device is mounted as specified
+# --------------------------------------------
+# usage:
+#   ensure_mounted <options> <device> <mount_point>
+#
+#   where 
+#         <options> = [-v] [-r rw | ro] [-o <opt>[,<opt>]*] [-fstype <filesystem_type>]
+#             
+#   -v : verbose output - default false
+#   -t : dry run and only output info  - default false
+#   -r : read only or read & write 
+#   -o : comma separted list of mount options - default none
+#   -fstype : filesystem type 
+#
+# return codes:
+# 0 - mounted 
+# 99 - time out but still not mounted 
+# other - failed error code from mount
+# 
+# WARNING : DOES NOT WORK IF MOUNT POINT IS NOT SPECIFIED
+
+ensure_mounted () {
+
+    # Read arguments and switches
+    local verbose=""       
+    local dry_run=""               
+    local fstype=""
+    local fstype_arg=""
+    local rw_option="" 
+    local rw_option_arg="" 
+    local options="" 
+    local options_arg=""       
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-f" # mount cmd uses -f
+		shift
+		;;
+	    -f) shift # not used here
+		;;
+	    -fstype) fstype="$2"
+		fstype_arg="-fstype $2"
+		shift
+		shift
+		;;
+	    -r) rw_option="$2"
+		rw_option_arg="-r $2"
+		shift
+		shift
+		;;
+	    -o) options_arg="-o $2"
+		options="$2"
+		shift
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done
+
+    local device=$1
+    local mount_point=$2
+
+    verbose_echo()
+    {
+	[ ! -z "$verbose" ] && echo $@
+    }
+
+    if is_mounted $verbose $dry_run $rw_option_arg $options_arg $device $mount_point
+    then
+	verbose_echo "Device mounted in desired place, with desired options - OK"
+	return 0
+    elif is_mounted $verbose $dry_run $device $mount_point
+    then
+	verbose_echo "Device mounted in desired place but options are not as desired - remounting"
+
+	if [ -z "$rw_option" ]
+	then
+	    rw_option=$(get_rw_mount_options_from_mtab_records "$mtab_records")
+	fi
+	if [ -z "$options" ]
+	then
+	    options=$(get_plain_mount_options_from_mtab_records "$mtab_records")
+	fi
+
+	local remountopts=$(str_split -so ',' $rw_option $options remount)
+	verbose_echo "Remount opts: $remountopts"
+	
+	mount $dry_run -o $remountopts $device $mount_point
+	# This will work even if no desired options are specified
+  	# since in that case the previous if clause will trigger.
+	# I.e. we may not be without any desired options.
+    elif is_mounted $verbose $dry_run $device
+    then
+	verbose_echo "Device mounted BUT not att desired place - will unmount and mount"
+
+	# first gather information about the existing mount
+
+	local mtab_records=$(get_mtab_records $device)
+	if [ -z "$rw_option" ]
+	then
+	    rw_option=$(get_rw_mount_options_from_mtab_records "$mtab_records")
+	    [ ! -z "$rw_option" ] && rw_option_arg="-r $rw_option"
+	fi
+	if [ -z "$options" ]
+	then
+	    options=$(get_plain_mount_options_from_mtab_records "$mtab_records")
+	    [ ! -z "$options" ] && options_arg="-o $options"
+	fi
+	if [ -z "$fstype" ]
+	then
+	    fstype=$(get_fstype_from_mtab_records "$mtab_records")
+	    [ ! -z "$fstype" ] && fstype_arg="-fstype $fstype"
+	fi
+
+	# now unmount the device - use force if needed
+	if umount_device $verbose $dry_run -uf $device
+	then
+	    # finally mount the device according to desire ...
+	    mount_device $verbose $dry_run $rw_option_arg $options_arg $fstype_arg $device $mount_point
+	else
+	    echo "$FUNCNAME: Failed to unmout device: $device" 1>&2
+	fi
+    else
+	verbose_echo "Destination device is not mounted - will mount it"
+	mount_device $verbose $dry_run $rw_option_arg $options_arg $fstype_arg $device $mount_point
+    fi
+}
+
+# Mount device and check that the device is mounted as specified
+# --------------------------------------------------------------
+# usage:
+#   mount_device <options> <device> [<mount_point>] 
+#
+#   where 
+#         <options> = [-v] [-r rw | ro] [-o <opt>[,<opt>]*] [-fstype <filesystem_type>]
+#             
+#   -v : verbose output - default false
+#   -t : dry run and only output info  - default false
+#   -r : read only or read & write 
+#   -o : comma separted list of mount options - default none
+#   -fstype : filesystem type 
+#
+# return codes:
+# 0 - mounted 
+# 99 - time out but still not mounted 
+# other - failed error code from mount
+
+mount_device () {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+
+    # Read arguments and switches
+    
+    local verbose=""       
+    local dry_run=""                   
+    local fstype=""
+    local rw_option=""
+    local options=""       
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-f"  # mount cmd uses -f
+		shift
+		;;
+	    -f) shift # not used here
+		;;
+	    -fstype) fstype_arg="-t $2"
+		shift
+		shift
+		;;
+	    -r) rw_option=$2
+		shift
+		shift
+ 		;;
+	    -o) options="$2"
+		shift
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done
+
+    local device=$1
+    local mount_point=$2
+
+    verbose_echo()
+    {
+	[ -z "$verbose" ] || echo "${FUNCNAME[1]}: $@"
+    }
+
+
+    local mountopts_arg=""
+    local mountopts=$(str_split -so ',' $rw_option $options)
+    [ ! -z "$mountopts" ] && mountopts_arg="-o $mountopts"
+
+    mount $dry_run $mountopts_arg $fstype_arg $device $mount_point
+    local result=$?
+    if [ $result -eq 0 ]
+    then
+	local times=0
+	while ! is_mounted $device $mount_point
+	do
+	    verbose_echo "mount succeeded but device not yet mounted - waiting ..."
+	    sleep 2
+	    times=$((times+1))
+	    if [ $times -gt 6 ]
+	    then
+		verbose_echo "mount succeeded (formally) but device not yet mounted - giving up ..."
+		return 99
+	    fi
+	done
+	verbose_echo "mount succeeded and device mounted"
+	return 0
+    else
+	verbose_echo "mount failed with code : " $result
+	return $result
+    fi
+}
+
+# Unmount device
+# --------------
+#
+# usage:
+#   umount_device <options> <device>
+#
+#   where 
+#         <options> = [-v] [-t] [-f] [-uf]
+#             
+#   -v  : verbose output - default false
+#   -t  : dry run and only output info  - default false
+#   -uf : force unmount - uggly!
+#
+# Unmount device and check that the device is unmounted
+# if -f force unmount by killing all processes accesssing the device
+ 
+# return codes:
+# 0 - mounted 
+# 99 - time out but still not mounted 
+# other - failed error code from mount
+
+umount_device () {
+
+    [ $EUID -ne 0 ] && echo "$FUNCNAME: root privileges reqiured" 1>&2 && return 88
+
+    # Read arguments and switches
+  
+    local verbose=""       
+    local dry_run=""      # not implemented yet !!!
+    local keep_config=""  # not used here      
+    local force=""        # default false                  
+     
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-t"
+		shift
+		;;
+	    -f) keep_config="-f"
+		shift
+		;;
+	    -uf) force="-f"
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done  
+
+
+    device=$1
+    
+    if lvdisplay -c | grep -q -E "^[[:space:]].*$device:.*" 
+    then
+	local vg=$(get_item -s / 3 $device)
+	local lvm=$(get_item -s / 4 $device)
+	device="/dev/mapper/$vg""-""$lvm"
+    fi
+
+    verbose_echo()
+    {
+	[ -z "$verbose" ] || echo "${FUNCNAME[1]}: $@"
+    }
+
+    if [ -z "$dry_run" ]
+    then
+	
+     
+	umount $verbose $force $device
+   
+	result=$?
+	if [ $result -eq 0 ]
+	then
+	    verbose_echo "unmount succeeded"
+	    times=0
+	    
+	    while is_mounted $device 
+	    do
+		verbose_echo "unmount succeeded but device not yet unmounted - waiting ..."
+		sleep 5
+		times=$((times+1))
+		if [ $times -gt 6 ]
+		then
+		    verbose_echo "unmount succeeded (formally) but device not yet unmounted - giving up ..."
+		    return 99
+		fi
+	    done
+	    verbose_echo "unmount succeeded and device unmounted"
+	    return 0
+	else
+	    verbose_echo "unmount failed with code : " $result
+
+	    if [ ! -z "$force" ]
+	    then
+		#force unmount
+		verbose_echo "Trying to force unmount"
+		# kill all processe attaced to the device
+		fuser $verbose -mk $device
+		# then try unmounting again without force
+		unmount_device $verbose $device
+		return $?
+	    else
+		return $result
+	    fi
+	fi
+    else
+	echo "$FUNCNAME - dryrun: umount $verbose $force $device"
+	return 0
+    fi
+
+
+}
+
+# Check if a device is mounted as specified
+# -----------------------------------------
+# usage:
+#   is_mounted <options> <device> [<mount_point>] 
+#
+#   where 
+#         <options> = [-v] [-t] [-r rw | ro] [-o <opt>[,<opt>]*]
+#             
+#   -v : verbose output - default false
+#   -t : dry run and only return success   - default false
+#   -r : read only or read & write 
+#   -o : comma separted list of desired mount options - default none
+
+# If device is mounted more than once we will check requirements
+# for all mount points and fail on the first discrepency.
+ 
+# return codes:
+# 4 (100) not mounted at desired mount point or not mounted at all
+# 2 (010) not mounted with desired options
+# 1 (001) not mounted as desired wrt rw or ro
+# 0 (000) mounted at desired mount point (if provided)
+#          and as desired (wrt options and rw or ro)
+
+is_mounted () {
+    # Read arguments and switches
+    local verbose=""       
+    local dry_run=""  
+    local keep_config=""        # not used here                       
+    local desired_rw_option=""  # default any  
+    local desired_options=""         
+
+    while true 
+    do
+	case $1 in
+	    -v) verbose="-v"
+		shift
+		;;
+	    -t) dry_run="-t"
+		shift
+		;;
+	    -f) keep_config="-f"
+		shift
+		;;
+	    -r) desired_rw_option="$2"
+		shift
+		shift
+		;;
+	    -o) desired_options="$2"
+		shift
+		shift
+		;;
+	    *) break	    
+		;;
+	esac
+    done
+
+    local device=$1
+    local desired_mount_point=$2
+
+    [ -z "$device" ] && echo "$FUNCNAME: No device specified" 1>&2  && return 8
+
+    verbose_echo()
+    {
+	[ -z "$verbose" ] || echo "${FUNCNAME[1]}: $@"
+    }
+
+    verbose_echo "Device : " $device 
+    verbose_echo "Desired mount point : " $desired_mount_point
+
+    mtab_records=$(get_all_mtab_records $device $desired_mount_point)
+
+ 
+
+    # Check if device is mounted
+    if [ -z "$mtab_records" ]
+    then
+	if [ -z  "$desired_mount_point" ]
+	then
+            verbose_echo "Device not mounted at all"
+	    rc=4
+	else
+            verbose_echo "Device not mounted at desired mount point"
+	    rc=4
+	fi
+    else
+	verbose_echo "Device mounted"
+	verbose_echo "Current mtab records : " $mtab_records
+
+	rc=0
+	x_IFS="$IFS"
+	IFS=$'\n'	
+	for mtab_record in $mtab_records
+	do
+	    IFS="$x_IFS"
+	    verbose_echo "Investigating mtab record : " $mtab_record
+
+            # check if desired mount options matches actual
+	    if [ ! -z  "$desired_options" ]
+	    then
+		verbose_echo "Desired mount options : " $desired_options
+		actual_mount_options=$(get_plain_mount_options_from_mtab_records "$mtab_record")
+		set_get -s ',' actual_mount_options "$actual_mount_options"
+		verbose_echo "Device mounted with options: $(set_print actual_mount_options)"
+		set_get -s ',' desired_mount_options "$desired_options"
+		if set_is_subset desired_mount_options actual_mount_options
+		then
+		    verbose_echo "Desired mount options matches actual"
+		else
+		    verbose_echo "Desired mount options does not match actual"
+		    rc=$((rc+2))
+		fi
+	    fi
+
+            # check if desired mount type (ro|rw) matches actual
+	    if [ ! -z  "$desired_rw_option" ]
+	    then
+		verbose_echo "Desired mount type (ro| rw) : " $desired_rw_option
+		actual_rw_options=$(get_rw_mount_options_from_mtab_records "$mtab_record")
+		set_get -s ',' actual_rw_options "$actual_rw_options"
+		verbose_echo "Device mounted as: $(set_print actual_rw_options)"
+		if set_has_member actual_rw_options "$desired_rw_option"    
+		then
+		    verbose_echo "Desired mount type matches actual"
+		else
+		    verbose_echo "Desired mount type does not match actual"
+		    rc=$((rc+1))
+		fi
+	    fi
+	    if [ $rc -gt 0 ]
+	    then
+		# if we find one mtab record that does not meet our
+		# desires lets quit
+		break   
+	    fi
+	    IFS=$'\n'
+	done
+	IFS="$x_IFS"
+    fi
+    verbose_echo "Return code : ${rc}"
+    return $rc
+}
+
+
+
+# Suporting functions
+# -------------------
+
+
+get_plain_mount_options_from_mtab_records() {
+
+    local mtab_records=$1
+    set_get -s ',' opts "$(get_mount_options_from_mtab_records "$mtab_records")"
+    set_get mask "rw ro"
+    set_complement plain_opts opts mask
+    set_print -s ',' plain_opts
+}
+
+
+
+get_rw_mount_options_from_mtab_records() {
+
+    local mtab_records=$1
+    set_get -s ',' opts "$(get_mount_options_from_mtab_records "$mtab_records")"
+    set_get mask "rw ro"
+    set_intersection rw_opts opts mask
+    set_print -s ',' rw_opts
+}
+
+get_mount_options_from_mtab_records() {
+
+    local mtab_records=$1
+    local mount_options=$(cut -d ' ' -f 4 <<< "$mtab_records" | sort -u)
+
+    if [ $(wc -l <<< "$mount_options") -gt 1 ]
+    then
+	echo "$FUNCNAME: Device is mounted with more than one set of options : $mount_options" 1>&2
+	return 1
+    fi
+
+    echo "$mount_options"
+}
+
+
+get_fstype_from_mtab_records() {
+
+    local mtab_records="$1"
+
+    local file_system_type=$(cut -d ' ' -f 3 <<< "$mtab_records" | sort -u)
+	
+    if [ $(wc -l <<< "$file_system_type") -gt 1 ]
+    then
+	echo "$FUNCNAME: Strange ... device is mounted with more than one fstype: $file_system_type" 1>&2
+	return 1
+    else
+	echo "$file_system_type"
+    fi
+}
+
+
+
+get_mount_points_from_mtab_records() {
+
+    cut -d ' ' -f 2 <<< "$1"  
+}
+
+
+# Get mtab records - fail if none exists
+get_mtab_records() {
+
+    local device=$1
+    local mount_point=$2
+    local mtab_records=$(get_all_mtab_records $device $mount_point)
+
+ 
+    # Check if device is mounted
+    if [ -z "$mtab_records" ]
+    then
+	echo "$FUNCNAME: Trying to find mtab record for device that is not not mounted: $device" 1>&2
+	return 1
+    else
+	echo "$mtab_records"
+    fi
+}
+
+# Get all existing mtab records
+get_all_mtab_records() {
+
+    local device=$1
+    local mount_point=$2
+
+    if sudo lvdisplay -c | grep -q -E "^[[:space:]].*$device:.*" 
+    then
+	local vg=$(get_item -s / 3 $device)
+	local lvm=$(get_item -s / 4 $device)
+	device="/dev/mapper/$vg""-""$lvm"
+    fi
+    if [ -z $mount_point ]
+    then
+	grep -E "^$device[[:space:]].*" /etc/mtab
+    else
+	grep -E "^$device[[:space:]]$mount_point[[:space:]].*" /etc/mtab
+    fi
+
+}
+
+
+__MOUNT_UTILS_LOADED=true
