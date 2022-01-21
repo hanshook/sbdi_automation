@@ -1,3 +1,10 @@
+# The docker storage playbook will setup shared Gluster storage on all storage_clients provided at the /docker mointpoint.
+# The Gluster volume 'docker' is provided by the storage servers
+# There should be three (3) storage servers to enable safe reboot of any of these servers during maintenance
+# The Gluster volume is backed by a thinly provissioned logical volume (lvm).
+# Thus Gluster volume snapshots may be used to backup all data in all docker containers instantly.
+
+
 ---
 - name: Setup storage for Docker data on all storage nodes 
   hosts: storage
