@@ -102,7 +102,7 @@ uat-manager-1
 # server-y
 
 
-[ntp-servers]
+[ntp_servers]
 uat-acces-1
 uat-access-2
 
