@@ -1,0 +1,14 @@
+- name: Create  mount point for docker data /docker
+  file:
+    path: /docker
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+    recurse: yes
+- name: Mount docker gluster volume at /docker
+  ansible.posix.mount:
+    src: "{{  deployment_prefix+'-'+groups['storage'][0] }}:/docker"
+    fstype: glusterfs
+    path: /docker
+    state: mounted

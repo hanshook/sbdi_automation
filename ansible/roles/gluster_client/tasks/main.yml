@@ -5,9 +5,4 @@
 - name: Install basic packages
   apt:
     pkg:
-    - glusterfs-server
-- name: Make sure the gluster service is running
-  ansible.builtin.systemd:
-    enabled: yes
-    state: started
-    name: glusterd.service
+    - glusterfs-client

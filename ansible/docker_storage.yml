@@ -1,19 +1,29 @@
 ---
-- name: Setup Gluster disk on all storage nodes 
+- name: Setup storage for Docker data on all storage nodes 
   hosts: storage
   become: true
   roles:
-  - role: gluster_disk
-- name: Setup Gluster Server on  all storage nodes 
+  - role: docker_storage
+- name: Setup Gluster Server on all storage nodes 
   hosts: storage
   become: true
   roles:
   - role: gluster_server
-- name: Setup Gluster Docker Share 
+- name: Setup GlusterFS Volume for Docker data 
   hosts: "{{ groups['storage'][0] }}"
   become: true
   roles:
-  - role: gluster_docker_share
+  - role: docker_gluster_volume
+- name: Setup Gluster Client on all storage clients that are not backends 
+  hosts: storage_clients:!storage
+  become: true
+  roles:
+  - role: gluster_client
+- name: Ensure Docker data access on all storage clients
+  hosts: storage_clients
+  become: true
+  roles:
+  - role: docker_data_access    
 
 
 # http://manpages.ubuntu.com/manpages/xenial/man7/lvmthin.7.html

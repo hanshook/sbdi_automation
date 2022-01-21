@@ -1,24 +1,25 @@
 - name: Debug
   debug:
     msg: "{{ groups['storage'] | map('regex_replace', '(^.*$)', deployment_prefix+'-\\1') | list }}"
-- name: Create a trusted storage pool
+
+- name: Create a trusted Gluster storage pool of all storage servers
   gluster.gluster.gluster_peer:
     state: present
     nodes: "{{ groups['storage'] | map('regex_replace', '(^.*$)', deployment_prefix+'-\\1') | list }}"
    
-# - name: Create brick
-#   file:
-#     path: /export/docker/brick
-#     state: directory
-#     owner: root
-#     group: root
-#     mode: 0775
+- name: Create directory for Gluster Volume (/export/docker/gluster)
+  file:
+    path: /export/docker/gluster
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
 
-- name: create gluster volume
+- name: Create Gluster Volume for Docker data
   gluster.gluster.gluster_volume:
     state: present
     name: docker
-    bricks: /export/docker/brick
+    bricks: /export/docker/gluster
     rebalance: yes
     cluster: "{{ groups['storage'] | map('regex_replace', '(^.*$)', deployment_prefix+'-\\1') | list }}"
   run_once: true

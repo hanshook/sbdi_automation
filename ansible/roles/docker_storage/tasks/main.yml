@@ -26,47 +26,40 @@
   when: not (((sdb_info['partitions'] | length) == 1) and ('lvm' in sdb_info['partitions'][0]['flags']))     
 - name: Reboot the machine (workarround for bug in sticky mount)
   reboot:    
-- name: Create volume group
+- name: Create a volume group for storage of Docker config and volumes (vg_docker)
   lvg:
-    vg: vg_gluster
+    vg: vg_docker
     pvs: "{{ lvm_device }}1"
     pesize: 16
     force: yes
     state: present
-- name: Create a thin pool
+- name: Create a thin lvm pool for storage of Docker config and volumes (tp_docker)
   community.general.lvol:
-    vg: vg_gluster
-    thinpool: tp_gluster
+    vg: vg_docker
+    thinpool: tp_docker
     size: 80%VG
-- name: Create a thin volume
+- name: Create a thin lvm volume for storage of Docker config and volumes (tlv_docker)
   community.general.lvol:
-    vg: vg_gluster
-    lv: tlv_gluster
-    thinpool: tp_gluster
+    vg: vg_docker
+    lv: tlv_docker
+    thinpool: tp_docker
     size: 100G
-- name: Format thin volume with xfs
+- name: Format the thin volume for docker data with xfs
   community.general.filesystem:
     fstype: xfs
-    dev: /dev/vg_gluster/tlv_gluster
+    dev: /dev/vg_docker/tlv_docker
     opts: -i size=512
-- name: Create export mount point
+- name: Create export mount point /export/docker
   file:
     path: /export/docker
     state: directory
     owner: root
     group: root
     mode: 0775
-    recurse: yes
-- name: Mount thin volume at /export/docker
+#    recurse: yes
+- name: Mount thin volume tlv_docker_volume at /export/docker
   ansible.posix.mount:
-    src: /dev/vg_gluster/tlv_gluster
+    src: /dev/vg_docker/tlv_docker
     fstype: xfs
     path: /export/docker
     state: mounted
-- name: Create brick
-  file:
-    path: /export/docker/brick
-    state: directory
-    owner: root
-    group: root
-    mode: 0775

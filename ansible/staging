@@ -18,6 +18,12 @@ manager-1
 manager-2
 worker-1
 
+[storage_clients]
+manager-1 
+manager-2
+worker-1
+worker-2
+
 
 [gateways:vars]
 ansible_connection=ssh
