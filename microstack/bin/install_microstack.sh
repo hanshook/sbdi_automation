@@ -266,7 +266,7 @@ fi
 if ! ssh-add -l &>/dev/null
 then
    # We are running in a shell without ssh-agent
-   eval `ssh-agent -s`
+   eval \`ssh-agent -s\`
    ssh-add .ssh/id_rsa
 fi
 

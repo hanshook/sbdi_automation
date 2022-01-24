@@ -24,6 +24,12 @@ manager-2
 worker-1
 worker-2
 
+[backup_director]
+backup-director
+
+[backup_target]
+backup-target
+
 
 [gateways:vars]
 ansible_connection=ssh

@@ -42,3 +42,6 @@ To remove and start afresh:
 `sudo ssh -N -L 8001:10.20.20.1:443 $USER@<machine_running_microstack>`
 
 Then point your browser at https://localhost:8001
+
+
+[Howto setup for local network](https://connection.rnascimento.com/2021/03/08/openstack-single-node-microstack/)
