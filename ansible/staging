@@ -27,8 +27,11 @@ worker-2
 [backup_director]
 backup-director
 
-[backup_target]
+[backup_targets]
 backup-target
+
+[backup_sources]
+manager-1
 
 
 [gateways:vars]

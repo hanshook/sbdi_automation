@@ -1,0 +1,29 @@
+- name: Ensure group "backupoperator" exists with correct gid
+  ansible.builtin.group:
+    name: backupoperator
+    state: present
+    gid: 1901
+    
+- name: Create user "backupoperator" with ssh keys
+  ansible.builtin.user:
+    name: backupoperator
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+    shell: /bin/bash
+    uid: 1901
+    group: backupoperator
+  register: backupoperator_data
+
+- name: Remove known_hosts file
+  file:
+    state: absent
+    path: ~backupoperator/.ssh/known_hosts
+
+- name: Accept SSH host keys for hostnames
+  shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts' backupoperator"
+  with_items: "{{ groups['backup_targets']  + groups['backup_sources'] }}"
+
+- name: Accept SSH host keys for  fqdns
+  shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts' backupoperator"
+  with_items: "{{ groups['backup_targets']  + groups['backup_sources'] }}"
