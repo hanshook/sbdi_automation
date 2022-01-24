@@ -31,7 +31,7 @@ backup-director
 backup-target
 
 [backup_sources]
-manager-1
+manager-1 gluster_backup_source=true
 
 
 [gateways:vars]
