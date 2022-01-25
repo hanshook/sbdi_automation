@@ -1,0 +1,33 @@
+- name: Make sure the correct "etc" directories for deployment are present 
+  file:
+    path: "/docker/etc/osticket/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    recurse: yes
+    state: directory
+  with_items:
+    - db
+    - deploy
+    - env
+- name: Make sure the correct "usr" directories for deployment are present 
+  file:
+    path: "/docker/usr/osticket/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    recurse: yes
+    state: directory
+  with_items:
+    - bin
+- name: copy dencrypted file x
+  copy:
+    src: x
+    dest: /etc/x
+    decrypt: yes
+    owner: root
+    group: root
+    mode: 0644
+    backup: no
+
+

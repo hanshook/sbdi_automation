@@ -1,0 +1,132 @@
+#! /bin/bash
+#
+# Logging Utilities
+# =================
+#
+# USAGE
+# . <path/to/directory/of/this/file>/log_utils
+#
+# ------------------------------
+#
+# Configuration of these utilities:
+#
+# log_logging_application = <syslog prefix> # (defults to SOMO)
+# log_no_logger = true # will disable syslog logging (defaults to false)
+# log_no_stdout = true # will disable logging to stdout (defaults to false)
+#                 (fatal and error will always log to stderr)
+#
+# --
+# 
+# AltruSOMO project
+# 
+# Hans Hook (hans.hook@altrusoft.se) Altrusoft AB 2009-05-01
+#
+# Copyright (c) 2009, Altrusoft AB
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# Source these library functions only once:
+if ${__LOG_UTILS_LOADED:-false} && [[ "$0" != "$BASH_SOURCE" ]]
+then
+    ${SOMO_DEBUG:-false} && echo "SOMO: Log Utilities already loaded"
+    return 0
+fi
+${SOMO_DEBUG:-false} && echo "SOMO: Loading Log Utilities"
+
+log_fatal()
+{
+    __log_log crit "FATAL" $@
+    # If first argument is an integer > 0 
+    #     - exit with this integer as exit code
+    [ $1 -gt 0 2> /dev/null ] && exit $1
+}
+
+log_error()
+{
+    __log_log err "ERROR" $@
+}
+
+log_warn()
+{
+    __log_log warning "WARNING" $@
+}
+
+log_info()
+{
+    __log_log info "INFO" $@
+}
+
+log_debug()
+{
+    if [ ! -z "$debug" -a -z "$log_no_stdout" ]
+    then
+	__log_set_subject 2
+	__log_log_debug  $@ 
+    fi
+}
+
+# Internal/Private/Implementation
+
+
+logging_red='\033[0;31m'
+logging_orange='\033[0;33m'
+logging_green='\033[0;32m'
+logging_blue='\033[0;34m'
+logging_nc='\033[0m' # No Color
+
+log_logging_application=${log_logging_application:-"SOMO"}
+
+
+__log_log()
+{
+    local level=$1
+    shift
+    local cleartext_level=$1
+    shift
+    __log_set_subject 3
+    case $level in
+	crit) echo -e "${logging_red}${__log_logging}: $cleartext_level - $@${logging_nc}" 1>&2
+	    ;;
+	err) echo -e "${logging_red}${__log_logging}: $cleartext_level - $@${logging_nc}" 1>&2
+	    ;;
+	warning) [ -z "$log_no_stdout" ] && echo -e "${logging_orange}${__log_logging}: $cleartext_level - $@${logging_nc}"
+	    ;;
+	info) [ -z "$log_no_stdout" ] && echo -e "${logging_green}${__log_logging}: $cleartext_level - $@${logging_nc}"
+	    ;;
+	*) [ -z "$log_no_stdout" ] && echo -e "${__log_logging}: $cleartext_level - $@"
+	    ;;
+    esac
+    [ -z "$log_no_logger" ] && /usr/bin/logger -i -t "${log_logging_application}:${__log_logging}" -p user.$level -- "$cleartext_level - $@"
+}
+
+__log_log_debug()
+{
+    echo -e "${logging_blue}${__log_logging}: DEBUG - $@${loging_nc}"
+}
+
+__log_set_subject()
+{
+    __log_logging="$log_subject"
+    if [ -z "$__log_logging" ]
+    then
+	__log_logging=`basename $0`
+	__log_func="${FUNCNAME[$1]}"
+	[ ! -z "$__log_func" ] && [[ "$__log_func" != "main" ]] && __log_logging="${__log_logging}::${__log_func}"
+    fi
+} 
+
+
+
+__LOG_UTILS_LOADED=true

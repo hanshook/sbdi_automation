@@ -1,4 +1,4 @@
-- name: Create  mount point for docker data /docker
+- name: Create  mount point for docker data "/docker"
   file:
     path: /docker
     state: directory
@@ -6,9 +6,23 @@
     group: root
     mode: 0775
     recurse: yes
-- name: Mount docker gluster volume at /docker
+- name: Mount docker gluster volume at "/docker"
   ansible.posix.mount:
     src: "{{  deployment_prefix+'-'+groups['storage'][0] }}:/docker"
     fstype: glusterfs
     path: /docker
     state: mounted
+- name: Make sure the "/docker" mount point has the correct subdirectories for deployment 
+  file:
+    path: "/docker/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    recurse: yes
+    state: directory
+  with_items:
+    - etc
+    - usr
+    - var/volumnes
+    - var/backup
+
