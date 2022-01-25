@@ -12,6 +12,13 @@
     fstype: glusterfs
     path: /docker
     state: mounted
+- name: Make sure the "/docker" mount point has the correct access rights
+  file:
+    path: /docker
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
 - name: Make sure the "/docker" mount point has the correct subdirectories for deployment 
   file:
     path: "/docker/{{item}}"

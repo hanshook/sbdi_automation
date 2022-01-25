@@ -20,10 +20,10 @@
     state: directory
   with_items:
     - bin
-- name: copy dencrypted file x
+- name: copy dencrypted file .env
   copy:
-    src: x
-    dest: /etc/x
+    src: /etc/.../.env
+    dest: .../etc/../.env
     decrypt: yes
     owner: root
     group: root
