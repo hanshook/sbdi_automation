@@ -11,6 +11,13 @@
     ansible.builtin.apt_repository:
       repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
       state: present
+  - name: Update and upgrade apt packages
+    apt:
+      upgrade: yes
+      update_cache: yes
+      cache_valid_time: 86400 #One day
+  - name: Reboot the machine
+    reboot: 
   - name: Install basic packages
     apt:
       pkg:
@@ -25,7 +32,10 @@
       dest: /usr/local/bin/docker-compose
       owner: root
       mode: 755
-
+      
+- name: Install utility scripts, auotupdates and nrpe client
+  hosts: servers:gateways
+  become: true
   roles:
     - role: sbdi_utility_scripts
     - role: autoupdate

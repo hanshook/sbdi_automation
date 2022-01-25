@@ -11,7 +11,7 @@ manager-2 nbr=22 flavor=lm.large.1d
 worker-1 nbr=23 flavor=lm.large.1d
 worker-2 nbr=24 flavor=lb.tiny
 backup-director nbr=91 flavor=lb.tiny
-backup-target nbr=92 flavor=m.medium
+backup-target nbr=92 flavor=lm.large.1d
 
 [storage]
 manager-1 

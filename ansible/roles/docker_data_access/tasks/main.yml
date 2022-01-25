@@ -23,6 +23,6 @@
   with_items:
     - etc
     - usr
-    - var/volumnes
+    - var/volumes
     - var/backup
 
