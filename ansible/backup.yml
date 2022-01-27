@@ -1,18 +1,18 @@
 ---
-- name: Setup backup director node
+- name: Setup backup user for director
   become: true
   hosts: backup_director
   roles:
     - backup_director
+
+- name: Setup backup user for sourec and target 
+  become: true
+  hosts: backup_targets:backup_sources
+  roles:
+    - backup_directed
 
 - name: Setup backup target nodes
   become: true
   hosts: backup_targets
   roles:
     - backup_target
-    
-- name: Setup backup source nodes
-  become: true
-  hosts: backup_sources
-  roles:
-    - backup_source

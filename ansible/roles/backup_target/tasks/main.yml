@@ -1,16 +1,87 @@
-- name: Ensure group "backupoperator" exists with correct gid
-  ansible.builtin.group:
-    name: backupoperator
-    state: present
-    gid: 1901
-- name: Create user "backupoperator"
-  ansible.builtin.user:
-    name: backupoperator
-    shell: /bin/bash
-    uid: 1901
-    group: backupoperator
-- name: Enable passwordless login for user "backupoperator"
-  ansible.posix.authorized_key:
-    user: backupoperator
-    state: present
-    key: "{{hostvars[groups['backup_director'][0]]['backupoperator_data']['ssh_public_key']}}"
+- name: Install ZFS
+  apt:
+    pkg: zfsutils-linux
+
+- name: Ensure mount point /backup
+  file:
+    path: /backup
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+    
+- name: Ensure backup data device is not mounted as at host creation
+  mount:
+    path: /mnt
+    src: "{{ backup_data_device }}"
+    state: absent
+    
+- name: Check for ZFS "backup" pool existence
+  shell: zpool list -Ho name backup 2>/dev/null | wc -l
+  register: number_of_matching_zpools
+
+- debug:
+    var: number_of_matching_zpools
+    
+- name: Read backup data device information (always use unit when probing)
+  parted: "device={{ backup_data_device }} unit=MiB"
+  register: data_device_info
+  when: number_of_matching_zpools.stdout == "0"
+
+- name: Output disks
+  debug:
+    msg: "{{ data_device_info }}"
+  when: number_of_matching_zpools.stdout == "0"
+
+- name: Remove all partitions from data device if not already zfs pool exists
+  parted:
+    device: "{{ backup_data_device }}"
+    number: "{{ item.num }}"
+    state: absent
+  with_items:
+   - "{{ data_device_info.partitions }}"
+  when: number_of_matching_zpools.stdout == "0"
+
+- name: Reboot the machine (workarround for bug in sticky mount)
+  reboot:    
+  when: number_of_matching_zpools.stdout == "0"
+    
+- name: Create ZFS "backup" zpool
+  command: "zpool create -m /backup backup {{ backup_data_device }}"
+  when: number_of_matching_zpools.stdout == "0"
+
+- name: Enable gzip-7 compression
+  command: "zfs set compression=gzip-7 backup"
+
+- name: Create ZFS "backup/current" filesystem
+  command: "zfs create backup/current"
+  when: number_of_matching_zpools.stdout == "0"
+
+- name: Ensure /opt/sbdi/lib folder
+  file: 
+    path: /opt/sbdi/backup/bin
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
+    
+- name: Install backup scripts
+  copy:
+    src: "bin/{{ item }}"
+    dest: /opt/sbdi/backup/bin/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - create_backup_snapshot.sh
+    - mount_latest_snapshot.sh
+    - umount_latest_snapshot.sh
+
+- name: Install sudoers file for backupoperator
+  copy:
+    src: "42-backupoperator"
+    dest: /etc/sudoers.d/42-backupoperator
+    owner: root
+    group: root
+    mode: 0110
+  
