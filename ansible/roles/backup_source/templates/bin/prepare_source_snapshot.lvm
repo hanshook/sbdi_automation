@@ -1,0 +1,148 @@
+#! /bin/bash
+#
+# Prepare source snapshot
+# =======================
+#
+# 
+# AltruSOMO project
+# 
+# Hans Hook (hans.hook@altrusoft.se) Altrusoft AB 2009-04-27
+#
+# Copyright (c) 2009, Altrusoft AB
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA#! /bin/bash
+
+
+# 
+# ------------------
+# 
+# usage:
+#   prepare_lvm_source_snapshot <options> 
+#
+#   where 
+#         <options> = [-v] [-t] [-size <snapshot_size>] [-name <snapshot_name>]
+#             
+#   -v    : verbose output - default false
+#   -t    : dry run and only output info  - default false
+#   -size : snapshot size  - default 200M
+#   -name : snapshot name  - default <volume_name>_backupsnap
+
+
+
+# Read arguments and switches
+verbose=''
+dry_run=''
+snapshot_size="200M" # default 200 MB
+snapshot_name=''
+
+while true 
+do
+    case $1 in
+
+	-v) verbose="-v"
+	    shift
+	    ;;
+	-t) dry_run="-t"
+	    shift
+	    ;;
+	-size) snapshot_size=$2
+	    shift
+	    shift
+	    ;;
+	-name) snapshot_name=$2
+	    shift
+	    shift
+	    ;;
+	*) break	    
+	    ;;
+    esac
+done
+
+source_vg={{ source_volume_group }} 
+source_volume={{ source_volume }}
+source_mount_point={{ source_mount_point }}
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
+
+. $lib_dir/lvm_utils
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+
+[ -z "$source_vg" ] && log_fatal 91 "No volume group provided"
+[ -z "$source_volume" ] && log_fatal 92 "No volume provided"
+[ -z "$source_mount_point" ] && log_fatal 93 "No snapshot mount point provided"
+
+[ -z "$snapshot_name" ] && snapshot_name="${source_volume}_backupsnap"
+
+# Ensure mount point or exit
+
+if [ ! -e $source_mount_point ]
+then
+   log_info "Mount point ($source_mount_point) does not exist - creating it"
+   if ! sudo mkdir -p $source_mount_point
+   then
+       log_fatal 11 "Unable to create mount point ($source_mount_point) - exiting"
+   fi
+fi
+
+if [ ! -d $source_mount_point ]
+then
+    log_fatal 12 "Mount point ($source_mount_point) is not a directory - exiting"
+fi
+
+# Ensure any old snapshots removed or exit
+
+removal_attempts=1
+while lvm_exists $source_vg $snapshot_name
+do
+    log_warn "Snapshot ($source_vg $snapshot_name) exist - trying to remove it"
+    if lvm_remove_snapshot $verbose $dry_run $source_vg $snapshot_name
+    then
+	log_info "Removed snapshot ($source_vg $snapshot_name) on attempt: ${removal_attempts}"
+    else
+	verbose_echo "Failed to remove snapshot on ${removal_attempts} attempt"
+    fi
+    if [ $removal_attempts -ge 5 ]
+    then
+	log_fatal 21 "Unable to remove snapshot ($source_vg $snapshot_name) after ${removal_attempts} attempts - exiting "
+    fi
+    sleep 1
+    removal_attempts=$((removal_attempts+1))
+done
+
+# Ensure mounted snapshot or exit
+
+if lvm_create_snapshot $verbose $dry_run -p $source_mount_point $source_vg $source_volume $snapshot_name $snapshot_size
+then
+    log_info "Mounted snapshot ($source_vg $snapshot_name) of volume: ${source_volume} at: ${source_mount_point}"
+else
+    error=$?
+    if [ $error -lt 98 ]
+    then
+	log_fatal $error "Failed to create snapshot ($source_vg $snapshot_name) of: ${source_volume}"
+    elif [ $error -eq 98 ]
+    then
+	log_fatal $error "Failed to mount snapshot ($source_vg $snapshot_name) of: ${source_volume} at: ${source_mount_point} - Snapshot removed"
+    else
+	log_fatal $error "Failed to mount snapshot ($source_vg $snapshot_name) of: ${source_volume} at: ${source_mount_point} - WARNING! snapshot is not removed (dangling)"
+    fi
+fi
+	
+

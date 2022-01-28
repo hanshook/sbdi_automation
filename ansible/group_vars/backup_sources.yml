@@ -1,2 +1,7 @@
-gluster_backup_source: False
-lvm_backup_source: False
+
+backup_source_type: gluster
+#backup_source_type: lvm
+source_volume_group: vg0
+source_volume: lv0
+source_mount_point: /backupsource
+

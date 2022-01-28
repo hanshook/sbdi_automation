@@ -1,0 +1,53 @@
+- name: Install rsync
+  apt:
+    pkg: rsync
+
+- name: Ensure mount point for backup snapshots
+  file:
+    path: "{{ source_mount_point }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+    
+- name: Ensure /opt/sbdi/backup folder
+  file: 
+    path: /opt/sbdi/backup/bin
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
+    
+- name: Install backup snapshot handling scripts
+  template:
+    src: "bin/{{ item }}"
+    dest: "/opt/sbdi/backup/bin/{{ item | split('.') | first }}"
+#    dest: "/opt/sbdi/backup/bin/{{ item | regex_replace('^(.+)\\..*$', '\\1' }}"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - "prepare_source_snapshot.{{ backup_source_type }}"
+    - perform_rsync.all
+    - "remove_source_snapshot.{{ backup_source_type }}"
+
+- name: Install sudoers file for backupoperator
+  copy:
+    src: "43-backupoperator"
+    dest: /etc/sudoers.d/43-backupoperator
+    owner: root
+    group: root
+    mode: 0110
+
+- name: Remove known_hosts file
+  file:
+    state: absent
+    path: ~backupoperator/.ssh/known_hosts
+
+- name: Accept SSH host keys for hostnames
+  shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts' backupoperator"
+  with_items: "{{ groups['backup_targets'] }}"
+
+- name: Accept SSH host keys for  fqdns
+  shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts' backupoperator"
+  with_items: "{{ groups['backup_targets'] }}"   

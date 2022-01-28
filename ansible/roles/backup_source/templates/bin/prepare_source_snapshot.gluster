@@ -1,0 +1,92 @@
+#! /bin/bash
+#
+# Prepare source snapshot
+# =======================
+#
+
+# TBD
+
+# 
+# ------------------
+# 
+# usage:
+#   prepare_gluster_source_snapshot <options> 
+#
+#   where 
+#         <options> = [-v] [-t] [-size <snapshot_size>] [-name <snapshot_name>]
+#             
+#   -v    : verbose output - default false
+#   -t    : dry run and only output info  - default false
+#   -size : snapshot size  - default 200M
+#   -name : snapshot name  - default <volume_name>_backupsnap
+
+
+
+# Read arguments and switches
+verbose=''
+dry_run=''
+snapshot_size="200M" # default 200 MB
+snapshot_name=''
+
+while true 
+do
+    case $1 in
+
+	-v) verbose="-v"
+	    shift
+	    ;;
+	-t) dry_run="-t"
+	    shift
+	    ;;
+	-size) snapshot_size=$2
+	    shift
+	    shift
+	    ;;
+	-name) snapshot_name=$2
+	    shift
+	    shift
+	    ;;
+	*) break	    
+	    ;;
+    esac
+done
+
+gluster_volume=docker
+source_mount_point={{ source_mount_point }}
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+
+# Ensure mount point or exit
+
+if [ ! -e $source_mount_point ]
+then
+   log_info "Mount point ($source_mount_point) does not exist - creating it"
+   if ! sudo mkdir -p $source_mount_point
+   then
+       log_fatal 11 "Unable to create mount point ($source_mount_point) - exiting"
+   fi
+fi
+
+if [ ! -d $source_mount_point ]
+then
+    log_fatal 12 "Mount point ($source_mount_point) is not a directory - exiting"
+fi
+
+[ -z "$snapshot_name" ] && snapshot_name="${gluster_volume}_backupsnap"
+
+# Ensure any old snapshots removed or log fatal
+
+gluster snapshot create $snapshot_name  $gluster_volume no-timestamp
+gluster snapshot activate $snapshot_name
+mount -t glusterfs localhost:/snaps/$snapshot_name/$gluster_volume $source_mount_point
+# Ensure mounted snapshot or log fatal
+
+

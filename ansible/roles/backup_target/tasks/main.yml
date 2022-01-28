@@ -1,6 +1,8 @@
-- name: Install ZFS
+- name: Install ZFS and rsync
   apt:
-    pkg: zfsutils-linux
+    pkg:
+      - zfsutils-linux
+      - rsync
 
 - name: Ensure mount point /backup
   file:

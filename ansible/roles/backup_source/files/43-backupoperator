@@ -1,0 +1,6 @@
+Cmnd_Alias     S_SNAP = /opt/sbdi/backup/bin/prepare_source_snapshot
+Cmnd_Alias     S_RSYNC = /opt/sbdi/backup/bin/perform_rsync
+Cmnd_Alias     S_UMNT = /opt/sbdi/backup/bin/remove_source_snapshot
+Cmnd_Alias     S_ALL = S_SNAP, S_RSYNC, S_UMNT 
+
+backupoperator ALL=(ALL) NOPASSWD: S_ALL

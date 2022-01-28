@@ -1,0 +1,103 @@
+#! /bin/bash
+#
+# Remove source snapshot
+# ======================
+#
+# 
+# AltruSOMO project
+# 
+# Hans Hook (hans.hook@altrusoft.se) Altrusoft AB 2009-04-27
+#
+# Copyright (c) 2009, Altrusoft AB
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA#! /bin/bash
+
+# 
+# ------------------
+# 
+# usage:
+#   remove_source_snapshot <options> 
+#
+#   where 
+#         <options> = [-v] [-t] [-name <snapshot_name>]
+#             
+#   -v    : verbose output - default false
+#   -t    : dry run and only output info  - default false
+#   -name : snapshot name  - default {{ source_volume }}_backupsnap
+#
+
+
+
+# Read arguments and switches
+
+verbose=''      
+dry_run=''     
+snapshot_name=''
+
+while true 
+do
+    case $1 in
+
+	-v) verbose="-v"
+	    shift
+	    ;;
+	-t) dry_run="-t"
+	    shift
+	    ;;
+	-name) snapshot_name=$2
+	    shift
+	    shift
+	    ;;
+	*) break	    
+	    ;;
+    esac
+done
+
+source_vg={{ source_volume_group }}
+source_volume={{ source_volume }}
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib} 
+
+. $lib_dir/lvm_utils
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+[ -z "$source_vg" ] && log_fatal 91 "No volume group provided"
+[ -z "$source_volume" ] && log_fatal 91 "No volume provided"
+
+[ -z "$snapshot_name" ] && snapshot_name="${source_volume}""_backupsnap"
+
+
+if lvm_is_snapshot $source_vg $snapshot_name
+then
+    if lvm_remove_snapshot $verbose $dry_run $source_vg $snapshot_name
+    then
+	log_info "Removed snapshot ($source_vg $snapshot_name) of: ${source_volume}"
+    else
+	error=$?
+	if [ $error -eq 97 ]
+	then
+	    log_fatal $error "Failed to unmount snapshot ($source_vg $snapshot_name) of: ${source_volume}"
+	else
+	    log_fatal $error "Failed to remove snapshot ($source_vg $snapshot_name) of: ${source_volume}"
+	fi
+    fi
+else
+    log_warn "No snapshot found - none to remove"
+fi

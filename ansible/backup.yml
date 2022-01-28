@@ -11,6 +11,12 @@
   roles:
     - backup_directed
 
+- name: Setup backup source nodes
+  become: true
+  hosts: backup_sources
+  roles:
+    - backup_source
+
 - name: Setup backup target nodes
   become: true
   hosts: backup_targets

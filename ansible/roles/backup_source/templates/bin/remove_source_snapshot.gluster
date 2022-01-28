@@ -1,0 +1,75 @@
+#! /bin/bash
+#
+# Remove source snapshot
+# ======================
+#
+# 
+
+# TBD
+
+# 
+# ------------------
+# 
+# usage:
+#   remove_source_snapshot <options> 
+#
+#   where 
+#         <options> = [-v] [-t] [-name <snapshot_name>]
+#             
+#   -v    : verbose output - default false
+#   -t    : dry run and only output info  - default false
+#   -name : snapshot name  - default {{ source_volume }}_backupsnap
+#
+
+
+
+# Read arguments and switches
+
+verbose=''      
+dry_run=''     
+snapshot_name=''
+
+while true 
+do
+    case $1 in
+
+	-v) verbose="-v"
+	    shift
+	    ;;
+	-t) dry_run="-t"
+	    shift
+	    ;;
+	-name) snapshot_name=$2
+	    shift
+	    shift
+	    ;;
+	*) break	    
+	    ;;
+    esac
+done
+
+
+gluster_volume=docker
+source_mount_point={{ source_mount_point }}
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib} 
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+
+
+[ -z "$snapshot_name" ] && snapshot_name="${gluster_volume}_backupsnap"
+
+umount $source_mount_point
+echo "y" | gluster snapshot deactivate $snapshot_name
+echo "y" | gluster snapshot delete $snapshot_name
+
+# Ensure unmounted snapshot or log error
+
+# Ensure snapshot removed or log error
+

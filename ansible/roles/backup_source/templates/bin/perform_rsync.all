@@ -1,0 +1,75 @@
+#! /bin/bash
+#
+# Perform rsync of source snapshot on this node to backup target
+# ==============================================================
+#
+
+# TBD
+
+# 
+# ------------------
+# 
+# usage:
+#   performe_rsync <options> 
+#
+#   where 
+#         <options> = [-v] [-t]
+#             
+#   -v    : verbose output - default false
+#   -t    : dry run and only output info  - default false
+
+
+
+
+# Read arguments and switches
+verbose=''
+dry_run=''
+
+
+while true 
+do
+    case $1 in
+
+	-v) verbose="-v"
+	    shift
+	    ;;
+	-t) dry_run="-t"
+	    shift
+	    ;;
+	*) break	    
+	    ;;
+    esac
+done
+
+source_mount_point={{ source_mount_point }}
+remote_dest={{ hostvars[groups['backup_targets'][0]]['ansible_host'] }}
+backup_name={{ inventory_hostname }}
+rsync_flags=""
+
+
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
+
+. $lib_dir/log_utils
+. $lib_dir/string_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+
+source_dir=$(str_rtrim "$source_mount_point" /)
+source="${source_dir}/"
+
+target=/backup/current/${backup_name}
+
+if /usr/bin/rsync -a -e /usr/bin/ssh --rsync-path="/usr/bin/sudo /usr/bin/rsync" \
+      $dry_run $verbose $rsync_flags  \
+      $source backupoperator@$remote_dest:$target
+then
+    log_info "performed rsync $source -> backupoperator@$remote_dest:$target"
+else
+    error=$?
+    log_fatal $error "failed to rsync $source -> backupoperator@$remote_dest:$target"
+fi

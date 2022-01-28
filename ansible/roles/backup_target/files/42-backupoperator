@@ -1,6 +1,6 @@
 Cmnd_Alias     B_SNAP = /opt/sbdi/backup/bin/create_backup_snapshot.sh
 Cmnd_Alias     B_MNTL = /opt/sbdi/backup/bin/mount_latest_snapshot.sh
 Cmnd_Alias     B_UMNTL = /opt/sbdi/backup/bin/umount_latest_snapshot.sh
-Cmnd_Alias     B_ALL = B_SNAP, B_MNTL, B_UMNTL
+Cmnd_Alias     B_ALL = B_SNAP, B_MNTL, B_UMNTL, /usr/bin/rsync
 
 backupoperator ALL=(ALL) NOPASSWD: B_ALL
