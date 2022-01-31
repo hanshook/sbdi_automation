@@ -15,6 +15,25 @@
     group: backupoperator
   register: backupoperator_data
 
+
+- name: Ensure /opt/sbdi/backup folder
+  file: 
+    path: /opt/sbdi/backup/bin
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
+    
+- name: Install backup handling scripts
+  template:
+    src: "bin/{{ item }}"
+    dest: "/opt/sbdi/backup/bin/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - perform_backup.sh
+
 - name: Remove known_hosts file
   file:
     state: absent

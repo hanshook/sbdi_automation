@@ -3,11 +3,6 @@
 # Perform rsync of source snapshot on this node to backup target
 # ==============================================================
 #
-
-# TBD
-
-# 
-# ------------------
 # 
 # usage:
 #   performe_rsync <options> 
@@ -58,6 +53,7 @@ log_logging_application="BACKUP"
 
 [ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
 
+#ssh-add -l
 
 source_dir=$(str_rtrim "$source_mount_point" /)
 source="${source_dir}/"

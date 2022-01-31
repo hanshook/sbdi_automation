@@ -121,7 +121,7 @@ __log_set_subject()
     __log_logging="$log_subject"
     if [ -z "$__log_logging" ]
     then
-	__log_logging=`basename ${0#"-"}` 
+	__log_logging="${HOSTNAME}::"`basename ${0#"-"}`
 	# running program in $0
         # remove leading "-" from $0 since $0 may be -bash (not bash) ... 
 	__log_func="${FUNCNAME[$1]}"

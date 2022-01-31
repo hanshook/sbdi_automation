@@ -65,11 +65,35 @@ log_logging_application="BACKUP"
 
 [ -z "$snapshot_name" ] && snapshot_name="${gluster_volume}_backupsnap"
 
-umount $source_mount_point
-echo "y" | gluster snapshot deactivate $snapshot_name
-echo "y" | gluster snapshot delete $snapshot_name
+result=0
 
-# Ensure unmounted snapshot or log error
+if umount $source_mount_point
+then
+    log_info "Unounted snapshot $snapshot_name of gluster volume ${gluster_volume}"
+else
+    error=$?
+    log_error "Failed to unmount  snapshot $snapshot_name of gluster volume ${gluster_volume} - error: ${error}"
+    result=91
+fi
 
-# Ensure snapshot removed or log error
+if echo "y" | gluster snapshot deactivate $snapshot_name
+then
+    log_info "Deactivated snapshot ${snapshot_name} of gluster volume ${gluster_volume} "
+else
+    error=$?
+    log_error "Failed to deactivte snapshot ${snapshot_name}  of gluster volume ${gluster_volume} - error: ${error}"
+    result=92
+fi
+
+if echo "y" | gluster snapshot delete $snapshot_name
+then
+    log_info "Deleted snapshot $snapshot_name of gluster volume ${gluster_volume}"
+else
+    error=$?
+    log_error "Failed to delete snapshot $snapshot_name of gluster volume ${gluster_volume} - error: ${error}"
+    result=93
+fi
+
+exit $result
+
 

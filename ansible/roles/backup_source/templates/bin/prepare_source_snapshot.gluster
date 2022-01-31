@@ -82,11 +82,66 @@ fi
 
 [ -z "$snapshot_name" ] && snapshot_name="${gluster_volume}_backupsnap"
 
-# Ensure any old snapshots removed or log fatal
+# TODO: Ensure any old snapshots removed?
 
-gluster snapshot create $snapshot_name  $gluster_volume no-timestamp
-gluster snapshot activate $snapshot_name
-mount -t glusterfs localhost:/snaps/$snapshot_name/$gluster_volume $source_mount_point
-# Ensure mounted snapshot or log fatal
+result=0
+deactivate_snapshot_on_exit=false
+delete_snapshot_on_exit=false
+
+if ! gluster snapshot create $snapshot_name  $gluster_volume no-timestamp
+then
+    error=$?
+    log_error "Failed to created snapshot ${snapshot_name} of gluster volume ${gluster_volume} - error: ${error}"
+    result=91
+else
+    log_info "Created snapshot ${snapshot_name} of gluster volume ${gluster_volume}"
+
+    if ! gluster snapshot activate $snapshot_name
+    then
+	error=$?
+	log_error "Failed to activte snapshot ${snapshot_name}  of gluster volume ${gluster_volume} - error: ${error}"
+	delete_snapshot_on_exit=true
+	result=92
+    else
+	log_info "Activated snapshot ${snapshot_name} of gluster volume ${gluster_volume}"
+
+	if ! mount -t glusterfs localhost:/snaps/$snapshot_name/$gluster_volume $source_mount_point
+	then
+	    error=$?
+	    log_error "Failed to mount snapshot $snapshot_name of gluster volume ${gluster_volume} at $source_mount_point - error: ${error}"
+	    deactivate_snapshot_on_exit=true
+	    delete_snapshot_on_exit=true
+	    result=93
+	else
+	    log_info "Mounted snapshot $snapshot_name of gluster volume ${gluster_volume} at $source_mount_point"
+	fi
+
+    fi
+fi
+
+    
+
+if $deactivate_snapshot_on_exit
+then
+    if echo "y" | gluster snapshot deactivate $snapshot_name
+    then
+	log_info "Deactivated snapshot ${snapshot_name} of gluster volume ${gluster_volume} "
+    else
+	error=$?
+	log_error "Failed to deactivte snapshot ${snapshot_name} of gluster volume ${gluster_volume} - error: ${error}"
+    fi
+fi
+if $delete_snapshot_on_exit
+then
+    if echo "y" | gluster snapshot delete $snapshot_name
+    then
+	log_info "Deleted snapshot $snapshot_name of gluster volume ${gluster_volume}"
+    else
+	error=$?
+	log_error "Failed to delete snapshot $snapshot_name of gluster volume ${gluster_volume} - error: ${error}"
+    fi
+fi
+
+exit $result
 
 
