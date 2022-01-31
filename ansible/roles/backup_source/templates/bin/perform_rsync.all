@@ -77,4 +77,4 @@ fi
 
 {% endfor %}
 
-exit result
+exit $result

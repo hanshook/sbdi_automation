@@ -11,6 +11,15 @@ log_logging_application="BACKUP"
 
 # TODO: Use parallell ssh to perform taking all snapshots at same time.
 
+# Authorized SSH key is kept only on backup-director
+
+# Start ssh agent (needed for ssh -A) and load the key:
+
+eval `ssh-agent -s`
+ssh-add .ssh/id_rsa
+
+
+
 {% for host in groups['backup_sources'] %}
 
 go_on=true
@@ -35,13 +44,6 @@ then
     # Rsync source snapshot -> backup target
     # --------------------------------------
 
-    # Authorized SSH key is kept only on backup-director
-    
-    # Start ssh agent (needed for ssh -A) and load the key:
-
-    eval `ssh-agent -s`
-    ssh-add .ssh/id_rsa
-
     
     # Use ssh -A to bring it along for the RSYNC operation on the
     # source node that will have to ssh to the target node
@@ -52,11 +54,8 @@ then
     else
 	error_code=$?
 	log_error "Failed to sync source snapshot for {{ host }} - error: ${error_code}"
-	go_on=false
     fi
-fi
-if $go_on
-then
+
 
     # Remove source snapshot
     # ----------------------
@@ -80,7 +79,7 @@ fi
 
 {% for target_host in groups['backup_targets'] %}
 
-if ssh backupoperator@{{deployment_prefix}}-{{ target_host }} 'sudo /opt/sbdi/backup/bin/create_backup_snapshot'
+if ssh -A backupoperator@{{deployment_prefix}}-{{ target_host }} 'sudo /opt/sbdi/backup/bin/create_backup_snapshot'
 then
     log_info "Successfully created snapshot of backup"
 else
