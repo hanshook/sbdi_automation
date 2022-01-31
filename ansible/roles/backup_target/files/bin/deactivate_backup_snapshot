@@ -1,0 +1,19 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+
+if zfs destroy backup/snapshot
+then
+    log_info "Deactivated snapshot att backup/snapshot"
+else
+    error=$?
+    log_fatal 91 "Failed to deactivate snapshot at backup/snapshot - error: ${error}" 
+fi    

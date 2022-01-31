@@ -4,10 +4,10 @@ Defaults        env_keep+=SSH_AUTH_SOCK
 
 # Commands performed with sudo by backupoperator at a backup-source:
 
-Cmnd_Alias     BOP_SNAP = /opt/sbdi/backup/bin/prepare_source_snapshot
-Cmnd_Alias     BOP_RSYNC = /opt/sbdi/backup/bin/perform_rsync
-Cmnd_Alias     BOP_RMSNAP = /opt/sbdi/backup/bin/remove_source_snapshot
-Cmnd_Alias     BOP_ALL = BOP_SNAP, BOP_RSYNC, BOP_RMSNAP 
+Cmnd_Alias     BOP_SRC_SNAP = /opt/sbdi/backup/bin/prepare_source_snapshot
+Cmnd_Alias     BOP_SRC_SYNC = /opt/sbdi/backup/bin/perform_rsync
+Cmnd_Alias     BOP_SRC_RM_SNAP = /opt/sbdi/backup/bin/remove_source_snapshot
+Cmnd_Alias     BOP_SRC_ALL = BOP_SRC_SNAP, BOP_SRC_SYNC, BOP_SRC_RM_SNAP, /usr/bin/rsync 
 
-backupoperator ALL=(ALL) NOPASSWD: BOP_ALL
+backupoperator ALL=(ALL) NOPASSWD: BOP_SRC_ALL
 

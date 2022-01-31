@@ -75,9 +75,19 @@
     group: root
     mode: 0755
   with_items:
-    - create_backup_snapshot.sh
-    - mount_latest_snapshot.sh
-    - umount_latest_snapshot.sh
+    - create_backup_snapshot
+    - activate_latest_backup_snapshot
+    - deactivate_backup_snapshot
+
+- name: Install restore backup script
+  template:
+    src: "bin/{{ item }}"
+    dest: /opt/sbdi/backup/bin/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - restore_backup_snapshot
 
 - name: Install sudoers file for backupoperator
   copy:
@@ -86,4 +96,11 @@
     owner: root
     group: root
     mode: 0110
-  
+
+- name: Accept SSH host keys for hostnames
+  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts"
+  with_items: "{{ groups['backup_sources'] }}"
+
+- name: Accept SSH host keys for  fqdns
+  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
+  with_items: "{{ groups['backup_sources'] }}"

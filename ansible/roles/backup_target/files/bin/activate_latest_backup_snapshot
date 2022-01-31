@@ -1,0 +1,20 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+latest_snapshot=$(zfs list -t snapshot -o name -s creation | tail -1)
+
+if zfs clone $latest_snapshot backup/snapshot
+then
+    log_info "Activated latest snapshot: ${latest_snapshot} at backup/snapshot"
+else
+    error=$?
+    log_fatal 91 "Failed to activate latest snapshot - error: ${error}" 
+fi

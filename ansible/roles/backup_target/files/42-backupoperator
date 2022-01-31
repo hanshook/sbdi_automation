@@ -1,6 +1,13 @@
-Cmnd_Alias     B_SNAP = /opt/sbdi/backup/bin/create_backup_snapshot.sh
-Cmnd_Alias     B_MNTL = /opt/sbdi/backup/bin/mount_latest_snapshot.sh
-Cmnd_Alias     B_UMNTL = /opt/sbdi/backup/bin/umount_latest_snapshot.sh
-Cmnd_Alias     B_ALL = B_SNAP, B_MNTL, B_UMNTL, /usr/bin/rsync
 
-backupoperator ALL=(ALL) NOPASSWD: B_ALL
+# Ensure backupoperator can transfer ssh agent when sudoing:
+Defaults        env_keep+=SSH_AUTH_SOCK
+
+# Commands performed with sudo by backupoperator at a backup-target:
+
+Cmnd_Alias     BOP_TRG_SNAP = /opt/sbdi/backup/bin/create_backup_snapshot.sh
+Cmnd_Alias     BOP_TRG_ACT_L_SNAP = /opt/sbdi/backup/bin/activate_latest_backup_snapshot
+Cmnd_Alias     BOP_TRG_DEACT_SNAP = /opt/sbdi/backup/bin/deactivate_backup_snapshot
+Cmnd_Alias     BOP_TRG_REST_SNAP = /opt/sbdi/backup/bin/restore_backup_snapshot
+Cmnd_Alias     BOP_TRG_ALL = BOP_TRG_SNAP, BOP_TRG_ACT_L_SNAP, BOP_TRG_DEACT_SNAP, BOP_TRG_REST_SNAP, /usr/bin/rsync
+
+backupoperator ALL=(ALL) NOPASSWD: BOP_TRG_ALL

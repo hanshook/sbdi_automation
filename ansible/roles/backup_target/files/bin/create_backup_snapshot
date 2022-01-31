@@ -1,0 +1,19 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+snapshot_name="snap_$(date +%Y%m%d_%H%M%S)"
+if zfs snapshot backup/current@${snapshot_name}
+then
+    log_info "Created snapshot: backup/current@${snapshot_name}"
+else
+    error=$?
+    log_fatal 91 "Failed to create snapshot: backup/current@${snapshot_name} - error: ${error}"
+fi

@@ -44,14 +44,6 @@
     state: absent
     path: ~backupoperator/.ssh/known_hosts
 
-# - name: Accept SSH host keys for hostnames
-#   shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts' backupoperator"
-#   with_items: "{{ groups['backup_targets'] }}"
-
-# - name: Accept SSH host keys for  fqdns
-#   shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts' backupoperator"
-#   with_items: "{{ groups['backup_targets'] }}"
-
 - name: Accept SSH host keys for hostnames
   shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts"
   with_items: "{{ groups['backup_targets'] }}"

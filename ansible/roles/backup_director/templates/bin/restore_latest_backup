@@ -1,0 +1,60 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] && log_warn "Do *not* run as root"
+
+
+go_on=true
+
+log_info "Restoring backup"
+
+backup_target_host={{deployment_prefix}}-{{ groups['backup_targets'][0] }}
+
+# Activate latest backup snapshot
+# -------------------------------
+
+if ssh backupoperator@${backup_target_host} 'sudo /opt/sbdi/backup/bin/activate_latest_backup_snapshot'
+then
+    log_info "Successfully activated latest backup snapshot at ${backup_target_host}"
+else
+    error_code=$?
+    log_error "Failed to activate latest backup snapshot at ${backup_target_host} - error: ${error_code}"
+    go_on=false
+fi
+
+if $go_on
+then
+    # Restore latest backup snapshot
+    # ------------------------------
+    
+    eval `ssh-agent -s`
+    ssh-add .ssh/id_rsa
+    
+    if ssh -A  backupoperator@${backup_target_host} 'sudo /opt/sbdi/backup/bin/restore_backup_snapshot'
+    then
+	log_info "Successfully restored backup snapshot from ${backup_target_host}"
+    else
+	error_code=$?
+	log_error "Failed to restore backup snapshot from ${backup_target_host} - error: ${error_code}"
+    fi
+fi
+
+
+
+# Deactivate backup snapshot
+# --------------------------
+    
+if ssh backupoperator@${backup_target_host} 'sudo /opt/sbdi/backup/bin/deactivate_backup_snapshot'
+then
+    log_info "Successfully deactivated backup snapshot at ${backup_target_host}"
+else
+    error_code=$?
+    log_error "Failed to deactivate backup snapshot at ${backup_target_host}"
+fi
+

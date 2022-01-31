@@ -5,6 +5,10 @@ lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
 
 . $lib_dir/log_utils
 
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] && log_warn "Do *not* run as root"
+
 # TODO: Use parallell ssh to perform taking all snapshots at same time.
 
 {% for host in groups['backup_sources'] %}
@@ -16,7 +20,7 @@ log_info "Backing up {{ host }}"
 # Prepare source snapshot
 # -----------------------
 
-if ssh {{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/prepare_source_snapshot'
+if ssh backupoperator@{{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/prepare_source_snapshot'
 then
     log_info "Successfully prepared source snapshot for {{ host }}"
 else
@@ -39,9 +43,10 @@ then
     ssh-add .ssh/id_rsa
 
     
-    # Use ssh -A to bring it along
+    # Use ssh -A to bring it along for the RSYNC operation on the
+    # source node that will have to ssh to the target node
     
-    if ssh -A {{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/perform_rsync'
+    if ssh -A  backupoperator@{{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/perform_rsync'
     then
 	log_info "Successfully backed up source snapshot for {{ host }}"
     else
@@ -56,7 +61,7 @@ then
     # Remove source snapshot
     # ----------------------
     
-    if ssh {{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/remove_source_snapshot'
+    if ssh backupoperator@{{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/remove_source_snapshot'
     then
 	log_info "Successfully removed source snapshot for {{ host }}"
     else
@@ -65,8 +70,22 @@ then
     fi
 fi
 
+
+
 {% endfor %}
 
 
+# Create target snapshot(s)
+# -----------------------
 
+{% for target_host in groups['backup_targets'] %}
 
+if ssh backupoperator@{{deployment_prefix}}-{{ target_host }} 'sudo /opt/sbdi/backup/bin/create_backup_snapshot'
+then
+    log_info "Successfully created snapshot of backup"
+else
+    error_code=$?
+    log_error "Failed create snapshot of backup - error: ${error_code}"
+fi
+
+{% endfor %}

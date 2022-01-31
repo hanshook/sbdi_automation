@@ -17,7 +17,10 @@
       update_cache: yes
       cache_valid_time: 86400 #One day
   - name: Reboot the machine
-    reboot: 
+    reboot:
+  - name: Wait for rebbot to complete
+    wait_for_connection:
+      delay: 10
   - name: Install basic packages
     apt:
       pkg:

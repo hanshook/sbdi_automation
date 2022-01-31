@@ -1,11 +1,11 @@
 #! /bin/bash
 #
-# Perform rsync of source snapshot on this node to backup target
+# Perform rsync of target snapshot on this node to backup source
 # ==============================================================
 #
 # 
 # usage:
-#   performe_rsync <options> 
+#   restore_backup_snapshot <options> 
 #
 #   where 
 #         <options> = [-v] [-t]
@@ -36,42 +36,34 @@ do
     esac
 done
 
-source_mount_point={{ source_mount_point }}
-#remote_dest={{ hostvars[groups['backup_targets'][0]]['ansible_host'] }}
-backup_name={{ inventory_hostname }}
+
 rsync_flags=""
 
-
-
 bin_dir=$(dirname $0)
-lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
+lib_dir=/opt/sbdi/lib  
 
 . $lib_dir/log_utils
-. $lib_dir/string_utils
 
 log_logging_application="BACKUP"
 
 [ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
 
-source_dir=$(str_rtrim "$source_mount_point" /)
-source="${source_dir}/"
-
-target=/backup/current/${backup_name}
-
 result=0
 
-{% for target_host in groups['backup_targets'] %}
+{% for source_host in groups['backup_sources'] %}
 
-remote_dest={{deployment_prefix}}-{{ target_host }}
+backup_name={{ source_host }}
+
+remote_dest={{deployment_prefix}}-{{ source_host }}
 
 if /usr/bin/rsync -a -e /usr/bin/ssh --rsync-path="/usr/bin/sudo /usr/bin/rsync" \
       $dry_run $verbose $rsync_flags  \
-      $source --delete-after backupoperator@$remote_dest:$target
+      /backup/snapshot/$backup_name/ --delete-after backupoperator@$remote_dest:/docker
 then
-    log_info "performed rsync $source -> backupoperator@$remote_dest:$target"
+    log_info "Performed rsync /backup/snapshot/$backup_name/ -> backupoperator@$remote_dest:/docker"
 else
     error=$?
-    log_error "failed to rsync $source -> backupoperator@$remote_dest:$target - error: ${error}"
+    log_error $error "Failed to rsync /backup/snapshot/$backup_name/ -> backupoperator@$remote_dest:/docker - error: $error"
     result=91
 fi
 

@@ -32,7 +32,8 @@
     group: root
     mode: 0755
   with_items:
-    - perform_backup.sh
+    - perform_backup
+    - restore_latest_backup
 
 - name: Remove known_hosts file
   file:
