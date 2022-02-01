@@ -112,7 +112,7 @@ uat-manager-1
 
 
 [ntp_servers]
-uat-acces-1
+uat-access-1
 uat-access-2
 
 
@@ -129,3 +129,22 @@ uat-access-2
 # server-x
 # server-y
 
+#Docker Swarm
+#============
+[docker_swarm]
+manager-1
+manager-2
+worker-1
+worker-2
+
+[swarm_managers]
+manager-1
+manager-2
+
+[swarm_workers]
+worker-1
+worker-2
+
+[docker_swarm:vars]
+ansible_python_interpreter=/usr/bin/python3
+swarm_iface=ens3
