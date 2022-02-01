@@ -3,7 +3,12 @@
     pkg:
       - zfsutils-linux
       - rsync
-
+      
+- name: Check if mount point for backup data "/backup" exists
+  stat:
+    path: /backup
+  register: backup_mount_point
+    
 - name: Ensure mount point /backup
   file:
     path: /backup
@@ -11,6 +16,7 @@
     owner: root
     group: root
     mode: 0775
+  when: backup_mount_point.stat.exists == false
     
 - name: Ensure backup data device is not mounted as at host creation
   mount:
@@ -22,18 +28,18 @@
   shell: zpool list -Ho name backup 2>/dev/null | wc -l
   register: number_of_matching_zpools
 
-- debug:
-    var: number_of_matching_zpools
+# - debug:
+#     var: number_of_matching_zpools
     
 - name: Read backup data device information (always use unit when probing)
   parted: "device={{ backup_data_device }} unit=MiB"
   register: data_device_info
   when: number_of_matching_zpools.stdout == "0"
 
-- name: Output disks
-  debug:
-    msg: "{{ data_device_info }}"
-  when: number_of_matching_zpools.stdout == "0"
+# - name: Output disks
+#   debug:
+#     msg: "{{ data_device_info }}"
+#   when: number_of_matching_zpools.stdout == "0"
 
 - name: Remove all partitions from data device if not already zfs pool exists
   parted:
@@ -59,7 +65,7 @@
   command: "zfs create backup/current"
   when: number_of_matching_zpools.stdout == "0"
 
-- name: Ensure /opt/sbdi/lib folder
+- name: Ensure "/opt/sbdi/backup/bin" folder
   file: 
     path: /opt/sbdi/backup/bin
     owner: root 
@@ -79,7 +85,7 @@
     - activate_latest_backup_snapshot
     - deactivate_backup_snapshot
 
-- name: Install restore backup script
+- name: Install "restore backup" script
   template:
     src: "bin/{{ item }}"
     dest: /opt/sbdi/backup/bin/{{ item }}
@@ -96,6 +102,14 @@
     owner: root
     group: root
     mode: 0110
+
+# Backup targets preform rsync via SSH when restoring backup data as root -> backup sources
+# Thus make sure bakup sources are known to root user:
+  
+- name: Remove known_hosts file of root
+  file:
+    state: absent
+    path: ~backupoperator/.ssh/known_hosts    
 
 - name: Accept SSH host keys for hostnames
   shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts"

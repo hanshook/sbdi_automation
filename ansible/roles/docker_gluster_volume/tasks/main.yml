@@ -1,6 +1,6 @@
-- name: Debug
-  debug:
-    msg: "{{ groups['storage'] | map('regex_replace', '(^.*$)', deployment_prefix+'-\\1') | list }}"
+# - name: Debug
+#   debug:
+#     msg: "{{ groups['storage'] | map('regex_replace', '(^.*$)', deployment_prefix+'-\\1') | list }}"
 
 - name: Create a trusted Gluster storage pool of all storage servers
   gluster.gluster.gluster_peer:

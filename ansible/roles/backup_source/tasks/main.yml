@@ -1,7 +1,12 @@
 - name: Install rsync
   apt:
     pkg: rsync
-
+    
+- name: Check if mount point for docker data "/docker" exists
+  stat:
+    path: "{{ source_mount_point }}"
+  register: backup_source_mount_point
+    
 - name: Ensure mount point for backup snapshots
   file:
     path: "{{ source_mount_point }}"
@@ -9,8 +14,9 @@
     owner: root
     group: root
     mode: 0775
+  when: backup_source_mount_point.stat.exists == false
     
-- name: Ensure /opt/sbdi/backup folder
+- name: Ensure "/opt/sbdi/backup/bin" folder
   file: 
     path: /opt/sbdi/backup/bin
     owner: root 
@@ -38,8 +44,11 @@
     owner: root
     group: root
     mode: 0110
-
-- name: Remove known_hosts file
+    
+# Backup sources preform rsync via SSH of backup data as root -> backup targets
+# Thus make sure bakup targests are known to root user:
+  
+- name: Remove known_hosts file of root
   file:
     state: absent
     path: ~backupoperator/.ssh/known_hosts

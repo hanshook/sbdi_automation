@@ -1,3 +1,7 @@
+- name: Check if mount point for docker data "/docker" exists
+  stat:
+    path: /docker
+  register: docker_mount_point
 - name: Create  mount point for docker data "/docker"
   file:
     path: /docker
@@ -6,10 +10,12 @@
     group: root
     mode: 0775
     recurse: yes
-- name: Mount docker gluster volume at "/docker"
+  when: docker_mount_point.stat.exists == false
+- name: Mount docker gluster volume at "/docker" permanently 
   ansible.posix.mount:
     src: "{{  deployment_prefix+'-'+groups['storage'][0] }}:/docker"
     fstype: glusterfs
+    opts: defaults,_netdev
     path: /docker
     state: mounted
 - name: Make sure the "/docker" mount point has the correct access rights

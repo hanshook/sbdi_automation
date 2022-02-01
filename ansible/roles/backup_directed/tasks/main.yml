@@ -15,5 +15,5 @@
     state: present
     key: "{{hostvars[groups['backup_director'][0]]['backupoperator_data']['ssh_public_key']}}"
 
-- debug:
-    var: hostvars[inventory_hostname]
+# - debug:
+#     var: hostvars[inventory_hostname]

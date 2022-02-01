@@ -6,9 +6,9 @@
 - name: Read lvm device information (always use unit when probing)
   parted: "device={{ lvm_device }} unit=MiB"
   register: sdb_info
-- name: Output disks
-  debug:
-    msg: "{{ sdb_info }}"
+# - name: Output disks
+#   debug:
+#     msg: "{{ sdb_info }}"
 - name: Remove all partitions from lvm device - if not already only lvm
   parted:
     device: "{{ lvm_device }}"
