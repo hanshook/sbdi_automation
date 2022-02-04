@@ -1,22 +1,147 @@
-- name: Install nagios packages
+#https://computingforgeeks.com/install-and-configure-nagios-on-ubuntu-linux/
+#https://www.rosehosting.com/blog/how-to-install-nagios-4-and-monitor-your-servers-on-ubuntu-20-04/
+- name: Install requried packages
   apt:
     name: "{{ item }}"
     state: present
     install_recommends: no
   with_items:
-    - libcrypt-ssleay-perl
-    - libwww-perl
-    - nagios-nrpe-plugin
-    - nagios4
-    - nagios-plugins-contrib
-  notify:
-    - restart nagios
-    - reload apache
+    - unzip
+    - openssl
+    - build-essential
+    - libgd-dev
+    - libssl-dev
+    - libapache2-mod-php
+    - php-gd
+    - php
+    - apache2
+    
+- name: Download Nagios Core
+  get_url:
+    url: "https://github.com/NagiosEnterprises/nagioscore/releases/download/nagios-{{ nagios_core_version }}/nagios-{{ nagios_core_version }}.tar.gz"
+    dest: /tmp/
+    timeout: 30
+   
+- name: Unzip Nagios Core Tarball
+  ansible.builtin.unarchive:
+    src: "/tmp/nagios-{{ nagios_core_version }}.tar.gz"
+    dest: /tmp
+    remote_src: yes
+
+- name: Running ./configure 
+  command: '"{{ item }}" chdir=/tmp/nagios-{{ nagios_core_version }}'
+  with_items:
+    - ./configure    
+    
+- name: Run 'make all' target as root
+  community.general.make:
+    chdir: "/tmp/nagios-{{ nagios_core_version }}"
+    target: all
+  become: yes
+  
+- name: Run 'make install-groups-users' target as root
+  community.general.make:
+    chdir: "/tmp/nagios-{{ nagios_core_version }}"
+    target: install-groups-users
+  become: yes
+  
+- name: Add user'www-data' to group 'nagios'
+  user:
+    name: www-data
+    groups: nagios
+    append: yes
+
+  
+- name: Run 'make install' target as root
+  community.general.make:
+    chdir: "/tmp/nagios-{{ nagios_core_version }}"
+    target: install
+  become: yes
+  
+- name: Run 'make install-daemoninit' target as root
+  community.general.make:
+    chdir: "/tmp/nagios-{{ nagios_core_version }}"
+    target: install-daemoninit
+  become: yes
+
+- name: Run 'make install-commandmode' target as root
+  community.general.make:
+    chdir: "/tmp/nagios-{{ nagios_core_version }}"
+    target: install-commandmode
+  become: yes
+
+- name: Run 'make install-config' target as root
+  community.general.make:
+    chdir: "/tmp/nagios-{{ nagios_core_version }}"
+    target: install-config
+  become: yes
+
+- name: Remove '/etc/apache2/sites-enabled/nagios.conf' if present
+  file:
+    path: /etc/apache2/sites-enabled/nagios.conf
+    state: absent
+
+- name: Run 'make install-webconf' target as root
+  community.general.make:
+    chdir: "/tmp/nagios-{{ nagios_core_version }}"
+    target: install-webconf
+  become: yes
+
+- name: Enable the Apache2 module 'rewrite'
+  community.general.apache2_module:
+    state: present
+    name: rewrite
+    
+- name: Enable the Apache2 module 'cgi'
+  community.general.apache2_module:
+    state: present
+    name: cgi
+ 
+- name: Run 'make install-exfoliation' target as root
+  community.general.make:
+    chdir: "/tmp/nagios-{{ nagios_core_version }}"
+    target: install-exfoliation
+  become: yes
 
 - name: add nagios password
-  command: htpasswd -bc /etc/nagios4/htpasswd.users nagiosadmin nagiosadmin
-  notify:
-    - reload apache
+  command: "htpasswd -bc /usr/local/nagios/etc/htpasswd.users nagiosadmin {{ nagiosadmin_pw }}"
+  become: yes
+#  notify:
+#    - reload apache
+
+
+#  notify:
+#    - restart nagios
+#    - reload apache
+
+- name: create '/usr/local/nagios/etc/conf.d' directory
+  file:
+    path: /usr/local/nagios/etc/conf.d
+    state: directory
+    owner: nagios
+    group: nagios
+    mode: 0775
+
+
+- name: copy nagios configuration
+  template:
+    src: "{{ item }}"
+    dest: /usr/local/nagios/etc/conf.d/{{ item }}
+    owner: nagios
+    group: nagios
+    mode: 0664
+  with_items:
+    - commands.cfg
+    - contactgroups.cfg
+    - contacts.cfg
+    - generic-noping-http-webhost.cfg
+    - generic-noping-https-webhost.cfg
+    - hostgroups.cfg
+    - hosts.cfg
+    - services.cfg
+#  notify:
+#    - restart nagios
+
 
 # - name: delete nagios configuration
 #   file:
@@ -74,3 +199,4 @@
 
 #- name: verify nagios configuration
 #  command: /usr/sbin/nagios4 -v /etc/nagios4/nagios.cfg
+# sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg

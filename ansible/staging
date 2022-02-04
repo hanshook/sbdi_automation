@@ -12,6 +12,7 @@ worker-1 nbr=23 flavor=lm.large.1d
 worker-2 nbr=24 flavor=lb.tiny
 backup-director nbr=91 flavor=lb.tiny
 backup-target nbr=92 flavor=lm.large.1d
+#nagios nbr=97 flavor=lb.tiny
 
 [storage]
 manager-1 
@@ -57,6 +58,7 @@ access_ip=10.20.20.47
 # Under construction
 
 [nagios_servers]
+#nagios
 access-2
 
 # [nrpe_clients]

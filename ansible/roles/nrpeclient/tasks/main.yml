@@ -5,6 +5,7 @@
     install_recommends: no
   with_items:
     - nagios-nrpe-server
+#    - nagios-nrpe-plugin
     - monitoring-plugins
   notify:
     - restart nrpe
