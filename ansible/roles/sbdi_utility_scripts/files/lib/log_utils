@@ -86,7 +86,7 @@ logging_green='\033[0;32m'
 logging_blue='\033[0;34m'
 logging_nc='\033[0m' # No Color
 
-log_logging_application=${log_logging_application:-"SOMO"}
+log_logging_application=${log_logging_application:-"SBDI"}
 
 
 __log_log()
@@ -108,7 +108,7 @@ __log_log()
 	*) [ -z "$log_no_stdout" ] && echo -e "${__log_logging}: $cleartext_level - $@"
 	    ;;
     esac
-    [ -z "$log_no_logger" ] && /usr/bin/logger -i -t "${log_logging_application}:${__log_logging}" -p user.$level -- "$cleartext_level - $@"
+    [ -z "$log_no_logger" ] && /usr/bin/logger -i -t "${log_logging_application}@${__log_logging}" -p user.$level -- "$cleartext_level - $@"
 }
 
 __log_log_debug()
