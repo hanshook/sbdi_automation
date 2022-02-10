@@ -10,13 +10,27 @@
   notify:
     - restart nrpe
 
-# - name: update allowed hosts
-#   lineinfile:
-#     dest: /etc/nagios/nrpe.cfg
-#     regexp: allowed_hosts
-#     line: "allowed_hosts=10.201.0.0/24,10.20.20.1/32,127.0.0.1,::1"
-#   notify:
-#     - restart nrpe
+- name: update allowed hosts
+  vars:
+    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
+    nagios_server_ip: "{{common_ip_part}}{{hostvars[groups['nagios_servers'][0]]['nbr']}}"
+  lineinfile:
+    dest: /etc/nagios/nrpe.cfg
+    regexp: allowed_hosts
+    line: "allowed_hosts={{nagios_server_ip}}/32,127.0.0.1,::1"
+  notify:
+    - restart nrpe
+
+- name: update nrpe server ip address (only open internal ports)
+  vars:
+    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
+    nrpe_server_ip: "{{common_ip_part}}{{nbr}}"
+  lineinfile:
+    dest: /etc/nagios/nrpe.cfg
+    regexp: server_address
+    line: "server_address={{ nrpe_server_ip }}"
+  notify:
+    - restart nrpe
 
 - name: copy nrpe configuration
   copy:
