@@ -8,9 +8,10 @@ ansible-playbook local_ssh.yml || exit 1
 ansible-playbook setup_admin_users.yml || exit 1
 # do not: ansible-playbook harden.yml
 ansible-playbook setup.yml || exit 1
-ansible-playbook docker_storage.yml
-ansible-playbook backup.yml
-ansible-playbook nagios_server.yml
+ansible-playbook docker_storage.yml || exit 1
+ansible-playbook backup.yml || exit 1
+ansible-playbook nagios_server.yml || exit 1
+ansible-playbook setup_docker_swarm.yml || exit 1
 ansible-playbook nagios_monitoring.yml
 
 
