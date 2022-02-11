@@ -1,0 +1,4 @@
+lvm_device: /dev/vdb
+
+storage_disk_free_warning: 20%
+storage_disk_free_critical: 10%

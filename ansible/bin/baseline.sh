@@ -10,4 +10,7 @@ ansible-playbook setup_admin_users.yml || exit 1
 ansible-playbook setup.yml || exit 1
 ansible-playbook docker_storage.yml
 ansible-playbook backup.yml
+ansible-playbook nagios_server.yml
+ansible-playbook nagios_monitoring.yml
+
 

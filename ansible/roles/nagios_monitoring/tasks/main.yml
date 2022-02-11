@@ -1,0 +1,28 @@
+- name: copy server monitoring configuration
+  vars:
+    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
+  template:
+    src: server.cfg
+    dest: "/usr/local/nagios/etc/servers/{{ item }}.cfg"
+    owner: nagios
+    group: nagios
+    mode: 0664
+  with_items: "{{ (groups.gateways + groups.servers) | difference(groups.nagios_servers) }}"
+  notify:
+    - restart nagios
+    - reload apache
+
+- name: copy localhost monitoring configuration
+  template:
+    src: "{{ item }}"
+    dest: "/usr/local/nagios/etc/objects/{{ item }}"
+    owner: nagios
+    group: nagios
+    mode: 0664
+  with_items:
+    - localhost.cfg
+  notify:
+    - restart nagios
+    - reload apache
+
+# TODO: Setup users and notification by email and Slack

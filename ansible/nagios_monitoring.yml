@@ -1,0 +1,11 @@
+- name: Configure NRPE Clients for monitoring
+  hosts: gateways:servers:!nagios_servers
+  become: true
+  roles:
+    - monitored_by_nagios
+
+- name: Configure Nagios Server Monitoring
+  hosts: nagios_servers
+  become: true
+  roles:
+    - nagios_monitoring

@@ -1,1 +1,4 @@
+ansible_connection: ssh
+
+# TODOD: Is this used and working?
 ansible_host: "{{deployment_prefix}}-{{ inventory_hostname }}.{{ domain }}"

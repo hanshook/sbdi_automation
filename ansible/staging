@@ -14,6 +14,10 @@ backup-director nbr=91 flavor=lb.tiny
 backup-target nbr=92 flavor=lm.large.1d
 #nagios nbr=97 flavor=lb.tiny
 
+
+# Storage
+# =======
+
 [storage]
 manager-1 
 manager-2
@@ -25,6 +29,13 @@ manager-2
 worker-1
 worker-2
 
+[storage:vars]
+size=1GB
+
+
+# Backup
+# ======
+
 [backup_director]
 backup-director
 
@@ -34,105 +45,9 @@ backup-target
 [backup_sources]
 manager-1 gluster_backup_source=true
 
-
-[gateways:vars]
-ansible_connection=ssh
-
-[servers:vars]
-ansible_connection=ssh
-
-[storage:vars]
-lvm_device=/dev/vdb
-size=1GB
-
-[all:vars]
-deployment_prefix=uat
-private_subnet=10.201.0.0/24
-domain=sbdi-uat.local
-server_image=ubuntu-20.40-server-cloudimg-amd64
-access_ip=10.20.20.47
-
-# Nagios
-# ======
-
-# Under construction
-
-[nagios_servers]
-#nagios
-access-2
-
-# [nrpe_clients]
-# server-x
-
-# [nrpe_clients:children]
-# hardware-servers
-# unattended-upgrades
-
-# # Nagios host groups
-# # ------------------
-
-[nagios_internal_clients:children]
-# # external, i.e. external-http-servers and external-https-servers should not be in here
-# dns-servers
-# gluster-servers
-# http-servers
-# http8080-servers
-# http9000-servers
-# imap-servers
-# ldap-servers
-# mdraid-servers
-# nrpe-clients
-# ntp-servers
-# smtp-servers
-ssh_servers
-# unattended-upgrades
-
-[ssh_servers]
-uat-manager-1
-
-# [http-servers]
-# server-x
-# server-y
-
-
-# [http8080-servers]
-# server-x
-
-# [http9000-servers]
-# server-x
-# server-y
-
-
-# [dns-servers]
-# server-x
-# server-y
-
-
-# [ldap-servers]
-# server-x
-# server-y
-
-
-[ntp_servers]
-uat-access-1
-uat-access-2
-
-
-# [smtp-servers]
-# mailserver
-
-# [imap-servers]
-# mailserver
-
-[external_http_servers]
-# server-x
-
-[external_https_servers]
-# server-x
-# server-y
-
 #Docker Swarm
 #============
+
 [docker_swarm]
 manager-1
 manager-2
@@ -147,6 +62,19 @@ manager-2
 worker-1
 worker-2
 
-[docker_swarm:vars]
-ansible_python_interpreter=/usr/bin/python3
-swarm_iface=ens3
+# Nagios
+# ======
+
+[nagios_servers]
+#nagios
+access-2
+
+# Deployment specific vars
+# ========================
+
+[all:vars]
+deployment_prefix=uat
+private_subnet=10.201.0.0/24
+domain=sbdi-uat.local
+access_ip=10.20.20.47
+

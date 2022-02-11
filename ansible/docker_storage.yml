@@ -32,6 +32,9 @@
   roles:
   - role: docker_data_access    
 
+##
+## TODO: Setup local storage on /docker on the servers that needs that
+##
 
 # http://manpages.ubuntu.com/manpages/xenial/man7/lvmthin.7.html
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/logical_volume_manager_administration/thinly_provisioned_volume_creation
