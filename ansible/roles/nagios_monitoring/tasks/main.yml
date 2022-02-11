@@ -12,6 +12,20 @@
     - restart nagios
     - reload apache
 
+- name: setup server monitoring groups
+  template:
+    src: "{{ item }}"
+    dest: "/usr/local/nagios/etc/servers/{{ item }}"
+    owner: nagios
+    group: nagios
+    mode: 0664
+  with_items:
+    - host_groups.cfg
+  notify:
+    - restart nagios
+    - reload apache
+
+
 - name: copy localhost monitoring configuration
   template:
     src: "{{ item }}"
