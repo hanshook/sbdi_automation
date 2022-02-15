@@ -27,7 +27,8 @@ done
 
 cd $(dirname $0)
 cd ..
-echo "Establish a basline of all host after setup"
+echo "Establish a basline of all host after setup."
+echo "Starting at $(date)"
 if $nrm
 then
     ansible-playbook deploy_nrm.yml || exit 1
@@ -45,4 +46,5 @@ ansible-playbook nagios_server.yml || exit 1
 ansible-playbook setup_docker_swarm.yml || exit 1
 ansible-playbook nagios_monitoring.yml
 
+echo "Basline completed at $(date)"
 
