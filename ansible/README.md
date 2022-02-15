@@ -38,8 +38,12 @@ This repository contains Ansible playbooks for:
 13. Setup Nagios based monitoring: ```ansible-playbook nagios_monitoring.yml```
 
 Note: To do all of the above run  ```ansible/bin/basline.sh```
+
 Note: NRM blocks DNS, i.e. 1.1.1.1, 8.8.8.8 etc is not accessile.
+
 Run ```ansible-playbook deploy_nrm.yml``` or ```ansible/bin/basline.sh -nrm``` as a workaround.
+
+### Usefull options
 
 Dry-run: ```ansible-playbook <playbook>.yml --check```
 
