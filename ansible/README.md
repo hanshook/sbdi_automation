@@ -15,21 +15,31 @@ This repository contains Ansible playbooks for:
 
 1. Prepare your host (i.e. prepare /etc/hosts): ```ansible-playbook local_resolve.yml --ask-become-pass```
 
-2. Deploy vms: ```ansible-playbook deploy.yml```
+2. Deploy vms: ```ansible-playbook deploy.yml``` or at NRM: ```ansible-playbook deploy_nrm.yml```
 
 3. Setup localhost for ssh access: ```ansible-playbook local_ssh.yml```
 
 4. Setup admin users: ```ansible-playbook setup_admin_users.yml```
 
-5. "Harden" deployment (for now remove ubuntu user) : ```ansible-playbook harden.yml```
+5. "Harden" deployment (for now remove ubuntu user) : ```ansible-playbook harden.yml``` 
 
 6. Manage admin users: ```ansible-playbook manage_admin_users.yml```
 
-6. Install software and configure servers and gateways: ```ansible-playbook setup.yml```
+7. Install software and configure servers and gateways: ```ansible-playbook setup.yml```
 
-7. ... TBD
+8. Setup storage for docker volumes: ```ansible-playbook docker_storage.yml```
 
+10. Setup backup: ```ansible-playbook backup.yml```
 
+11. Setup Nagios server: ```ansible-playbook nagios_server.yml```
+
+12. Setup Docker Swarm: ```ansible-playbook setup_docker_swarm.yml```
+
+13. Setup Nagios based monitoring: ```ansible-playbook nagios_monitoring.yml```
+
+Note: To do all of the above run  ```ansible/bin/basline.sh```
+Note: NRM blocks DNS, i.e. 1.1.1.1, 8.8.8.8 etc is not accessile.
+Run ```ansible-playbook deploy_nrm.yml``` or ```ansible/bin/basline.sh -nrm``` as a workaround.
 
 Dry-run: ```ansible-playbook <playbook>.yml --check```
 
