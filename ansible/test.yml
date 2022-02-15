@@ -1,0 +1,25 @@
+---
+- name: ShellTest
+  hosts: localhost
+  tasks:
+    - shell:
+        cmd: "systemd-resolve --status | grep 'Current DNS Server' | cut -d : -f 2 | xargs"
+      register: dns_server
+    - debug:
+        var: dns_server.stdout
+        
+- name: Test
+  hosts: all
+  tasks:
+    - debug:
+        var: ansible_host
+    - debug:
+        var: ansible_ssh_common_args
+    - debug:
+        var: common_ip_part
+    - debug:
+        var: host_ip
+    - debug:
+        var: host_name
+    - debug:
+        var: host_fqdn

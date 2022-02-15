@@ -1,4 +1,4 @@
-ansible_connection: ssh
+#ansible_connection: ssh
 
-# TODOD: Is this used and working?
-ansible_host: "{{deployment_prefix}}-{{ inventory_hostname }}.{{ domain }}"
+#ansible_host: "{{deployment_prefix}}-{{ inventory_hostname }}.{{ domain }}"
+ansible_ssh_common_args: ""

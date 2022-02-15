@@ -1,0 +1,59 @@
+---
+- name: Deploy Cloud Servers
+  hosts: localhost
+  vars:
+    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
+  tasks:
+    - name: Find out DNS server
+      shell:
+        cmd: "systemd-resolve --status | grep 'Current DNS Server' | cut -d : -f 2 | xargs"
+      register: dns_server_cmd
+    - name: "Ensure network: {{ deployment_prefix  }}_sbdi_network"
+      openstack.cloud.network:
+        state: present
+        name: "{{ deployment_prefix  }}_sbdi_network"
+        mtu_size: "{{ internal_network_mtu }}"
+    - name: "Ensure subnet {{ deployment_prefix }}_sbdi_subnet"
+      openstack.cloud.subnet: 
+        state: present
+        network_name: "{{ deployment_prefix }}_sbdi_network"
+        name: "{{ deployment_prefix }}_sbdi_subnet"
+        cidr: "{{ private_subnet }}"
+        dns_nameservers: "{{ dns_server_cmd.stdout }}"
+    - name: "Ensure router: {{ deployment_prefix  }}_sbdi_router"
+      openstack.cloud.router:
+        state: present
+        name: "{{ deployment_prefix  }}_sbdi_router"
+        network: external
+        interfaces:
+          - "{{ deployment_prefix }}_sbdi_subnet"
+    - name: "Ensure fixed (internal) IP ports for servers and gateways"
+      openstack.cloud.port:
+        state: present
+        name: "port_of_{{ deployment_prefix }}-{{ item }}"
+        network: "{{ deployment_prefix  }}_sbdi_network"
+        fixed_ips:
+          - ip_address: "{{  common_ip_part }}{{ hostvars[item]['nbr'] }}"
+        extra_dhcp_opts:
+          - ip_version=4,opt_name=mtu, opt_value=1000
+      with_items: "{{ groups['gateways'] + groups['servers'] }}"
+    - name: "Ensure that all servers and gateways are deployed"
+      openstack.cloud.server:
+        name: "{{ deployment_prefix }}-{{ item }}"
+        state: present
+        image: "{{server_image}}"
+        flavor: "{{ hostvars[item]['flavor'] }}"
+        auto_floating_ip: no
+        nics:
+          - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
+        key_name: "{{ lookup('env','USER') }}_key"
+      with_items: "{{ groups['gateways']  + groups['servers'] }}"
+    - name: "Ensure external IPs on gateways"
+      openstack.cloud.floating_ip:
+        state: present
+        server: "{{ deployment_prefix }}-{{ item }}"
+        network: external
+        reuse: yes
+        floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
+        nat_destination: "{{ deployment_prefix  }}_sbdi_network"
+      with_items: "{{ groups['gateways'] }}"
