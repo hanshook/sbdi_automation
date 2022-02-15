@@ -3,14 +3,6 @@
   hosts: servers:gateways
   become: true
   tasks:
-  - name: Add docker repo key
-    ansible.builtin.apt_key:
-      url: https://download.docker.com/linux/ubuntu/gpg
-      state: present    
-  - name: Add docker repo
-    ansible.builtin.apt_repository:
-      repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
-      state: present
   - name: Update and upgrade
     apt:
       upgrade: dist
@@ -56,15 +48,7 @@
       - net-tools
       - ca-certificates
       - software-properties-common
-      - docker-ce
       - emacs-nox
       - elpa-yaml-mode
-  - name: Download and install docker compose
-    get_url:
-      url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64"
-      timeout: 30
-      dest: /usr/local/bin/docker-compose
-      owner: root
-      mode: 755
 
   

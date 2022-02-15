@@ -2,6 +2,8 @@
 - hosts: docker_swarm
   become: true
   gather_facts: yes
+  roles:
+  - docker
   tasks:
   - debug: var=ansible_default_ipv4 verbosity=4
 

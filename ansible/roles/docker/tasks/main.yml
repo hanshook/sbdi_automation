@@ -1,0 +1,36 @@
+- name: Add docker repo key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present    
+- name: Add docker repo
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+    state: present
+- name: Install basic packages
+  apt:
+    pkg:
+    - docker-ce
+- name: Download and install docker compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64"
+    timeout: 30
+    dest: /usr/local/bin/docker-compose
+    owner: root
+    mode: 755
+- name: Make sure the directory '/docker/var/lib/<hostname>' exists
+  file:
+    path: "/docker/var/lib/{{host_name}}"
+    owner: root
+    group: root
+    mode: 0750
+    recurse: yes
+    state: directory
+- name: copy Docker daemon config
+  template:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0664
+  notify:
+    - restart docker
