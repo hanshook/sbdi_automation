@@ -165,7 +165,7 @@ then
     rm -rf "${HOME}/${OS_CLI_VENV_DIR}" 
 fi
  
-virtualenv "${HOME}/${OS_CLI_VENV_DIR}" 
+virtualenv -p /usr/bin/python3 "${HOME}/${OS_CLI_VENV_DIR}" 
 . ${HOME}/${OS_CLI_VENV_DIR}/bin/activate
 pip3 install --upgrade pip
 pip3 install python-openstackclient python-neutronclient
