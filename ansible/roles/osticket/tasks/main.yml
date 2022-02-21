@@ -1,33 +1,54 @@
-- name: Make sure the correct "etc" directories for deployment are present 
+- name: Ensure configuration and script directories
   file:
-    path: "/docker/etc/osticket/{{item}}"
-    owner: root
-    group: root
+    path: "{{ docker_ctx }}/{{item}}"
     mode: 0755
     recurse: yes
     state: directory
   with_items:
-    - db
-    - deploy
-    - env
-- name: Make sure the correct "usr" directories for deployment are present 
-  file:
-    path: "/docker/usr/osticket/{{item}}"
-    owner: root
-    group: root
-    mode: 0755
-    recurse: yes
-    state: directory
-  with_items:
-    - bin
-- name: copy dencrypted file .env
-  copy:
-    src: /etc/.../.env
-    dest: .../etc/../.env
-    decrypt: yes
-    owner: root
-    group: root
+    - etc
+    - etc/osticket
+    - etc/osticket/env
+    - etc/osticket/db
+    - etc/osticket/db/initdb.d
+    - usr
+    - usr/osticket
+    - usr/osticket/bin
+    - var
+    - var/volumes
+    - var/backup
+    - var/backup/osticket
+    
+- name: Install "docker-compose.yml" 
+  template:
+    src: etc/docker-compose.yml
+    dest: "{{ docker_ctx }}/etc/osticket/docker-compose.yml"
     mode: 0644
-    backup: no
 
+- name: Install "osticketenv.template" 
+  copy:
+    src: etc/osticketenv.template
+    dest: "{{ docker_ctx }}/etc/osticket/env/osticketenv.template"
+    mode: 0644
+
+- name: Install "init.sql" 
+  copy:
+    src: etc/init.sql
+    dest: "{{ docker_ctx }}/etc/osticket/db/initdb.d/init.sql"
+    mode: 0644
+
+- name: Install maintenance scripts
+  vars:
+    docker_volumes: "{{ osticket_volumes | default('osticket_mysql osticket_osticket') }}"
+  template:
+    src: "bin/{{item}}"
+    dest: "{{ docker_ctx }}/usr/osticket/bin/{{item}}"
+    mode: 0755
+  with_items:
+    - backup_db.sh       
+    - restore_db.sh
+    - stop.sh
+    - create_db_seed.sh
+    - nuke_all.sh
+    - start.sh
+    - log_utils
 

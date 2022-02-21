@@ -31,7 +31,7 @@ echo "Establish a basline of all host after setup."
 echo "Starting at $(date)"
 if $nrm
 then
-    ansible-playbook deploy_nrm.yml || exit 1
+    ansible-playbook nrm_deploy.yml || exit 1
 else
     ansible-playbook deploy.yml || exit 1
 fi

@@ -1,17 +1,16 @@
 #! /bin/bash
 cd $(dirname $0)
+{% if deployment_prefix is defined  %}
+. /opt/sbdi/lib/log_utils
+{% else %}
 . log_utils
+{% endif %}
+
 cd ..
 application_name=${PWD##*/}
-cd ../..
-export DOCKER_CTX=${PWD}
-deployment_config=${DOCKER_CTX}/etc/${application_name}/deploy/deployment.cnf
-[ ! -e "${deployment_config}" ] && log_fatal 71 "${deployment_config} not found"
+log_logging_application="MGM/${application_name}"
 
-#export $(grep -v '^#' "${deployment_config}" | xargs -d "\n")
-. ${deployment_config}
-deployment=${DEPLOYMENT:-unknown deployment}
-log_logging_application="MGM/${application_name}(${deployment})" 
+export DOCKER_CTX={{ docker_ctx | default('/docker') }}
 
 export BACKUP_CTX=${DOCKER_CTX}/var/backup/${application_name}
 
@@ -29,5 +28,11 @@ export $(grep -v '^#' env/.envosticket | xargs)
 cd ${BACKUP_CTX}
 
 log_info "Saving database dump as ${MYSQL_DATABASE}.sql"
-docker exec $MYSQL_HOST mysqldump --user root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > ${MYSQL_DATABASE}_dump.sql
+if docker exec $MYSQL_HOST mysqldump --user root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > ${MYSQL_DATABASE}_dump.sql
+then
+    log_info "Sucessfully dumped database"
+else
+    log_fatal 1 "Failed to dump database"
+fi
 mv -b ${MYSQL_DATABASE}_dump.sql ${MYSQL_DATABASE}.sql
+log_info "Saved database dump as ${MYSQL_DATABASE}.sql"

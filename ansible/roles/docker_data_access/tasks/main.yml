@@ -36,6 +36,7 @@
   with_items:
     - etc
     - usr
+    - var
     - var/volumes
     - var/backup
 
