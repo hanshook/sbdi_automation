@@ -1,0 +1,20 @@
+- name: Ensure configuration and script directories
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    owner: root
+    group: root
+    mode: 0750
+    recurse: yes
+    state: directory
+  with_items:
+    - etc
+    - etc/httpproxy
+    
+- name: Install "docker-compose.yml" 
+  template:
+    src: etc/docker-compose.yml
+    dest: "{{ docker_ctx | default('/docker') }}/etc/httpproxy/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+
