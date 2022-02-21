@@ -13,7 +13,7 @@
     - usr
     - usr/osticket
     - usr/osticket/bin
-    - var
+#    - var
     - var/volumes
     - var/backup
     - var/backup/osticket

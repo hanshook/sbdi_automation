@@ -8,8 +8,9 @@ access-2 nbr=12 flavor=lb.tiny floating_ip=10.20.20.112
 [servers]
 manager-1 nbr=21 flavor=lm.large.1d
 manager-2 nbr=22 flavor=lm.large.1d
-worker-1 nbr=23 flavor=lm.large.1d
-worker-2 nbr=24 flavor=lb.tiny
+manager-3 nbr=23 flavor=lm.large.1d
+worker-1 nbr=31 flavor=lb.tiny
+worker-2 nbr=32 flavor=lb.tiny floating_ip=10.20.20.120
 backup-director nbr=91 flavor=lb.tiny
 backup-target nbr=92 flavor=lm.large.1d
 #nagios nbr=97 flavor=lb.tiny
@@ -21,11 +22,12 @@ backup-target nbr=92 flavor=lm.large.1d
 [storage]
 manager-1 
 manager-2
-worker-1
+manager-3
 
 [storage_clients]
 manager-1 
 manager-2
+manager-3
 worker-1
 worker-2
 
@@ -45,22 +47,27 @@ backup-target
 [backup_sources]
 manager-1 gluster_backup_source=true
 
-#Docker Swarm
-#============
+#Docker
+#======
 
 [docker_swarm]
 manager-1
 manager-2
+manager-3
 worker-1
-worker-2
+
 
 [swarm_managers]
 manager-1
 manager-2
+manager-3
 
 [swarm_workers]
 worker-1
+
+[docker]
 worker-2
+
 
 # Nagios
 # ======

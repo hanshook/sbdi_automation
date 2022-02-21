@@ -19,7 +19,7 @@ This repository contains Ansible playbooks for:
 
 3. Setup localhost for ssh access: ```ansible-playbook local_ssh.yml```
 
-4. Setup admin users: ```ansible-playbook setup_admin_users.yml```
+4. Setup admin users: ```ansible-playbook admin_users.yml```
 
 5. "Harden" deployment (for now remove ubuntu user) : ```ansible-playbook harden.yml``` 
 
@@ -33,9 +33,11 @@ This repository contains Ansible playbooks for:
 
 11. Setup Nagios server: ```ansible-playbook nagios_server.yml```
 
-12. Setup Docker Swarm: ```ansible-playbook setup_docker_swarm.yml```
+12. Setup Docker and Docker Swarm: ```ansible-playbook docker.yml```
 
 13. Setup Nagios based monitoring: ```ansible-playbook nagios_monitoring.yml```
+
+14. Setup Docker Applications (work in progress): ```ansible-playbook docker_apps.yml```
 
 Note: To do all of the above (except step 1) run  ```ansible/bin/basline.sh```
 
@@ -47,7 +49,7 @@ Run ```ansible-playbook deploy_nrm.yml``` or ```ansible/bin/basline.sh -nrm``` a
 
 Dry-run: ```ansible-playbook <playbook>.yml --check```
 
-Run on a specific host: ```ansible-playbook <playbook>.yml -l <fqdn>```
+Run on a specific host: ```ansible-playbook <playbook>.yml -l inventory_hostname```
 
 Run on a specific group: ```ansible-playbook <playbook>.yml -l servers```
 

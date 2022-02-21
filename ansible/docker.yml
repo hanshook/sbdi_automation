@@ -1,4 +1,9 @@
 ---
+- hosts: docker
+  become: true
+  roles:
+  - docker
+
 - hosts: docker_swarm
   become: true
   gather_facts: yes

@@ -49,3 +49,13 @@
         floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
         nat_destination: "{{ deployment_prefix  }}_sbdi_network"
       with_items: "{{ groups['gateways'] }}"
+    - name: "Ensure external IPs on servers - only for testing"
+      openstack.cloud.floating_ip:
+        state: present
+        server: "{{ deployment_prefix }}-{{ item }}"
+        network: external
+        reuse: yes
+        floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
+        nat_destination: "{{ deployment_prefix  }}_sbdi_network"
+      with_items: "{{ groups['servers'] }}"
+      when: hostvars[item]['floating_ip'] is defined 

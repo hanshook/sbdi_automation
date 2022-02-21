@@ -36,14 +36,14 @@ else
     ansible-playbook deploy.yml || exit 1
 fi
 ansible-playbook local_ssh.yml || exit 1
-ansible-playbook setup_admin_users.yml || exit 1
+ansible-playbook admin_users.yml || exit 1
 # TODO: When to harden and how to reverse?
 # For the time beeing do not do: ansible-playbook harden.yml
 ansible-playbook setup.yml || exit 1
 ansible-playbook docker_storage.yml || exit 1
 ansible-playbook backup.yml || exit 1
 ansible-playbook nagios_server.yml || exit 1
-ansible-playbook setup_docker_swarm.yml || exit 1
+ansible-playbook docker.yml || exit 1
 ansible-playbook nagios_monitoring.yml
 
 echo "Basline completed at $(date)"

@@ -1,6 +1,6 @@
 --- 
 - name: Install Docker Appplications
-  hosts: swarm_managers[0]
+  hosts: worker-2
   vars:
     docker_ctx: "{{  docker_root | default('/docker') }}"
   become: true
@@ -12,6 +12,8 @@
         src: docker/etc/osticket/env/{{ deployment_prefix }}/envosticket
         dest: "{{ docker_ctx }}/etc/osticket/env/.envosticket"
         decrypt: yes
+        owner: root
+        group: docker
         mode: 0640
         backup: no
 
