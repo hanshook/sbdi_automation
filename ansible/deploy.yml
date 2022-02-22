@@ -1,9 +1,49 @@
 ---
 - name: Deploy Cloud Servers
   hosts: localhost
-  vars:
-    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
+#  vars:
+#    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
   tasks:
+
+    #
+    # Security Groups
+    #
+    - name: "Ensure HTTP/HTTPS Security Group"
+      openstack.cloud.security_group:
+        name: http_access
+        description: "HTTP/HTTPS Access"
+        state: present
+    - name: "Ensure email Security Group"
+      openstack.cloud.security_group:
+        name: email_access
+        description: "Email SMTP/IMAP/POP Access"
+        state: present
+    - name: "Ensure HTTP access in http_access security group"
+      openstack.cloud.security_group_rule:
+        security_group: http_access
+        protocol: tcp
+        port_range_min: 80
+        port_range_max: 80
+        remote_ip_prefix: 0.0.0.0/0
+    - name: "Ensure HTTPS access in http_access security group"
+      openstack.cloud.security_group_rule:
+        security_group: http_access
+        protocol: tcp
+        port_range_min: 443
+        port_range_max: 443
+        remote_ip_prefix: 0.0.0.0/0
+    - name: "Ensure SMTP access in email_access security group"
+      openstack.cloud.security_group_rule:
+        security_group: email_access
+        protocol: tcp
+        port_range_min: 25
+        port_range_max: 25
+        remote_ip_prefix: 0.0.0.0/0
+    # TBD: Add rest of mail rules
+
+    #
+    # Internal Network
+    #
     - name: "Ensure network: {{ deployment_prefix  }}_sbdi_network"
       openstack.cloud.network:
         state: present
@@ -21,15 +61,23 @@
         network: external
         interfaces:
           - "{{ deployment_prefix }}_sbdi_subnet"
+
+    #
+    # Internal IPs
+    #
     - name: "Ensure fixed (internal) IP ports for servers and gateways"
       openstack.cloud.port:
         state: present
         name: "port_of_{{ deployment_prefix }}-{{ item }}"
         network: "{{ deployment_prefix  }}_sbdi_network"
         fixed_ips:
-          - ip_address: "{{  common_ip_part }}{{ hostvars[item]['nbr'] }}"
+          - ip_address: "{{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }}"
       with_items: "{{ groups['gateways'] + groups['servers'] }}"
-    - name: "Ensure that all servers and gateways are deployed"
+
+    #
+    # Servers
+    #
+    - name: "Ensure that all servers are deployed"
       openstack.cloud.server:
         name: "{{ deployment_prefix }}-{{ item }}"
         state: present
@@ -39,7 +87,43 @@
         nics:
           - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
         key_name: "{{ lookup('env','USER') }}_key"
-      with_items: "{{ groups['gateways']  + groups['servers'] }}"
+      with_items: "{{ groups['servers'] }}"
+
+    #
+    # Gateways
+    #
+    - name: "Ensure that all gateways are deployed"
+      openstack.cloud.server:
+        name: "{{ deployment_prefix }}-{{ item }}"
+        state: present
+        image: "{{server_image}}"
+        flavor: "{{ hostvars[item]['flavor'] }}"
+        key_name: "{{ lookup('env','USER') }}_key"
+        auto_floating_ip: no
+        nics:
+          - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
+        security_groups:
+          - http_access
+          - email_access
+          - default
+      with_items: "{{ groups['gateways'] }}"
+      
+    - name: "Repeat to ensure security groups (Bugg workarround)"
+      openstack.cloud.server:
+        name: "{{ deployment_prefix }}-{{ item }}"
+        state: present
+        image: "{{server_image}}"
+        flavor: "{{ hostvars[item]['flavor'] }}"
+        key_name: "{{ lookup('env','USER') }}_key"
+        auto_floating_ip: no
+        nics:
+          - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
+        security_groups:
+          - http_access
+          - email_access
+          - default
+      with_items: "{{ groups['gateways'] }}"
+      
     - name: "Ensure external IPs on gateways"
       openstack.cloud.floating_ip:
         state: present
@@ -49,13 +133,14 @@
         floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
         nat_destination: "{{ deployment_prefix  }}_sbdi_network"
       with_items: "{{ groups['gateways'] }}"
-    - name: "Ensure external IPs on servers - only for testing"
-      openstack.cloud.floating_ip:
-        state: present
-        server: "{{ deployment_prefix }}-{{ item }}"
-        network: external
-        reuse: yes
-        floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
-        nat_destination: "{{ deployment_prefix  }}_sbdi_network"
-      with_items: "{{ groups['servers'] }}"
-      when: hostvars[item]['floating_ip'] is defined 
+      
+    # - name: "Ensure external IPs on servers - only for testing"
+    #   openstack.cloud.floating_ip:
+    #     state: present
+    #     server: "{{ deployment_prefix }}-{{ item }}"
+    #     network: external
+    #     reuse: yes
+    #     floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
+    #     nat_destination: "{{ deployment_prefix  }}_sbdi_network"
+    #   with_items: "{{ groups['servers'] }}"
+    #   when: hostvars[item]['floating_ip'] is defined 
