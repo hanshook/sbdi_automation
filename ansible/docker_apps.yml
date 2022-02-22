@@ -1,11 +1,28 @@
---- 
+---
+# - name: Fix docker
+#   hosts: docker_swarm:docker
+#   become: true
+#   roles:
+#     - docker
+    
+- name: Setup docker networks
+  hosts: manager-1
+  tasks:
+    - name: Create docker network 'sbdi_front'
+      docker_network:
+        name: "{{deployment_prefix}}_sbdi_front"
+        scope: swarm
+        ipam_config:
+          - subnet: 10.211.1.0/24
+            
 - name: Install Docker Appplications
-  hosts: worker-2
+  hosts: manager-1
   vars:
     docker_ctx: "{{  docker_root | default('/docker') }}"
   become: true
   roles:
-    - osticket
+    - httpproxy
+    - role: 'submodules/docker-osticket/ansible/roles/osticket'
   tasks:
     - name: Setup env for Osticket
       copy:
@@ -16,5 +33,21 @@
         group: docker
         mode: 0640
         backup: no
+    - name: Deploy Osticket
+      docker_stack:
+        state: present
+        name: osticket
+        compose:
+          - "{{ docker_ctx }}/etc/osticket/docker-compose.yml"
+    - name: Deploy Httpproxy
+      docker_stack:
+        state: present
+        name: httpproxy
+        compose:
+          - "{{ docker_ctx }}/etc/httpproxy/docker-compose.yml"
 
-  
+- name: Setup ha proxy access
+  hosts: access-1
+  become: true
+  roles:
+    - haproxy

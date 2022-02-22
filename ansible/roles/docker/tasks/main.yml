@@ -10,6 +10,18 @@
   apt:
     pkg:
     - docker-ce
+    - python3-pip
+#    - python3-jsondiff
+#    - python3-docker
+
+
+- name: Install basic python packages
+  pip:
+    name:
+    - docker
+    - jsondiff
+    - pyyaml
+
 - name: Download and install docker compose
   get_url:
     url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64"

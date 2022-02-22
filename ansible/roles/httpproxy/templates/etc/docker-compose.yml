@@ -1,6 +1,6 @@
 version: '3.7'
 networks:
-  osticket_uat_default:
+  {{ deployment_prefix }}_sbdi_front:
     external: true
 services:
   nginx-proxy:
@@ -10,9 +10,13 @@ services:
       - "80:80"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - /docker/etc/osticket/proxy.conf:/etc/nginx/conf.d/osticket.conf
+{% for s_name, s_props in docker_services.items() %}
+{% if s_props['httpproxy'] %}
+      - /docker/etc/{{s_name}}/proxy.conf:/etc/nginx/conf.d/{{s_name}}.conf
+{% endif %}
+{% endfor %}
     networks:
-      - osticket_uat_default
+      - {{ deployment_prefix }}_sbdi_front
     deploy:
       mode: global
       placement:
