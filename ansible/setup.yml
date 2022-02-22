@@ -26,6 +26,7 @@
   #     var: reboot_required_marker_file
   - name: Reboot the machine
     reboot:
+      reboot_timeout: 3600
     when: reboot_required_marker_file.stat.exists
   - name: Wait for reboot to complete
     wait_for_connection:

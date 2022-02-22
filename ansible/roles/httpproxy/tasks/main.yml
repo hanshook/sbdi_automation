@@ -18,3 +18,4 @@
     group: root
     mode: 0644
 
+# https://www.haproxy.com/blog/haproxy-ssl-termination/

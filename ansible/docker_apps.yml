@@ -1,9 +1,5 @@
 ---
-# - name: Fix docker
-#   hosts: docker_swarm:docker
-#   become: true
-#   roles:
-#     - docker
+# Work in progress
     
 - name: Setup docker networks
   hosts: manager-1
