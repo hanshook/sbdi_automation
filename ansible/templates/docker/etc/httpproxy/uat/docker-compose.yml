@@ -10,8 +10,8 @@ services:
       - "80:80"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-{% for s_name, s_props in docker_services.items() %}
-{% if s_props['httpproxy'] %}
+{% for s_name, s_props in docker_services[deployment_prefix].items() %}
+{% if s_props['httpproxy'] is defined and s_props['httpproxy'] %}
       - /docker/etc/{{s_name}}/proxy.conf:/etc/nginx/conf.d/{{s_name}}.conf
 {% endif %}
 {% endfor %}

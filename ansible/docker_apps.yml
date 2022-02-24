@@ -1,49 +1,80 @@
 ---
 # Work in progress
     
-- name: Setup docker networks
-  hosts: manager-1
-  tasks:
-    - name: Create docker network 'sbdi_front'
-      docker_network:
-        name: "{{deployment_prefix}}_sbdi_front"
-        scope: swarm
-        ipam_config:
-          - subnet: 10.211.1.0/24
+# - name: Setup docker networks
+#   hosts: manager-1
+#   tasks:
+#     - name: Create docker network 'sbdi_front'
+#       docker_network:
+#         name: "{{deployment_prefix}}_sbdi_front"
+#         scope: swarm
+#         ipam_config:
+#           - subnet: 10.211.1.0/24
             
-- name: Install Docker Appplications
+- name: Install Docker Swarm Services
   hosts: manager-1
   vars:
-    docker_ctx: "{{  docker_root | default('/docker') }}"
+    docker_ctx: "{{ docker_root | default('/docker') }}"
+    service_declarations: "{{ docker_services[deployment_prefix] | dict2items }}"
   become: true
-  roles:
-    - httpproxy
-    - role: 'submodules/docker-osticket/ansible/roles/osticket'
   tasks:
-    - name: Setup env for Osticket
-      copy:
-        src: docker/etc/osticket/env/{{ deployment_prefix }}/envosticket
-        dest: "{{ docker_ctx }}/etc/osticket/env/.envosticket"
+    - name: Deploy services
+      include_role:
+        name: "{{ service_declaration.value['role']}}"
+      loop: "{{ service_declarations }}"
+      loop_control:
+        loop_var: service_declaration
+    - name: Setup "docker-compose.yml" for all services
+      template:
+        src: "docker/etc/{{service_declaration.key}}/{{ deployment_prefix }}/docker-compose.yml"
+        dest: "{{ docker_ctx }}/etc/{{service_declaration.key}}/docker-compose.yml"
         decrypt: yes
         owner: root
         group: docker
         mode: 0640
         backup: no
-    - name: Deploy Osticket
-      docker_stack:
-        state: present
-        name: osticket
-        compose:
-          - "{{ docker_ctx }}/etc/osticket/docker-compose.yml"
-    - name: Deploy Httpproxy
-      docker_stack:
-        state: present
-        name: httpproxy
-        compose:
-          - "{{ docker_ctx }}/etc/httpproxy/docker-compose.yml"
+      loop: "{{ service_declarations }}"        
+      loop_control:
+        loop_var: service_declaration
+    - name: Setup "env.cfg" for all services that has one
+      copy:
+        src: "docker/etc/{{service_declaration.key}}/{{ deployment_prefix }}/env.cfg"
+        dest: "{{ docker_ctx }}/etc/{{service_declaration.key}}/env/.env{{ service_declaration.key }}"
+        decrypt: yes
+        owner: root
+        group: docker
+        mode: 0640
+        backup: no
+      loop: "{{ service_declarations }}"        
+      loop_control:
+        loop_var: service_declaration
+      when: service_declaration.value.has_env is defined and service_declaration.value.has_env 
 
-- name: Setup ha proxy access
-  hosts: access-1
-  become: true
-  roles:
-    - haproxy
+
+    # - name: Setup env for Osticket
+    #   copy:
+    #     src: docker/etc/osticket/env/{{ deployment_prefix }}/envosticket
+    #     dest: "{{ docker_ctx }}/etc/osticket/env/.envosticket"
+    #     decrypt: yes
+    #     owner: root
+    #     group: docker
+    #     mode: 0640
+    #     backup: no
+    # - name: Deploy Osticket
+    #   docker_stack:
+    #     state: present
+    #     name: osticket
+    #     compose:
+    #       - "{{ docker_ctx }}/etc/osticket/docker-compose.yml"
+    # - name: Deploy Httpproxy
+    #   docker_stack:
+    #     state: present
+    #     name: httpproxy
+    #     compose:
+    #       - "{{ docker_ctx }}/etc/httpproxy/docker-compose.yml"
+
+# - name: Setup ha proxy access
+#   hosts: access-1
+#   become: true
+#   roles:
+#     - haproxy

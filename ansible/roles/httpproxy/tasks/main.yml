@@ -10,12 +10,12 @@
     - etc
     - etc/httpproxy
     
-- name: Install "docker-compose.yml" 
-  template:
-    src: etc/docker-compose.yml
-    dest: "{{ docker_ctx | default('/docker') }}/etc/httpproxy/docker-compose.yml"
-    owner: root
-    group: root
-    mode: 0644
+# - name: Install "docker-compose.yml" 
+#   template:
+#     src: etc/docker-compose.yml
+#     dest: "{{ docker_ctx | default('/docker') }}/etc/httpproxy/docker-compose.yml"
+#     owner: root
+#     group: root
+#     mode: 0644
 
 # https://www.haproxy.com/blog/haproxy-ssl-termination/

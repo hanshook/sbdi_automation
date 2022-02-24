@@ -19,5 +19,14 @@ root_disk_free_warning: 10%
 root_disk_free_critical: 5%
 
 docker_services:
-  osticket:
-    httpproxy: true
+  uat:
+    osticket:
+      role: submodules/docker-osticket/ansible/roles/osticket
+      has_env: true
+      httpproxy: true
+    httpproxy:
+      role: httpproxy
+  prod:
+    httpproxy:
+      role: httpproxy
+    
