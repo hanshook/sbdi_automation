@@ -1,0 +1,9 @@
+
+
+docker_services:
+  osticket:
+    role: submodules/docker-osticket/ansible/roles/osticket
+    httpproxy: true
+    
+# TODO: Add version of docker image here?
+
