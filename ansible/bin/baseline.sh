@@ -29,6 +29,8 @@ cd $(dirname $0)
 cd ..
 echo "Establish a basline of all host after setup."
 echo "Starting at $(date)"
+SECONDS=0
+
 if $nrm
 then
     ansible-playbook nrm_deploy.yml || exit 1
@@ -46,5 +48,6 @@ ansible-playbook nagios_server.yml || exit 1
 ansible-playbook docker.yml || exit 1
 ansible-playbook nagios_monitoring.yml
 
+duration=$SECONDS
 echo "Basline completed at $(date)"
-
+echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."

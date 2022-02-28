@@ -1,13 +1,17 @@
 version: '3.7'
 
+{% if not standalone_deployment %}
 networks:
   {{ frontend_network }}:
     external: true
+{% endif %}
 
 services:
   nginx-proxy:
     image: nginxproxy/nginx-proxy
+{% if not swarm_deployment %}    
     container_name: nginx-proxy
+{% endif %}
     ports:
       - "80:80"
     volumes:
@@ -17,9 +21,13 @@ services:
       - /docker/etc/{{s_name}}/proxy.conf:/etc/nginx/conf.d/{{s_name}}.conf
 {% endif %}
 {% endfor %}
+{% if not standalone_deployment %}
     networks:
       - {{ frontend_network }}
+{% endif %}
+{% if swarm_deployment %}
     deploy:
       mode: global
       placement:
         constraints: [node.role == manager]
+{% endif %}

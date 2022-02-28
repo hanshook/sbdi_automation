@@ -1,2 +1,11 @@
 frontend_network: sbdi_frontend
 
+# Will we run in a swarm or under the Docker deamon?
+swarm_deployment: yes
+
+# Will we run only this service?
+standalone_deployment: no
+
+# Will we expose internal volumes?
+development_deployment: no 
+

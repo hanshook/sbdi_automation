@@ -3,12 +3,23 @@
     path: "{{ docker_ctx | default('/docker') }}/{{item}}"
     owner: root
     group: root
-    mode: 0750
-    recurse: yes
+    mode: 0755
+#    recurse: yes
     state: directory
   with_items:
     - etc
     - etc/httpproxy
+    - usr/httpproxy
+    - usr/httpproxy/bin
+
+- name: Install maintenance scripts
+  template:
+    src: "bin/{{ item }}"
+    dest: "{{ docker_ctx }}/usr/httpproxy/bin/{{ item }}"
+    mode: 0755
+  with_items:
+    - start.sh
+    - stop.sh
     
 - name: Install "docker-compose.yml" 
   template:

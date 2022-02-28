@@ -1,15 +1,18 @@
 ---
 # Work in progress
     
-# - name: Setup docker networks
-#   hosts: swarm_managers[0]
-#   tasks:
-#     - name: Create docker network 'sbdi_frontend'
-#       docker_network:
-#         name: "sbdi_frontend"
-#         scope: swarm
-##         ipam_config:
-##           - subnet: 10.211.1.0/24
+- name: Setup docker networks
+  hosts: swarm_managers[0]
+  tasks:
+    - name: Create docker network 'sbdi_frontend'
+      docker_network:
+        name: "sbdi_frontend"
+        scope: swarm
+        driver: overlay
+        #        internal: yes
+        appends: yes
+        ipam_config:
+          - subnet: 10.211.1.0/24
             
 - name: Install Docker Swarm Services
   hosts: swarm_managers[0]
@@ -18,21 +21,41 @@
     service_declarations: "{{ docker_services | dict2items }}"
   become: true
   tasks:
-    - name: Deploy services
-      include_role:
-        name: "{{ service_declaration.value['role']}}"
-      loop: "{{ service_declarations }}"
-      loop_control:
-        loop_var: service_declaration
 
-    - name: Deploy HTTP proxy 
-      include_role:
-        name: 'httpproxy'
+  - name: Deploy services
+    include_role:
+      name: "{{ service_declaration.value['role']}}"
+#    vars:
+#      - config: "{{ docker_services[service_declaration.key].config | default({}) }}"
+# TODO: Inject config here somehow
+# There is a bug in ansible that excludes vars: "{{ service_declaration.value['config'] }}"
+# Might work with a vars_from file:
+# https://docs.ansible.com/ansible/2.3/include_role_module.html
+    loop: "{{ service_declarations }}"
+    loop_control:
+      loop_var: service_declaration
 
-# - name: Setup ha proxy access
-#   hosts: access-1
-#   become: true
-#   roles:
-#     - haproxy
+  - name: Setup environment configuration for each service
+    copy:
+      src: "docker/etc/env{{service_declaration.key}}.{{deployment_prefix}}.cfg"
+      dest: "{{ docker_ctx }}/etc/{{service_declaration.key}}/env/.env{{service_declaration.key}}"
+      decrypt: true
+      owner: root
+      group: docker
+      mode: 0640
+    loop: "{{ service_declarations }}"
+    loop_control:
+      loop_var: service_declaration
 
-# TODO: Setup on all access nodes.
+
+  - name: Deploy HTTP proxy 
+    include_role:
+      name: 'httpproxy'
+
+- name: Setup ha proxy access
+  hosts: access-1
+  # TODO: Setup on all access nodes.
+  become: true
+  roles:
+    - haproxy
+
