@@ -6,8 +6,21 @@ docker_services:
     httpproxy: true
     config:
       osticket_version: 1.15.4.2
-      some_other_parameter: "x"
+      test_param: "test param specific value"
 
-    
-# TODO: Add version of docker image here?
+
+# General deployment options:
+  
+# Will the services run in a swarm or jus under the Docker deamon?
+swarm_deployment: yes
+
+# Will we run each service by itself?
+# (i.e. without interdependencies, http proxy, CAS a.s.o.)
+# TOOO: Think this option through...
+standalone_deployment: no
+
+
+# Will we expose internal volumes?
+development_deployment: no     
+
 

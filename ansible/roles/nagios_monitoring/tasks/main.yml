@@ -40,3 +40,7 @@
     - reload apache
 
 # TODO: Setup users and notification by email and Slack
+
+# TODO: Swarm monitoring
+# https://github.com/timdaman/check_docker
+# https://exchange.nagios.org/directory/Plugins/Software/Check_docker_swarm/details

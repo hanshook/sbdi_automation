@@ -27,14 +27,15 @@
       name: "{{ service_declaration.value['role']}}"
 #    vars:
 #      - config: "{{ docker_services[service_declaration.key].config | default({}) }}"
-# TODO: Inject config here somehow
-# There is a bug in ansible that excludes vars: "{{ service_declaration.value['config'] }}"
-# Might work with a vars_from file:
-# https://docs.ansible.com/ansible/2.3/include_role_module.html
     loop: "{{ service_declarations }}"
     loop_control:
       loop_var: service_declaration
 
+# TODO: Inject config here somehow
+# There is a bug in ansible that excludes vars: "{{ service_declaration.value['config'] }}"
+# Might work with a vars_from file:
+# https://docs.ansible.com/ansible/2.3/include_role_module.html
+      
   - name: Setup environment configuration for each service
     copy:
       src: "docker/etc/env{{service_declaration.key}}.{{deployment_prefix}}.cfg"
