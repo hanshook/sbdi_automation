@@ -46,7 +46,8 @@ ansible-playbook docker_storage.yml || exit 1
 ansible-playbook backup.yml || exit 1
 ansible-playbook nagios_server.yml || exit 1
 ansible-playbook docker.yml || exit 1
-ansible-playbook nagios_monitoring.yml
+ansible-playbook nagios_monitoring.yml || exit 1
+#ansible-playbook docker_apps.yml
 
 duration=$SECONDS
 echo "Basline completed at $(date)"

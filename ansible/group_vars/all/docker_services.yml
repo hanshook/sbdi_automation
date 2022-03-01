@@ -7,6 +7,11 @@ docker_services:
     config:
       osticket_version: 1.15.4.2
       test_param: "test param specific value"
+  portainer:
+    role: portainer
+    httpproxy: true
+    config:
+      test_param: "test param specific value"
 
 
 # General deployment options:

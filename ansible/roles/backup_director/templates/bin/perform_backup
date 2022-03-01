@@ -44,7 +44,7 @@ then
     # Rsync source snapshot -> backup target
     # --------------------------------------
 
-    
+    log_info "Backup source snapshot (rsync) for {{ host }}"
     # Use ssh -A to bring it along for the RSYNC operation on the
     # source node that will have to ssh to the target node
     
