@@ -1,0 +1,38 @@
+- name: Ensure configuration and script directories
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items:
+    - etc
+    - etc/portainer
+    - etc/portainer/env
+    - usr/portainer
+    - usr/portainer/bin
+
+- name: Install maintenance scripts
+  template:
+    src: "bin/{{ item }}"
+    dest: "{{ docker_ctx }}/usr/portainer/bin/{{ item }}"
+    mode: 0755
+  with_items:
+    - start.sh
+    - stop.sh
+    
+- name: Install "docker-compose.yml" 
+  template:
+    src: etc/docker-compose.yml
+    dest: "{{ docker_ctx | default('/docker') }}/etc/portainer/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+
+
+- name: Install "proxy.conf" 
+  template:
+    src: etc/proxy.conf
+    dest: "{{ docker_ctx | default('/docker') }}/etc/portainer/proxy.conf"
+    mode: 0644   
+

@@ -1,0 +1,19 @@
+#! /bin/bash
+#
+# Stop docker service
+# ===================
+#
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+log_info "Stopping docker service"
+if systemctl stop docker
+then
+    log_info "Docker service stopped"
+else
+    log_fatal $? "Failed to stop docker service"
+fi

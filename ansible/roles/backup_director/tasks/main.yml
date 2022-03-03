@@ -1,3 +1,6 @@
+- debug:
+    var: directed_hosts
+    
 - name: Ensure group "backupoperator" exists with correct gid
   ansible.builtin.group:
     name: backupoperator
@@ -34,6 +37,8 @@
   with_items:
     - perform_backup
     - restore_latest_backup
+    - stopp_docker
+    - start_docker
 
 - name: Remove known_hosts file
   file:
@@ -42,8 +47,8 @@
 
 - name: Accept SSH host keys for hostnames
   shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts' backupoperator"
-  with_items: "{{ groups['backup_targets']  + groups['backup_sources'] }}"
+  with_items: "{{ directed_hosts }}"
 
 - name: Accept SSH host keys for  fqdns
   shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts' backupoperator"
-  with_items: "{{ groups['backup_targets']  + groups['backup_sources'] }}"
+  with_items: "{{ directed_hosts }}"

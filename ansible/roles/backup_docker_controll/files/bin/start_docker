@@ -1,0 +1,19 @@
+#! /bin/bash
+#
+# Start docker service
+# ====================
+#
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+log_info "Starting docker service"
+if systemctl start docker
+then
+    log_info "Docker service started"
+else
+    log_fatal $? "Failed to start docker service"
+fi

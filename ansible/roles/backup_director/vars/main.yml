@@ -1,0 +1,1 @@
+directed_hosts: "{{ groups['backup_targets'] | union(groups['backup_sources') | union(groups['docker']) | union(groups['docker_swarm']) }}"

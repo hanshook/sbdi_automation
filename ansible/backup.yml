@@ -22,3 +22,9 @@
   hosts: backup_targets
   roles:
     - backup_target
+
+- name: Setup backup docker controll
+  become: true
+  hosts: docker_swarm:docker
+  roles:
+    - backup_docker_controll

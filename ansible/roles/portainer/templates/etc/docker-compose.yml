@@ -1,0 +1,63 @@
+version: '3.7'
+
+# https://dockerswarm.rocks/portainer/
+
+networks:
+  agent-network:
+    attachable: true  
+  {{ frontend_network }}:
+    external: true
+
+services:
+  agent:
+    image: portainer/agent
+    environment:
+      AGENT_CLUSTER_ADDR: tasks.agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker_volumes:/var/lib/docker/volumes
+# Above must be corrected with a softlink (???) /var/lib/docker_voluems -> /docker/var/lib/<host_name>
+    networks:
+      - agent-network
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.platform.os == linux
+
+  portainer:
+    image: portainer/portainer
+    command: -H tcp://tasks.agent:9001 --tlsskipverify -p 80
+    volumes:
+      - data_portainer:/data
+    networks:
+      - agent-network
+      - {{ frontend_network }}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.portainer.portainer-data == true
+      # labels:
+      #   - traefik.enable=true
+      #   - traefik.docker.network=traefik-public
+      #   - traefik.constraint-label=traefik-public
+      #   - traefik.http.routers.portainer-http.rule=Host({{server_name}}.{{domain}})
+      #   - traefik.http.routers.portainer-http.entrypoints=http
+      #   - traefik.http.routers.portainer-http.middlewares=https-redirect
+      #   - traefik.http.routers.portainer-https.rule=Host({{server_name}}.{{domain}})
+      #   - traefik.http.routers.portainer-https.entrypoints=https
+      #   - traefik.http.routers.portainer-https.tls=true
+      #   - traefik.http.routers.portainer-https.tls.certresolver=le
+      #   - traefik.http.services.portainer.loadbalancer.server.port=9000
+
+
+volumes:
+  data_portainer:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/portainer"
+
+# https://docs.portainer.io/v/ce-2.9/advanced/cli

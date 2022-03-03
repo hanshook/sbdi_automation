@@ -1,0 +1,27 @@
+- name: Ensure "/opt/sbdi/backup/bin" folder
+  file: 
+    path: /opt/sbdi/backup/bin
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
+    
+- name: Install scripts for docker daemon controll
+  copy:
+    src: "bin/{{ item }}"
+    dest: /opt/sbdi/backup/bin/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - start_docker.sh
+    - stop_docker.sh
+
+- name: Install sudoers file for backupoperator
+  copy:
+    src: "47-backupoperator"
+    dest: /etc/sudoers.d/47-backupoperator
+    owner: root
+    group: root
+    mode: 0110
+

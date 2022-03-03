@@ -1,0 +1,18 @@
+
+# Will we run in a swarm or under the Docker deamon?
+swarm_deployment: yes
+
+# Will we run only this service?
+# (i.e. deploy our own httpproxy, not use CAS a.s.o. )
+standalone_deployment: no
+
+# Will we expose internal volumes?
+development_deployment: no 
+
+server_name: 'portainer'
+domain: 'sbdi.se'
+
+frontend_network: sbdi_frontend
+# TODO: Introduce a backend network also!
+
+docker_volumes: ['portainer']
