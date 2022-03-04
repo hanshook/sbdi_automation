@@ -1,0 +1,28 @@
+#! /bin/bash
+#
+# Unpause all docker containers on this host
+# ===========================================
+#
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured"
+
+CONTAINERS="$(docker container ls --format '{{ .ID }}')"
+
+if [ ! -z "$CONTAINERS" ]
+then 
+
+    if docker container unpause $CONTAINERS
+    then
+	log_info "Unpaused docker containers on host $HOSTNAME"
+    else
+	log_fatal $? "Failed to unpause docker containers on host $HOSTNAME"
+    fi
+else
+    log_info "No containers to unpause on host $HOSTNAME - OK"
+fi    

@@ -1,5 +1,11 @@
+#- debug:
+#    var: directed_hosts
 - debug:
-    var: directed_hosts
+    var: docker_host_names
+- name: Install paralllel-ssh
+  apt:
+    pkg:
+    - pssh
     
 - name: Ensure group "backupoperator" exists with correct gid
   ansible.builtin.group:
@@ -17,7 +23,6 @@
     uid: 1901
     group: backupoperator
   register: backupoperator_data
-
 
 - name: Ensure /opt/sbdi/backup folder
   file: 
@@ -37,8 +42,40 @@
   with_items:
     - perform_backup
     - restore_latest_backup
-    - stopp_docker
+    - stop_docker
     - start_docker
+    - pause_containers
+    - unpause_containers
+    
+
+- name: Ensure 'backupoperator/bin' folder
+  file: 
+    path: ~backupoperator/bin
+    owner: backupoperator
+    group: backupoperator
+    mode: 0755 
+    state: directory
+    
+- name: Softlink backupoperator commands for convenience
+  file:
+    src: "/opt/sbdi/backup/bin/{{ item }}"
+    dest: "~backupoperator/bin/{{ item }}"
+    state: link
+  with_items:
+    - perform_backup
+    - restore_latest_backup
+    - stop_docker
+    - start_docker    
+    - pause_containers
+    - unpause_containers
+
+- name: Add the DOCKER_HOSTS environment variable
+  lineinfile:
+    path: ~backupoperator/.bashrc
+    line: "export DOCKER_HOSTS=\"{{docker_host_names | join(' ') }}\""
+    insertafter: 'EOF'
+    regexp: 'export DOCKER_HOSTS=.*$'
+    state: present
 
 - name: Remove known_hosts file
   file:

@@ -14,8 +14,10 @@
     group: root
     mode: 0755
   with_items:
-    - start_docker.sh
-    - stop_docker.sh
+    - start_docker
+    - stop_docker
+    - pause_containers
+    - unpause_containers
 
 - name: Install sudoers file for backupoperator
   copy:

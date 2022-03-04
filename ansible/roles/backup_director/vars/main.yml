@@ -1,1 +1,5 @@
-directed_hosts: "{{ groups['backup_targets'] | union(groups['backup_sources') | union(groups['docker']) | union(groups['docker_swarm']) }}"
+directed_hosts: "{{ groups['backup_targets'] | union(groups['backup_sources']) | union(groups['docker']) | union(groups['docker_swarm']) }}"
+
+docker_hosts:  "{{  groups['docker'] | union(groups['docker_swarm']) }}"
+
+docker_host_names: "{{ docker_hosts | map('regex_replace', '^(.*)$', deployment_prefix+'-\\1') | list }}"

@@ -14,18 +14,18 @@
         state: link
 
     
-- name: Setup docker networks
-  hosts: swarm_managers[0]
-  tasks:
-    - name: Create docker network 'sbdi_frontend'
-      docker_network:
-        name: "sbdi_frontend"
-        scope: swarm
-        driver: overlay
-        #        internal: yes
-        appends: yes
-        ipam_config:
-          - subnet: 10.211.1.0/24
+# - name: Setup docker networks
+#   hosts: swarm_managers[0]
+#   tasks:
+#     - name: Create docker network 'sbdi_frontend'
+#       docker_network:
+#         name: "sbdi_frontend"
+#         scope: swarm
+#         driver: overlay
+#         #        internal: yes
+#         appends: yes
+#         ipam_config:
+#           - subnet: 10.211.1.0/24
             
 - name: Install Docker Swarm Services
   hosts: swarm_managers[0]

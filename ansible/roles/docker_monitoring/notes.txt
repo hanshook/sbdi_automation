@@ -1,0 +1,17 @@
+docker node ls -> test all nodes active, we have a leader and managers reachable
+
+
+
+
+docker node ps $(docker node ls -q) --filter desired-state=Running | uniq
+
+
+-> list of all running containers
+
+
+List of all running container ID's
+
+for f in $(docker service ps  -q `docker service ls --format '{{.Name}}'` -f desired-state=running);do docker inspect --format '{{.Status.ContainerStatus.ContainerID}}' $f; done
+
+
+

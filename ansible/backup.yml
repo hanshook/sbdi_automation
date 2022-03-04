@@ -7,7 +7,7 @@
 
 - name: Setup backup user for sourec and target 
   become: true
-  hosts: backup_targets:backup_sources
+  hosts: backup_targets:backup_sources:docker_swarm:docker
   roles:
     - backup_directed
 
@@ -23,8 +23,8 @@
   roles:
     - backup_target
 
-- name: Setup backup docker controll
+- name: Setup backup docker control
   become: true
   hosts: docker_swarm:docker
   roles:
-    - backup_docker_controll
+    - backup_docker_control

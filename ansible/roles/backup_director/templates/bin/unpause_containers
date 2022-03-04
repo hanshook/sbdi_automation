@@ -1,0 +1,25 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] && log_warn "Do *not* run as root"
+
+eval `ssh-agent -s`
+ssh-add .ssh/id_rsa
+
+DOCKER_HOSTS="{{ docker_host_names | join(' ') }}"
+
+log_info "Unpausing docker containers on: ${DOCKER_HOSTS}"
+if parallel-ssh  -l backupoperator -i -H "${DOCKER_HOSTS}" 'sudo /opt/sbdi/backup/bin/unpause_containers'
+then
+    log_info "Successfully unpaused docker containers on: ${DOCKER_HOSTS}"
+else
+    error_code=$?
+    log_error "Failed to unpause docker containers on: ${DOCKER_HOSTS} - error: ${error_code}"
+fi
+    

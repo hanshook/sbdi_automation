@@ -3,12 +3,14 @@
     name: backupoperator
     state: present
     gid: 1901
+    
 - name: Create user "backupoperator"
   ansible.builtin.user:
     name: backupoperator
     shell: /bin/bash
     uid: 1901
     group: backupoperator
+    
 - name: Enable passwordless login for user "backupoperator"
   ansible.posix.authorized_key:
     user: backupoperator

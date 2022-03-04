@@ -4,6 +4,8 @@
 # ===================
 #
 
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
 . $lib_dir/log_utils
 
 log_logging_application="BACKUP"

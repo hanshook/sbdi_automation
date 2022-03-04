@@ -1,7 +1,7 @@
 #! /bin/bash
 
 bin_dir=$(dirname $0)
-lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
+lib_dir=/opt/sbdi/lib  
 
 . $lib_dir/log_utils
 
@@ -12,16 +12,14 @@ log_logging_application="BACKUP"
 eval `ssh-agent -s`
 ssh-add .ssh/id_rsa
 
-{% for host in groups['docker'] | union(groups['docker_swarm']) %}
+DOCKER_HOSTS="{{ docker_host_names | join(' ') }}"
 
-log_info "Stopping docker on {{ host }}"
-
-if ssh backupoperator@{{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/stop_docker'
+log_info "Stopping docker on: ${DOCKER_HOSTS}"
+if parallel-ssh  -l backupoperator -i -H "${DOCKER_HOSTS}" 'sudo /opt/sbdi/backup/bin/stop_docker'
 then
-    log_info "Successfully stopped docker on {{ host }}"
+    log_info "Successfully stopped docker on: ${DOCKER_HOSTS}"
 else
     error_code=$?
-    log_error "Failed to stop docker on {{ host }} - error: ${error_code}"
+    log_error "Failed to stopp docker on: ${DOCKER_HOSTS} - error: ${error_code}"
 fi
-
-{% endfor %}
+    
