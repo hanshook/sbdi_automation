@@ -40,33 +40,54 @@
     pesize: 16
     force: yes
     state: present
-- name: Create a thin lvm pool for storage of Docker config and volumes (tp_docker)
+- name: Create an lvm volume for storage of Docker config and volumes (lv_docker)
   community.general.lvol:
     vg: vg_docker
-    thinpool: tp_docker
+    lv: lv_docker
     size: 80%VG
-- name: Create a thin lvm volume for storage of Docker config and volumes (tlv_docker)
-  community.general.lvol:
-    vg: vg_docker
-    lv: tlv_docker
-    thinpool: tp_docker
-    size: 100G
+    force: yes
 - name: Format the thin volume for docker data with xfs
   community.general.filesystem:
     fstype: xfs
-    dev: /dev/vg_docker/tlv_docker
+    dev: /dev/vg_docker/lv_docker
     opts: -i size=512
-- name: Create export mount point /export/docker
+- name: Check if mount point for docker data "/docker" exists
+  stat:
+    path: /docker
+  register: docker_mount_point
+- name: Create  mount point for docker data "/docker"
   file:
-    path: /export/docker
+    path: /docker
     state: directory
     owner: root
     group: root
     mode: 0775
-#    recurse: yes
-- name: Mount thin volume tlv_docker_volume at /export/docker
+    recurse: yes
+  when: docker_mount_point.stat.exists == false    
+- name: Mount volume lv_docker_volume at /docker
   ansible.posix.mount:
-    src: /dev/vg_docker/tlv_docker
+    src: /dev/vg_docker/lv_docker
     fstype: xfs
-    path: /export/docker
+    path: /docker
     state: mounted
+- name: Make sure the "/docker" mount point has the correct access rights
+  file:
+    path: /docker
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+- name: Make sure the "/docker" mount point has the correct subdirectories for deployment 
+  file:
+    path: "/docker/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    recurse: yes
+    state: directory
+  with_items:
+    - etc
+    - usr
+    - var
+    - var/volumes
+    - var/backup

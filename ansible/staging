@@ -31,8 +31,12 @@ manager-3
 worker-1
 worker-2
 
+#[standalone_storage]
+#worker-2
+
 [storage:vars]
 size=1GB
+# When is this used?
 
 
 # Backup
