@@ -9,6 +9,13 @@ ansible_host: "{{deployment_prefix}}-{{  inventory_hostname }}.{{ domain }}"
 common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
 host_ip: "{{common_ip_part}}{{ hostvars[inventory_hostname]['nbr'] }}"
 
+# Volumes
+
+# Note! We have currently not found any way to set or know
+# the device id of a volume attached to a server :-(
+# This depends on if there is an ephemeral disk or other
+# volumes attached.
+data_volume_device: /dev/vdc
 
 # MTU 9000 not poosible (yet) on MicroStac
 internal_network_mtu: 1000 
