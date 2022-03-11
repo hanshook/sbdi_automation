@@ -9,7 +9,9 @@ verbose=""
 # Note! It is unknown if this is acceptable because those
 # DNS servers will not be present in the cloud.
 
-nrm=false 
+nrm=false
+inventory_arg=""
+inventory="default"
 
 while true 
 do
@@ -20,6 +22,11 @@ do
 	-nrm) nrm=true
 	      shift
 	      ;;
+	-i) inventory=$2
+	    inventory_arg="-i $2"
+	    shift
+	    shift
+	    ;;
 	*) break	    
 	   ;;
     esac
@@ -27,27 +34,27 @@ done
 
 cd $(dirname $0)
 cd ..
-echo "Establish a basline of all host after setup."
+echo "Establish a basline of all host in inventory: ${inventory}"
 echo "Starting at $(date)"
 SECONDS=0
 
 if $nrm
 then
-    ansible-playbook nrm_deploy.yml || exit 1
+    ansible-playbook nrm_deploy.yml $inventory_arg || exit 1
 else
-    ansible-playbook deploy.yml || exit 1
+    ansible-playbook deploy.yml $inventory_arg  || exit 1
 fi
-ansible-playbook local_ssh.yml || exit 1
-ansible-playbook admin_users.yml || exit 1
+ansible-playbook local_ssh.yml $inventory_arg || exit 1
+ansible-playbook admin_users.yml $inventory_arg || exit 1
 # TODO: When to harden and how to reverse?
-# For the time beeing do not do: ansible-playbook harden.yml
-ansible-playbook setup.yml || exit 1
-ansible-playbook docker_storage.yml || exit 1
-ansible-playbook backup.yml || exit 1
-ansible-playbook nagios_server.yml || exit 1
-ansible-playbook docker.yml || exit 1
-ansible-playbook nagios_monitoring.yml || exit 1
-#ansible-playbook docker_apps.yml
+# For the time beeing do not do: ansible-playbook harden.yml $inventory_arg
+ansible-playbook setup.yml  $inventory_arg || exit 1
+ansible-playbook docker_storage.yml $inventory_arg  || exit 1
+ansible-playbook backup.yml  $inventory_arg || exit 1
+ansible-playbook nagios_server.yml  $inventory_arg || exit 1
+ansible-playbook docker.yml  $inventory_arg || exit 1
+ansible-playbook nagios_monitoring.yml   $inventory_arg || exit 1
+#ansible-playbook docker_apps.yml $inventory_arg
 
 duration=$SECONDS
 echo "Basline completed at $(date)"

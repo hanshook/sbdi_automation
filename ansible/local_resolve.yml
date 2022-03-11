@@ -11,7 +11,7 @@
       regexp: ".*{{domain}}.*"
       state: absent
       backup: yes
-    with_items: "{{ groups['gateways'] }}"
+#    with_items: "{{ groups['gateways'] }}"
   - name: Add gateways to the /etc/hosts file 
     become: yes
     lineinfile:
