@@ -4,29 +4,65 @@
 # The Gluster volume is backed by a thinly provissioned logical volume (lvm).
 # Thus Gluster volume snapshots may be used to backup all data in all docker containers instantly.
 
-
 ---
-- name: Setup storage for Docker data on all storage nodes 
+- name: "Take an inventory of volumes in our cloud"
+  hosts: localhost
+  tasks:
+    - name: "Register info about all volumes"
+      openstack.cloud.volume_info:
+      register: volume_info
+      
+- name: "Decide what block device to use for data storage on all storage nodes"
+  hosts: storage
+  gather_facts: yes
+  tasks:
+    - name: "Filter out volume device id for each host if there is one"
+      set_fact:
+        volume_device_id:  "virtio-{{item.id}}"
+      with_items: "{{ hostvars['localhost'].volume_info.volumes }}"
+      when: item.name | regex_search("^"+deployment_prefix+"-"+inventory_hostname+"-volume$")
+
+    - name: "Show us the volume device id that we are looking for"
+      debug:
+        var: volume_device_id
+      
+    - name: "Set lvm_device of this host to be an atached volume if there is one attached"
+      set_fact:
+        lvm_device:  "/dev/{{ item }}"
+      with_items: "{{ ansible_facts.devices }}"
+      when: ansible_facts.devices[item].links.ids | select('in', volume_device_id) | list | length > 0
+
+    - name: Show device selected for data storage
+      debug:
+        var: lvm_device
+
+    # Note1: If we do not find a volume attached to a storage node
+    # we will use the default for lvm_device which is likely to be /dev/vdb
+    # This corresponds for us using an ephimerial device
+
+    # Note2: It might be a good idea tocheck out that there is a an lvm_device... (TODO)
+        
+- name: "Setup storage for Docker data on all storage nodes"
   hosts: storage
   become: true
   roles:
   - role: docker_storage
-- name: Setup Gluster Server on all storage nodes 
+- name: "Setup Gluster Server on all storage nodes" 
   hosts: storage
   become: true
   roles:
   - role: gluster_server
-- name: Setup GlusterFS Volume for Docker data 
+- name: "Setup GlusterFS Volume for Docker data" 
   hosts: "{{ groups['storage'][0] }}"
   become: true
   roles:
   - role: docker_gluster_volume
-- name: Setup Gluster Client on all storage clients that are not backends 
+- name: "Setup Gluster Client on all storage clients that are not backends" 
   hosts: storage_clients:!storage
   become: true
   roles:
   - role: gluster_client
-- name: Ensure Docker data access on all storage clients
+- name: "Ensure Docker data access on all storage clients"
   hosts: storage_clients
   become: true
   roles:
