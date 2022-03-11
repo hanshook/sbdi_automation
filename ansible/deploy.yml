@@ -58,7 +58,7 @@
       openstack.cloud.router:
         state: present
         name: "{{ deployment_prefix  }}_sbdi_router"
-        network: external
+        network: "{{ external_network }}"
         interfaces:
           - "{{ deployment_prefix }}_sbdi_subnet"
 
@@ -163,7 +163,7 @@
       openstack.cloud.floating_ip:
         state: present
         server: "{{ deployment_prefix }}-{{ item }}"
-        network: external
+        network: "{{ external_network }}"
         reuse: yes
         floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
         nat_destination: "{{ deployment_prefix  }}_sbdi_network"

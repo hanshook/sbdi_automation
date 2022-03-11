@@ -20,7 +20,7 @@ data_volume_device: /dev/vdc
 # MTU 9000 not poosible (yet) on MicroStac
 internal_network_mtu: 1000 
 
-server_image: ubuntu-20.40-server-cloudimg-amd64
+
 
 root_disk_free_warning: 10%
 root_disk_free_critical: 5%

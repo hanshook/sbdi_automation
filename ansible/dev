@@ -2,17 +2,17 @@
 # =============
 
 [gateways]
-access-1 nbr=11 flavor=ssc.xsmall floating_ip=130.238.29.21 
-access-2 nbr=12 flavor=ssc.xsmall floating_ip=130.238.28.173
+access-1 nbr=11 flavor=lb.tiny floating_ip=10.20.20.111
+access-2 nbr=12 flavor=lb.tiny floating_ip=10.20.20.112
 
 [servers]
-manager-1 nbr=21 flavor=ssc.medium.highmem volume=100
-manager-2 nbr=22 flavor=ssc.medium.highmem volume=100
-manager-3 nbr=23 flavor=ssc.medium.highmem volume=100
-worker-1 nbr=31 flavor=ssc.medium.highmem
-worker-2 nbr=32 flavor=ssc.medium.highmem
-backup-director nbr=91 flavor=ssc.tiny
-backup-target nbr=92 flavor=ssc.medium.highmem
+manager-1 nbr=21 flavor=lm.large.1d volume=20
+manager-2 nbr=22 flavor=lm.large.1d volume=20
+manager-3 nbr=23 flavor=lm.large.1d volume=20
+worker-1 nbr=31 flavor=lb.tiny
+worker-2 nbr=32 flavor=lb.tiny floating_ip=10.20.20.120
+backup-director nbr=91 flavor=lb.tiny
+backup-target nbr=92 flavor=lm.large.1d
 #nagios nbr=97 flavor=lb.tiny
 
 
@@ -80,8 +80,9 @@ access-2
 # ========================
 
 [all:vars]
-deployment_prefix=uat
-private_subnet=10.201.0.0/24
-domain=sbdi-uat.se
-external_network="Public External IPv4 Network"
-server_image="Ubuntu 20.04 - 2021.03.23" 
+deployment_prefix=dev
+private_subnet=10.209.0.0/24
+domain=sbdi-dev.local
+external_network=external
+server_image="ubuntu-20.40-server-cloudimg-amd64"
+
