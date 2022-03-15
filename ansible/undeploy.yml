@@ -12,16 +12,32 @@
         name: "{{ item['name'] }}"
         state: absent
       with_items:  "{{ deployed_servers.openstack_servers }}"
-    - name: "Look for all internal ports"
-      openstack.cloud.port_info:
-        interface: internal
-      register: cloud_ports
+    # Does not work in SNIC
+    # - name: "Look for all internal ports"
+    #   openstack.cloud.port_info:
+    #     interface: internal
+    #   register: cloud_ports
+    # - name: "Remove all internal ports in deployment {{ deployment_prefix }}, i.e. those matching {{ '^port_of_'+deployment_prefix+'-.+' }}"
+    #   openstack.cloud.port:
+    #     state: absent
+    #     name: "{{ item.name }}"
+    #   with_items: "{{ cloud_ports.openstack_ports | selectattr('name', 'match', '^port_of_'+deployment_prefix+'-.+') | list }}"
+    
+    - name: "Look for internal ports in deploymenmt i.e. those matching '^port_of_'+deployment_prefix+'-' "
+      ansible.builtin.shell: "openstack port list -f value | grep port_of_{{ deployment_prefix }}- | cut -d' ' -f2"
+      register: port_list_result
 
-    - name: "Remove all internal ports in deployment {{ deployment_prefix }}, i.e. those matching {{ '^port_of_'+deployment_prefix+'-.+' }}"
+    # - name: "List ports to remove"
+    #   debug:
+    #     var: port_list_result.stdout_lines
+        
+    - name: "Remove all internal ports in deployment"
       openstack.cloud.port:
         state: absent
-        name: "{{ item.name }}"
-      with_items: "{{ cloud_ports.openstack_ports | selectattr('name', 'match', '^port_of_'+deployment_prefix+'-.+') | list }}"
+        name: "{{ item }}"
+      with_items: "{{ port_list_result.stdout_lines }}"
+      
+
     - name: "Remove router: {{ deployment_prefix  }}_sbdi_router (if it is present)"
       openstack.cloud.router:
         state: absent

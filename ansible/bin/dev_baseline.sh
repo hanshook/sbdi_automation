@@ -1,5 +1,5 @@
 #! /bin/bash
 
 cd $(dirname $0)
-./basline.sh -i dev
+./baseline.sh -i dev
 

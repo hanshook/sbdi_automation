@@ -12,7 +12,7 @@ manager-3 nbr=23 flavor=ssc.medium.highmem volume=100
 worker-1 nbr=31 flavor=ssc.medium.highmem
 worker-2 nbr=32 flavor=ssc.medium.highmem
 backup-director nbr=91 flavor=ssc.tiny
-backup-target nbr=92 flavor=ssc.medium.highmem
+backup-target nbr=92 flavor=ssc.medium.highmem volume=300 backup_data_device=/dev/vdb
 #nagios nbr=97 flavor=lb.tiny
 
 

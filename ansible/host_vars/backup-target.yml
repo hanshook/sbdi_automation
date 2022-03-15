@@ -1,1 +1,2 @@
-backup_data_device: /dev/vdb
+# Set this in inventory file or TODO: Add volume detection.
+#backup_data_device: /dev/vdb
