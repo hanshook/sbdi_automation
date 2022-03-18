@@ -33,7 +33,7 @@
   when: ip_sec_users | length > 0
   
 - name: "Ensure correct ipsec users - if there are ipsec users"
-  ansible.builtin.shell: "sudo sh /tmp/updatevpnusers.sh"
+  ansible.builtin.shell: "echo 'y' | sudo sh /tmp/updatevpnusers.sh"
   when: ip_sec_users | length > 0  
 
 - name: "Delete ipsec update users scrip and its contained secrets"
@@ -41,6 +41,8 @@
     state: absent
     path: /tmp/updatevpnusers.sh
 
+# TODO: Check if ipsec is installed for following two steps
+    
 - name: "Download ipsec uninstall script - if there are no ipsec users"
   get_url:
     url: "https://git.io/vpnuninstall"
