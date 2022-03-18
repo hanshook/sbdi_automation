@@ -1,8 +1,3 @@
-#ipsec_access: yes
-#ipsec_password:
-
-#ipsec_psk:
-
 - name: "Determine ipsec users"
   set_fact:
     ip_sec_users: "{{ admin_users | dict2items | selectattr('value.ipsec_access', 'equalto', true) | list  }}"
@@ -11,16 +6,7 @@
 #   debug:
 #     var: ip_sec_users
   
-# - name: "Download ipsec install script"
-#   get_url:
-#     url: "https://git.io/vpnsetup"
-#     timeout: 30
-#     dest: /tmp/vpnsetup.sh
-#     owner: root
-#     mode: 0755
-#   when: ip_sec_users | length > 0
-
-- name: "Upload ipsec install scrip"
+- name: "Upload ipsec install scrip - if there are ipsec users"
   template:
     src: "vpnsetup.sh"
     dest: /tmp/vpnsetup.sh
@@ -29,17 +15,43 @@
   when: ip_sec_users | length > 0
 
 
-# - name: "Install ipsec server"
-#   ansible.builtin.shell: "sudo sh /tmp/vpnsetup.sh"
+- name: "Ensure ipsec server - if there are ipsec users"
+  ansible.builtin.shell: "sudo sh /tmp/vpnsetup.sh"
+  when: ip_sec_users | length > 0
 
-- name: "Upload ipsec update users scrip"
+- name: "Delete ipsec install scrip and its contained secret"
+  file:
+    state: absent
+    path: /tmp/vpnsetup.sh
+
+- name: "Upload ipsec update users scrip - if there are ipsec users"
   template:
     src: "updatevpnusers.sh"
     dest: /tmp/updatevpnusers.sh
     owner: root
     mode: 0755
-  when: ip_sec_users | length > 1
+  when: ip_sec_users | length > 0
+  
+- name: "Ensure correct ipsec users - if there are ipsec users"
+  ansible.builtin.shell: "sudo sh /tmp/updatevpnusers.sh"
+  when: ip_sec_users | length > 0  
 
+- name: "Delete ipsec update users scrip and its contained secrets"
+  file:
+    state: absent
+    path: /tmp/updatevpnusers.sh
 
+- name: "Download ipsec uninstall script - if there are no ipsec users"
+  get_url:
+    url: "https://git.io/vpnuninstall"
+    timeout: 30
+    dest: /tmp/vpnuninstall.sh
+    owner: root
+    mode: 0755
+  when: ip_sec_users | length == 0
+
+- name: "Uninstall ipsec server - if there are no ipsec users"
+  ansible.builtin.shell: "echo 'y' | sudo sh /tmp/vpnuninstall.sh"
+  when: ip_sec_users | length == 0
 
 
