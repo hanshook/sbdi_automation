@@ -1,0 +1,6 @@
+---
+- hosts: ipsec_servers
+  become: true
+  roles:
+  - ipsec_server
+

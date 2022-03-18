@@ -80,6 +80,13 @@ worker-2
 #nagios
 access-2
 
+# IP sec access
+# =============
+
+[ipsec_servers]
+access-2
+
+
 # Deployment specific vars
 # ========================
 

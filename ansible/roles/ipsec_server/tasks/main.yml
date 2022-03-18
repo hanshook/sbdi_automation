@@ -1,4 +1,45 @@
-ipsec_access: yes
-ipsec_password:
+#ipsec_access: yes
+#ipsec_password:
 
-ipsec_psk:  
+#ipsec_psk:
+
+- name: "Determine ipsec users"
+  set_fact:
+    ip_sec_users: "{{ admin_users | dict2items | selectattr('value.ipsec_access', 'equalto', true) | list  }}"
+
+# - name: "Show us the users selected"
+#   debug:
+#     var: ip_sec_users
+  
+# - name: "Download ipsec install script"
+#   get_url:
+#     url: "https://git.io/vpnsetup"
+#     timeout: 30
+#     dest: /tmp/vpnsetup.sh
+#     owner: root
+#     mode: 0755
+#   when: ip_sec_users | length > 0
+
+- name: "Upload ipsec install scrip"
+  template:
+    src: "vpnsetup.sh"
+    dest: /tmp/vpnsetup.sh
+    owner: root
+    mode: 0755
+  when: ip_sec_users | length > 0
+
+
+# - name: "Install ipsec server"
+#   ansible.builtin.shell: "sudo sh /tmp/vpnsetup.sh"
+
+- name: "Upload ipsec update users scrip"
+  template:
+    src: "updatevpnusers.sh"
+    dest: /tmp/updatevpnusers.sh
+    owner: root
+    mode: 0755
+  when: ip_sec_users | length > 1
+
+
+
+
