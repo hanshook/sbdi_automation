@@ -1,0 +1,4 @@
+ipsec_access: yes
+ipsec_password:
+
+ipsec_psk:  
