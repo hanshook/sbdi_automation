@@ -1,0 +1,70 @@
+#
+# Role requires 'lvm_device' and 'volume_group' variables to be defined
+#
+# - Unmount and lvm_device or any of its partions if mounted
+# - Reboot the machine if there are mounts (workarround for bug in sticky mount)
+# - Ensure that 'lvm_device' has one(1) lvm partion (only)
+# - Create a logical volume group 'volume_group' based on that partition
+
+- name: "Gather facts about mounts"
+  setup:
+    
+- name: "Filter out the mount points for {{ lvm_device }} or any of its partitions"
+  set_fact:
+    device_mount_points:  "{{ ansible_mounts | selectattr('device', 'match', '^'+lvm_device+'.*') | map(attribute='mount') | list }}"
+
+- name: "{{ lvm_device }} or any of its partitions are currently mounted at:"
+  debug:
+    var: device_mount_points    
+    
+- name: "Unmount {{ lvm_device }}  or any of its partitions if it is mounted"
+  mount:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ device_mount_points }}"
+
+- name: "Reboot the machine if {{ lvm_device }} or any of its partitions where mounted"
+  reboot:
+  when: device_mount_points | length > 0
+
+- name: "Read device information for {{ lvm_device }} (always use unit when probing)"
+  parted: "device={{ lvm_device }} unit=MiB"
+  register: lvm_device_info
+  
+- name: "Device information for {{ lvm_device }}:"
+  debug:
+    var: lvm_device_info
+
+- name: "Figure out if {{ lvm_device }} needs partitioning, i.e. does not only contain one lvm partition"
+  set_fact:
+    device_needs_partitioning: "{{ not (((lvm_device_info['partitions'] | length) == 1) and ('lvm' in lvm_device_info['partitions'][0]['flags'])) }}"
+
+- name: "{{ lvm_device }} needs partitioning:"
+  debug:
+    var: device_needs_partitioning   
+
+- name: "Remove all partitions from device {{ lvm_device }} - if it needs partitioning"
+  parted:
+    device: "{{ lvm_device }}"
+    number: "{{ item.num }}"
+    state: absent
+  with_items:
+   - "{{ lvm_device_info.partitions }}"
+  when: device_needs_partitioning
+  
+- name: "Create one(1) lvm partition on device {{ lvm_device }} - if it needs partitioning"
+  parted:
+    device: "{{ lvm_device }}"
+    number: 1
+    flags: [ lvm ]
+    state: present
+  when: device_needs_partitioning
+  
+    
+- name: "Create volume group: {{ volume_group }} based on: {{ lvm_device }}1"
+  lvg:
+    vg: "{{ volume_group }}"
+    pvs: "{{ lvm_device }}1"
+    pesize: 16
+    force: yes
+    state: present

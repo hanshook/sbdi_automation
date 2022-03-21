@@ -18,6 +18,11 @@
         name: email_access
         description: "Email SMTP/IMAP/POP Access"
         state: present
+    - name: "Ensure VPN Security Group"
+      openstack.cloud.security_group:
+        name: vpn_access
+        description: "IPSEC VPN Access"
+        state: present
     - name: "Ensure HTTP access in http_access security group"
       openstack.cloud.security_group_rule:
         security_group: http_access
@@ -40,6 +45,27 @@
         port_range_max: 25
         remote_ip_prefix: 0.0.0.0/0
     # TBD: Add rest of mail rules
+    - name: "Ensure UPD 500 access VPN security group"
+      openstack.cloud.security_group_rule:
+        security_group: vpn_access
+        protocol: udp
+        port_range_min: 500
+        port_range_max: 500
+        remote_ip_prefix: 0.0.0.0/0
+    - name: "Ensure UPD 4500 access VPN security group"
+      openstack.cloud.security_group_rule:
+        security_group: vpn_access
+        protocol: udp
+        port_range_min: 4500
+        port_range_max: 4500
+        remote_ip_prefix: 0.0.0.0/0
+    - name: "Ensure UPD 1701 access VPN security group"
+      openstack.cloud.security_group_rule:
+        security_group: vpn_access
+        protocol: udp
+        port_range_min: 1701
+        port_range_max: 1701
+        remote_ip_prefix: 0.0.0.0/0
 
     #
     # Internal Network
@@ -122,6 +148,7 @@
         security_groups:
           - http_access
           - email_access
+          - vpn_access
           - default
       with_items: "{{ groups['gateways'] }}"
 
@@ -139,7 +166,7 @@
 
     - name: "Debug output - data volumes"
       debug:
-        msg: "Attache volume: { deployment_prefix }}-{{ item }}-volume at: {{ deployment_prefix }}-{{ item }} as: {{ hostvars[item]['data_volume_device'] }}"
+        msg: "Attache volume: {{ deployment_prefix }}-{{ item }}-volume at: {{ deployment_prefix }}-{{ item }} as: {{ hostvars[item]['data_volume_device'] }}"
       with_items: "{{ groups['gateways'] + groups['servers'] }}"
       when:  hostvars[item]['volume'] is defined 
       

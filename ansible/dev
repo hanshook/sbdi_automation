@@ -6,9 +6,9 @@ access-1 nbr=11 flavor=lb.tiny floating_ip=10.20.20.111
 access-2 nbr=12 flavor=lb.tiny floating_ip=10.20.20.112
 
 [servers]
-manager-1 nbr=21 flavor=lm.large.1d volume=20
-manager-2 nbr=22 flavor=lm.large.1d volume=20
-manager-3 nbr=23 flavor=lm.large.1d volume=20
+manager-1 nbr=21 flavor=lm.large.1d volume=10
+manager-2 nbr=22 flavor=lm.large.1d 
+manager-3 nbr=23 flavor=m.medium volume=10
 worker-1 nbr=31 flavor=lb.tiny
 worker-2 nbr=32 flavor=lb.tiny floating_ip=10.20.20.120
 backup-director nbr=91 flavor=lb.tiny
@@ -63,7 +63,7 @@ manager-2
 manager-3
 
 [swarm_workers]
-worker-1backup_data_device: /dev/vdb
+worker-1
 
 [docker]
 worker-2

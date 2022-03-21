@@ -22,7 +22,7 @@
       with_items: "{{ hostvars['localhost'].volume_info.volumes }}"
       when: item.name | regex_search("^"+deployment_prefix+"-"+inventory_hostname+"-volume$")
 
-    - name: "Show us the volume device id that we are looking for"
+    - name: "The volume device id that we are looking for:"
       debug:
         var: volume_device_id
       
@@ -32,7 +32,7 @@
       with_items: "{{ ansible_facts.devices }}"
       when: ansible_facts.devices[item].links.ids | select('in', volume_device_id) | list | length > 0
 
-    - name: Show device selected for data storage
+    - name: "Device selected for data storage:"
       debug:
         var: lvm_device
 
@@ -47,21 +47,25 @@
   become: true
   roles:
   - role: docker_storage
+    
 - name: "Setup Gluster Server on all storage nodes" 
   hosts: storage
   become: true
   roles:
   - role: gluster_server
+    
 - name: "Setup GlusterFS Volume for Docker data" 
   hosts: "{{ groups['storage'][0] }}"
   become: true
   roles:
   - role: docker_gluster_volume
+    
 - name: "Setup Gluster Client on all storage clients that are not backends" 
   hosts: storage_clients:!storage
   become: true
   roles:
   - role: gluster_client
+    
 - name: "Ensure Docker data access on all storage clients"
   hosts: storage_clients
   become: true
@@ -69,7 +73,7 @@
   - role: docker_data_access    
 
 ##
-## TODO: Setup local storage on /docker on the servers that needs that
+## TODO: Setup local storage on /docker_local on the servers that needs that
 ##
 
 # http://manpages.ubuntu.com/manpages/xenial/man7/lvmthin.7.html

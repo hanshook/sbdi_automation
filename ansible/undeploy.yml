@@ -23,7 +23,7 @@
     #     name: "{{ item.name }}"
     #   with_items: "{{ cloud_ports.openstack_ports | selectattr('name', 'match', '^port_of_'+deployment_prefix+'-.+') | list }}"
     
-    - name: "Look for internal ports in deploymenmt i.e. those matching '^port_of_'+deployment_prefix+'-' "
+    - name: "Look for internal ports in deploymenmt i.e. those matching '^port_of_{{ deployment_prefix }}-' "
       ansible.builtin.shell: "openstack port list -f value | grep port_of_{{ deployment_prefix }}- | cut -d' ' -f2"
       register: port_list_result
 
