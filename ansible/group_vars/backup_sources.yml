@@ -1,7 +1,15 @@
+# New default config:
+
+gluster_backup_source: false
+gluster_source_mount_point: /gluster_backupsource
+
+lvm_backup_source: false
+lvm_source_volume_group: vg_docker_local
+lvm_source_volume: lv_docker_local
+lvm_source_mount_point: /local_backupsource
+
+# Obsolete:
 
 backup_source_type: gluster
 #backup_source_type: lvm
-source_volume_group: vg0
-source_volume: lv0
-source_mount_point: /backupsource
 

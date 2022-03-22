@@ -1,2 +1,5 @@
 ansible_python_interpreter: /usr/bin/python3
 swarm_iface: ens3
+
+storage_disk_free_warning: 20%
+storage_disk_free_critical: 10%

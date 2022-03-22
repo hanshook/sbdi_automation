@@ -6,14 +6,15 @@ access-1 nbr=11 flavor=ssc.xsmall floating_ip=130.238.29.21
 access-2 nbr=12 flavor=ssc.xsmall floating_ip=130.238.28.173
 
 [servers]
-manager-1 nbr=21 flavor=ssc.medium.highmem volume=100
-manager-2 nbr=22 flavor=ssc.medium.highmem volume=100
-manager-3 nbr=23 flavor=ssc.medium.highmem volume=100
-worker-1 nbr=31 flavor=ssc.medium.highmem
-worker-2 nbr=32 flavor=ssc.medium.highmem
+manager-1 nbr=21 flavor=ssc.medium.highmem volume_gluster=100
+manager-2 nbr=22 flavor=ssc.medium.highmem volume_gluster=100
+manager-3 nbr=23 flavor=ssc.medium.highmem volume_gluster=100 volume_local_docker=400
+worker-1 nbr=31 flavor=ssc.medium.highmem volume_local_docker=400
+worker-2 nbr=32 flavor=ssc.medium.highmem volume_local_docker=400
+worker-3 nbr=33 flavor=ssc.medium.highmem 
 backup-director nbr=91 flavor=ssc.tiny
-backup-target nbr=92 flavor=ssc.medium.highmem volume=300 backup_data_device=/dev/vdb
-#nagios nbr=97 flavor=lb.tiny
+backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=300
+nagios nbr=97 flavor=ssc.tiny
 
 
 # Storage
@@ -24,18 +25,8 @@ manager-1
 manager-2
 manager-3
 
-[storage_clients]
-manager-1 
-manager-2
-manager-3
-worker-1
-worker-2
-
-#[standalone_storage]
-#worker-2
-
-[storage:vars]
-size=1GB
+#[storage:vars]
+#size=1GB
 # When is this used?
 
 
@@ -49,7 +40,10 @@ backup-director
 backup-target
 
 [backup_sources]
-manager-1 gluster_backup_source=true
+manager-1 gluster_backup_source=true 
+worker-1 lvm_backup_source=true
+worker-2 lvm_backup_source=true
+manager-3 lvm_backup_source=true
 
 #Docker
 #======
@@ -59,26 +53,29 @@ manager-1
 manager-2
 manager-3
 worker-1
-
+worker-2
+worker-3
 
 [swarm_managers]
 manager-1
 manager-2
 manager-3
 
-[swarm_workers]
+[swarm_local_storage]
 worker-1
+worker-2
+manager-3
 
 [docker]
-worker-2
+# host with non swarm docker and local storage
 
 
 # Nagios
 # ======
 
 [nagios_servers]
-#nagios
-access-2
+nagios
+
 
 # IP sec access
 # =============

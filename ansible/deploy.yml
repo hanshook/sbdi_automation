@@ -156,28 +156,64 @@
     # Volumes
     #
 
-    - name: "Ensure data volumes"
+    - name: "Ensure gluster data volumes"
       openstack.cloud.volume:
         state: present
-        size: "{{hostvars[item]['volume']}}"
-        display_name: "{{ deployment_prefix }}-{{ item }}-volume"
-      with_items: "{{ groups['gateways'] + groups['servers'] }}"
-      when:  hostvars[item]['volume'] is defined 
+        size: "{{hostvars[item]['volume_gluster']}}"
+        display_name: "{{ deployment_prefix }}-{{ item }}-volume_gluster"
+      with_items: "{{ groups['servers'] }}"
+      when:  hostvars[item]['volume_gluster'] is defined
 
-    - name: "Debug output - data volumes"
-      debug:
-        msg: "Attache volume: {{ deployment_prefix }}-{{ item }}-volume at: {{ deployment_prefix }}-{{ item }} as: {{ hostvars[item]['data_volume_device'] }}"
-      with_items: "{{ groups['gateways'] + groups['servers'] }}"
-      when:  hostvars[item]['volume'] is defined 
+    # - name: "Debug output - data volumes"
+    #   debug:
+    #     msg: "Attache volume: {{ deployment_prefix }}-{{ item }}-volume at: {{ deployment_prefix }}-{{ item }} as: {{ hostvars[item]['data_volume_device'] }}"
+    #   with_items: "{{ groups['gateways'] + groups['servers'] }}"
+    #   when:  hostvars[item]['volume'] is defined 
       
-    - name: "Attach data volumes to servers"
+    - name: "Ensure backup data volumes"
+      openstack.cloud.volume:
+        state: present
+        size: "{{hostvars[item]['volume_backup']}}"
+        display_name: "{{ deployment_prefix }}-{{ item }}-volume_backup"
+      with_items: "{{ groups['servers'] }}"
+      when:  hostvars[item]['volume_backup'] is defined 
+
+    - name: "Ensure local docker data volumes"
+      openstack.cloud.volume:
+        state: present
+        size: "{{hostvars[item]['volume_local_docker']}}"
+        display_name: "{{ deployment_prefix }}-{{ item }}-volume_local_docker"
+      with_items: "{{ groups['servers'] }}"
+      when:  hostvars[item]['volume_local_docker'] is defined 
+
+      
+    - name: "Attach gluster data volumes to servers"
       openstack.cloud.server_volume:
         state: present
         server: "{{ deployment_prefix }}-{{ item }}"
-        volume: "{{ deployment_prefix }}-{{ item }}-volume"
+        volume: "{{ deployment_prefix }}-{{ item }}-volume_gluster"
         device: "{{ hostvars[item]['data_volume_device'] }}"
-      with_items: "{{ groups['gateways'] + groups['servers'] }}"
-      when:  hostvars[item]['volume'] is defined 
+      with_items: "{{ groups['servers'] }}"
+      when:  hostvars[item]['volume_gluster'] is defined
+      
+    - name: "Attach backup data volumes to servers"
+      openstack.cloud.server_volume:
+        state: present
+        server: "{{ deployment_prefix }}-{{ item }}"
+        volume: "{{ deployment_prefix }}-{{ item }}-volume_backup"
+        device: "{{ hostvars[item]['data_volume_device'] }}"
+      with_items: "{{ groups['servers'] }}"
+      when:  hostvars[item]['volume_backup'] is defined
+
+    - name: "Attach local docker data volumes to servers"
+      openstack.cloud.server_volume:
+        state: present
+        server: "{{ deployment_prefix }}-{{ item }}"
+        volume: "{{ deployment_prefix }}-{{ item }}-volume_local_docker"
+        device: "{{ hostvars[item]['data_volume_device'] }}"
+      with_items: "{{ groups['servers'] }}"
+      when:  hostvars[item]['volume_local_docker'] is defined 
+
 
  
 

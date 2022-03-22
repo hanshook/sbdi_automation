@@ -15,7 +15,7 @@ This repository contains Ansible playbooks for:
 
 1. Prepare your host (i.e. prepare /etc/hosts): ```ansible-playbook local_resolve.yml --ask-become-pass```
 
-2. Deploy vms: ```ansible-playbook deploy.yml``` or at NRM: ```ansible-playbook deploy_nrm.yml```
+2. Deploy vms, setup netorking and data volumes: ```ansible-playbook deploy.yml``` 
 
 3. Setup localhost for ssh access: ```ansible-playbook local_ssh.yml```
 
@@ -23,27 +23,40 @@ This repository contains Ansible playbooks for:
 
 5. "Harden" deployment (for now remove ubuntu user) : ```ansible-playbook harden.yml``` 
 
-6. Manage admin users: ```ansible-playbook manage_admin_users.yml```
+6. Install software, update and configure servers and gateways: ```ansible-playbook initial_setup.yml```
 
-7. Install software and configure servers and gateways: ```ansible-playbook setup.yml```
+7. Setup storage for docker data and configuration: ```ansible-playbook storage.yml```
 
-8. Setup storage for docker volumes: ```ansible-playbook docker_storage.yml```
+8. Setup Docker and Docker Swarm: ```ansible-playbook docker.yml```
 
-10. Setup backup: ```ansible-playbook backup.yml```
+9. Setup backup: ```ansible-playbook backup.yml```
 
-11. Setup Nagios server: ```ansible-playbook nagios_server.yml```
+10. Setup Nagios monitoring: ```ansible-playbook nagios.yml```
 
-12. Setup Docker and Docker Swarm: ```ansible-playbook docker.yml```
+11. Setup IPSEC VPN access: ```ansible-playbook ipsec_access.yml```
 
-13. Setup Nagios based monitoring: ```ansible-playbook nagios_monitoring.yml```
+12. Setup Docker Applications (work in progress): ```ansible-playbook docker_apps.yml```
 
-14. Setup Docker Applications (work in progress): ```ansible-playbook docker_apps.yml```
+TODO: Setup logging and log analysis
 
-Note: To do all of the above (except step 1) run  ```ansible/bin/basline.sh```
+Note: To do all of the above (except step 1 and 5) run  ```ansible/bin/basline.sh```
 
-Note: NRM blocks DNS, i.e. 1.1.1.1, 8.8.8.8 etc is not accessile.
+## Undeploy everyting
 
-Run ```ansible-playbook deploy_nrm.yml``` or ```ansible/bin/basline.sh -nrm``` as a workaround.
+In order to remove all hosts and networking run:  ```ansible-playbook undeploy.yml``` 
+
+Note! Data vaolumes are not removed!
+
+## Admin user management
+
+Manage admin users: ```ansible-playbook manage_admin_users.yml```
+
+## Edit vault data
+
+Edit vault. ```export EDITOR=emacs; ansible-vault edit group_vars/all/vault```
+
+Change to your prefered editor in: export EDITOR=/usr/bin/emacs
+
 
 ### Usefull options
 
@@ -54,13 +67,6 @@ Run on a specific host: ```ansible-playbook <playbook>.yml -l inventory_hostname
 Run on a specific group: ```ansible-playbook <playbook>.yml -l servers```
 
 Run on a specific tag: ```ansible-playbook <playbook>.yml --tags nagiosclient```
-
-
-
-Edit vault. ```export EDITOR=emacs; ansible-vault edit group_vars/all/vault```
-
-Change to your prefered editor in: export EDITOR=/usr/bin/emacs
-
 
 
 ## References

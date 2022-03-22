@@ -6,14 +6,14 @@ access-1 nbr=11 flavor=lb.tiny floating_ip=10.20.20.111
 access-2 nbr=12 flavor=lb.tiny floating_ip=10.20.20.112
 
 [servers]
-manager-1 nbr=21 flavor=lm.large.1d volume=10
-manager-2 nbr=22 flavor=lm.large.1d 
-manager-3 nbr=23 flavor=m.medium volume=10
-worker-1 nbr=31 flavor=lb.tiny
-worker-2 nbr=32 flavor=lb.tiny floating_ip=10.20.20.120
+manager-1 nbr=21 flavor=lm.large.1d volume_gluster=10
+manager-2 nbr=22 flavor=lm.large.1d volume_local_docker=5
+manager-3 nbr=23 flavor=m.medium volume_gluster=10
+worker-1 nbr=31 flavor=lm.large.1d
+worker-2 nbr=32 flavor=lb.tiny 
 backup-director nbr=91 flavor=lb.tiny
-backup-target nbr=92 flavor=lm.large.1d backup_data_device=/dev/vdb
-#nagios nbr=97 flavor=lb.tiny
+backup-target nbr=92 flavor=lm.large.1d
+nagios nbr=97 flavor=lb.tiny
 
 
 # Storage
@@ -24,15 +24,9 @@ manager-1
 manager-2
 manager-3
 
-[storage_clients]
-manager-1 
-manager-2
-manager-3
-worker-1
-worker-2
 
-[storage:vars]
-size=1GB
+#[storage:vars]
+#size=1GB
 
 
 # Backup
@@ -55,6 +49,7 @@ manager-1
 manager-2
 manager-3
 worker-1
+worker-2
 
 
 [swarm_managers]
@@ -62,19 +57,21 @@ manager-1
 manager-2
 manager-3
 
-[swarm_workers]
+
+[swarm_local_storage]
 worker-1
+manager-2
 
 [docker]
-worker-2
+# host with non swarm docker and local storage
 
 
 # Nagios
 # ======
 
 [nagios_servers]
-#nagios
-access-2
+nagios
+
 
 # Deployment specific vars
 # ========================

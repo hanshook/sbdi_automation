@@ -1,0 +1,61 @@
+# Note! This role is dependent on the role: 'lvm_volume_group'
+
+- name: Create an lvm volume for storage of Docker config and volumes (lv_docker_local)
+  community.general.lvol:
+    vg: vg_docker_local
+    lv: lv_docker_local
+    size: 80%VG
+    resizefs: yes
+    force: yes
+    
+- name: Format the lvm volume for docker data with xfs
+  community.general.filesystem:
+    fstype: xfs
+    resizefs: yes
+    dev: /dev/vg_docker_local/lv_docker_local
+    opts: -i size=512
+    
+- name: Check if mount point for local docker data "/docker_local" exists
+  stat:
+    path: /docker_local
+  register: docker_local_mount_point    
+
+- name: Create mount point for local docker data "/docker_local"
+  file:
+    path: /docker_local
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+    recurse: yes
+  when: docker_local_mount_point.stat.exists == false
+  
+- name: Mount volume lv_docker_local_volume at /docker_local
+  ansible.posix.mount:
+    src: /dev/vg_docker_local/lv_docker_local
+    fstype: xfs
+    path: /docker_local
+    state: mounted
+    
+- name: Make sure the "/docker_local" mount point has the correct access rights
+  file:
+    path: /docker_local
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+    
+- name: Make sure the "/docker_local" mount point has the correct subdirectories for deployment 
+  file:
+    path: "/docker_local/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    recurse: yes
+    state: directory
+  with_items:
+    - etc
+    - usr
+    - var
+    - var/volumes
+    - var/backup
