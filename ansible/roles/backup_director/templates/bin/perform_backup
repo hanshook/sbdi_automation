@@ -16,7 +16,7 @@ log_logging_application="BACKUP"
 # Start ssh agent (needed for ssh -A) and load the key:
 
 eval `ssh-agent -s`
-ssh-add .ssh/id_rsa
+ssh-add ~/.ssh/id_rsa
 
 
 

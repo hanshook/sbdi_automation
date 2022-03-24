@@ -113,7 +113,7 @@ remote_dest={{deployment_prefix}}-{{ source_host }}
 # Gluster backup
 # --------------
 backup_name="{{ source_host }}@{{ hostvars[source_host]['gluster_backup_source_dir'] | replace('/', '+') }}"
-backup_source_dir={{ hostvars[source_host]['gluster_backup_source_mount_point'] }}
+backup_source_dir={{ hostvars[source_host]['gluster_backup_source_dir'] }}
 
 if ! perform_restore $backup_name $remote_dest $backup_source_dir
 then
@@ -125,7 +125,7 @@ fi
 # lvm backup
 # ----------
 backup_name="{{ source_host }}@{{ hostvars[source_host]['lvm_backup_source_dir'] | replace('/', '+') }}"
-backup_source_dir={{ hostvars[source_host]['lvm_backup_source_mount_point'] }}
+backup_source_dir={{ hostvars[source_host]['lvm_backup_source_dir'] }}
 
 if ! perform_restore $backup_name $remote_dest $backup_source_dir
 then

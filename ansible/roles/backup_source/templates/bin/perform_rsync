@@ -95,10 +95,10 @@ result=0
 {% if gluster_backup_source %}
 
 source_mount_point={{ gluster_backup_source_snapshot_mount_point }}
-remote_dest={{deployment_prefix}}-{{ target_host }}
 target="/backup/current/{{ inventory_hostname }}@{{ gluster_backup_source_dir | replace('/', '+') }}"
 
 {% for target_host in groups['backup_targets'] %}
+remote_dest={{deployment_prefix}}-{{ target_host }}
 
 if ! perform_rsync $source_mount_point $remote_dest "${target}"
 then
@@ -111,10 +111,10 @@ fi
 {% if lvm_backup_source %}
 
 source_mount_point={{ lvm_backup_source_snapshot_mount_point }}
-remote_dest={{deployment_prefix}}-{{ target_host }}
 target="/backup/current/{{ inventory_hostname }}@{{ lvm_backup_source_dir | replace('/', '+') }}"
 
 {% for target_host in groups['backup_targets'] %}
+remote_dest={{deployment_prefix}}-{{ target_host }}
 
 if ! perform_rsync $source_mount_point $remote_dest "${target}"
 then
