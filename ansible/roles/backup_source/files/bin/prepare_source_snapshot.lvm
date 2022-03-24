@@ -32,7 +32,7 @@
 #   prepare_lvm_source_snapshot <options> 
 #
 #   where 
-#         <options> = [-v] [-t] [-size <snapshot_size>] [-name <snapshot_name>]
+#         <options> = [-v] [-t] [-size <snapshot_size>] [-name <snapshot_name>] <source_vg> <source_volume> <source_mount_point>
 #             
 #   -v    : verbose output - default false
 #   -t    : dry run and only output info  - default false
@@ -70,9 +70,9 @@ do
     esac
 done
 
-source_vg={{ source_volume_group }} 
-source_volume={{ source_volume }}
-source_mount_point={{ source_mount_point }}
+source_vg=$1
+source_volume=$2
+source_mount_point=$3
 
 bin_dir=$(dirname $0)
 lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}

@@ -1,0 +1,127 @@
+#! /bin/bash
+
+# Perform rsync of source snapshot(s) on this node to backup target(s)
+# ====================================================================
+
+
+# Note! This script is generated from a template by Ansible
+
+
+# usage:
+#   perform_rsync <options> 
+#
+#   where 
+#         <options> = [-v] [-t]
+#             
+#   -v    : verbose output - default false
+#   -t    : dry run and only output info  - default false
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  
+
+. $lib_dir/log_utils
+. $lib_dir/string_utils
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured"
+
+verbose=''
+dry_run=''
+
+
+while true 
+do
+    case $1 in
+
+	-v) verbose="-v"
+	    shift
+	    ;;
+	-t) dry_run="-t"
+	    shift
+	    ;;
+	*) break	    
+	    ;;
+    esac
+done
+
+perform_rsync() {
+    local source_mount_point=$1
+    local remote_dest=$2
+    local target=$3
+
+    rsync_flags=""
+
+
+    if [ -z "$source_mount_point" ]
+    then
+	log_error  "No source mount point provided"
+	return 91
+    fi
+    if [ -z "$remote_dest" ]
+    then
+	log_error "No remote destination provided"
+	return 92
+    fi
+    if [ -z "$target" ]
+    then
+	log_error "No target provided"
+	return 93
+    fi
+
+    # Ensure there is one (and only one) trailing '/' in source dir - because of rsync semantics.
+    source_dir=$(str_rtrim "$source_mount_point" /)
+    source="${source_dir}/"
+
+    local result=0
+
+    if /usr/bin/rsync -a -e /usr/bin/ssh --rsync-path="/usr/bin/sudo /usr/bin/rsync" \
+		      $dry_run $verbose $rsync_flags  \
+		      $source --delete-after backupoperator@$remote_dest:$target
+    then
+	log_info "performed rsync $source -> backupoperator@$remote_dest:$target"
+    else
+	error=$?
+	log_error "failed to rsync $source -> backupoperator@$remote_dest:$target - error: ${error}"
+	result=91
+    fi
+
+
+    return $result
+}
+
+# Main:
+
+result=0
+
+{% if gluster_backup_source %}
+
+source_mount_point={{ gluster_backup_source_snapshot_mount_point }}
+remote_dest={{deployment_prefix}}-{{ target_host }}
+target="/backup/current/{{ inventory_hostname }}@{{ gluster_backup_source_dir | replace('/', '+') }}"
+
+{% for target_host in groups['backup_targets'] %}
+
+if ! perform_rsync $source_mount_point $remote_dest "${target}"
+then
+    result=1
+fi
+
+{% endfor %}
+{% endif %}
+
+{% if lvm_backup_source %}
+
+source_mount_point={{ lvm_backup_source_snapshot_mount_point }}
+remote_dest={{deployment_prefix}}-{{ target_host }}
+target="/backup/current/{{ inventory_hostname }}@{{ lvm_backup_source_dir | replace('/', '+') }}"
+
+{% for target_host in groups['backup_targets'] %}
+
+if ! perform_rsync $source_mount_point $remote_dest "${target}"
+then
+    result=1
+fi
+
+{% endfor %}
+{% endif %}
+
+exit $result

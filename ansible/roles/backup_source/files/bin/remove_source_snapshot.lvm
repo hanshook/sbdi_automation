@@ -28,7 +28,7 @@
 # ------------------
 # 
 # usage:
-#   remove_source_snapshot <options> 
+#   remove_source_snapshot <options> <source_vg> <source_volume>
 #
 #   where 
 #         <options> = [-v] [-t] [-name <snapshot_name>]
@@ -65,8 +65,8 @@ do
     esac
 done
 
-source_vg={{ source_volume_group }}
-source_volume={{ source_volume }}
+source_vg=$1
+source_volume=$2
 
 bin_dir=$(dirname $0)
 lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib} 
@@ -81,7 +81,7 @@ log_logging_application="BACKUP"
 [ -z "$source_vg" ] && log_fatal 91 "No volume group provided"
 [ -z "$source_volume" ] && log_fatal 91 "No volume provided"
 
-[ -z "$snapshot_name" ] && snapshot_name="${source_volume}""_backupsnap"
+[ -z "$snapshot_name" ] && snapshot_name="${source_volume}_backupsnap"
 
 
 if lvm_is_snapshot $source_vg $snapshot_name

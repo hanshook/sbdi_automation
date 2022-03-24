@@ -2,19 +2,33 @@
   apt:
     pkg: rsync
     
-- name: Check if mount point for docker data "/docker" exists
+- name: Check if mount point for gluster backup snapshots exists
   stat:
-    path: "{{ source_mount_point }}"
-  register: backup_source_mount_point
+    path: "{{ gluster_backup_source_snapshot_mount_point }}"
+  register: gluster_backup_source_snapshot_mount_point_status
+
+- name: Check if mount point for lvm backup snapshots exists
+  stat:
+    path: "{{ lvm_backup_source_snapshot_mount_point }}"
+  register: lvm_backup_source_snapshot_mount_point_status
     
-- name: Ensure mount point for backup snapshots
+- name: Ensure mount point for gluster backup snapshots (when needed)
   file:
-    path: "{{ source_mount_point }}"
+    path: "{{ gluster_backup_source_snapshot_mount_point }}"
     state: directory
     owner: root
     group: root
     mode: 0775
-  when: backup_source_mount_point.stat.exists == false
+  when: gluster_backup_source and gluster_backup_source_snapshot_mount_point_status.stat.exists == false
+    
+- name: Ensure mount point for lvm backup snapshots  (when needed)
+  file:
+    path: "{{ lvm_backup_source_snapshot_mount_point }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  when: lvm_backup_source and lvm_backup_source_snapshot_mount_point_status.stat.exists == false
     
 - name: Ensure "/opt/sbdi/backup/bin" folder
   file: 
@@ -23,20 +37,43 @@
     group: root
     mode: 0755 
     state: directory
-    
-- name: Install backup snapshot handling scripts
-  template:
+
+- name: Install Gluster backup snapshot handling scripts (when needed)
+  copy:
     src: "bin/{{ item }}"
-    dest: "/opt/sbdi/backup/bin/{{ item | split('.') | first }}"
-#    dest: "/opt/sbdi/backup/bin/{{ item | regex_replace('^(.+)\\..*$', '\\1' }}"
+    dest: "/opt/sbdi/backup/bin/{{ item }}.sh"
     owner: root
     group: root
     mode: 0755
   with_items:
-    - "prepare_source_snapshot.{{ backup_source_type }}"
-    - perform_rsync.all
-    - "remove_source_snapshot.{{ backup_source_type }}"
+    - prepare_source_snapshot.gluster
+    - remove_source_snapshot.gluster
+  when: gluster_backup_source
 
+- name: Install lvm backup snapshot handling scripts (when needed)
+  copy:
+    src: "bin/{{ item }}"
+    dest: "/opt/sbdi/backup/bin/{{ item }}.sh"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - prepare_source_snapshot.lvm
+    - remove_source_snapshot.lvm
+  when: lvm_backup_source
+
+- name: Install cooridinating backup snapshot handling scripts
+  template:
+    src: "bin/{{ item }}"
+    dest: "/opt/sbdi/backup/bin/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - prepare_source_snapshot
+    - perform_rsync
+    - remove_source_snapshot
+    
 - name: Install sudoers file for backupoperator
   copy:
     src: "43-backupoperator"
@@ -51,12 +88,12 @@
 - name: Remove known_hosts file of root
   file:
     state: absent
-    path: ~backupoperator/.ssh/known_hosts
+    path: /root/.ssh/known_hosts
 
-- name: Accept SSH host keys for hostnames
-  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts"
+- name: Accept backup targets SSH host keys for hostnames
+  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> /root/.ssh/known_hosts"
   with_items: "{{ groups['backup_targets'] }}"
 
-- name: Accept SSH host keys for  fqdns
-  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
+- name: Accept backup targets SSH host keys for fqdns
+  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> /root/.ssh/known_hosts"
   with_items: "{{ groups['backup_targets'] }}"   

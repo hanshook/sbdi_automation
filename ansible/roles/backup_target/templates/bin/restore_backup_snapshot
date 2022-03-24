@@ -1,8 +1,31 @@
 #! /bin/bash
 #
-# Perform rsync of target snapshot on this node to backup source
-# ==============================================================
+# Restore backup snapshot
+# =======================
 #
+
+# Note! This script is generated from a template by Ansible
+# This script tries to restore all backup source node snapshots *defined* in ansible at the
+# time this script was generated.
+
+# All those source node snapshots are supposed to be part of a zfs backup snapshot
+# mounted at /backup/snapshot on this backup (target) node.
+#
+# If a backup snapshot for a backup on a specific backup source node
+# does not exist on this backup (target) server a warning is
+# issued.
+#
+# An alternative strategy might be to try to restore those snapshots
+# that actually exist in /backup/snapshot.
+
+# This is possible since each source snapshot reside in a separate
+# directory with then name <host>@<backup_source_dir>
+# where in <backup_source_dir> all occurencies of '/' has been replaced with a '+'
+# (in order to comply with posix file name standards).
+#
+# Consequently what has been backed up and from where is decoded in
+# that directory name.
+
 # 
 # usage:
 #   restore_backup_snapshot <options> 
@@ -37,6 +60,34 @@ do
 done
 
 
+perform_restore() {
+    
+local backup_name=$1
+local remote_dest=$2
+local backup_source_dir=$3
+
+local result=0
+
+if [ -e /backup/snapshot/${backup_name} ]
+then
+    if /usr/bin/rsync -a -e /usr/bin/ssh --rsync-path="/usr/bin/sudo /usr/bin/rsync" \
+		      $dry_run $verbose $rsync_flags  \
+		      /backup/snapshot/${backup_name}/ --delete-after backupoperator@${remote_dest}:${backup_source_dir}
+    then
+	log_info "Performed rsync /backup/snapshot/${backup_name}/ -> backupoperator@${remote_dest}:${backup_source_dir}"
+    else
+	error=$?
+	log_error $error "Failed to rsync /backup/snapshot/${backup_name}/ -> backupoperator@${remote_dest}:${backup_source_dir} - error: $error"
+	result=91
+    fi
+else
+    log_warn "The backup may not be restored since it does not exist: ${backup_name}"
+fi
+
+return $result
+
+}
+    
 rsync_flags=""
 
 bin_dir=$(dirname $0)
@@ -50,23 +101,37 @@ log_logging_application="BACKUP"
 
 result=0
 
+# Restore backups 
 {% for source_host in groups['backup_sources'] %}
 
-backup_name={{ source_host }}
-
+# ======================
+# {{deployment_prefix}}-{{ source_host }}
+# ======================
 remote_dest={{deployment_prefix}}-{{ source_host }}
+{% if hostvars[source_host]['gluster_backup_source'] %}
 
-if /usr/bin/rsync -a -e /usr/bin/ssh --rsync-path="/usr/bin/sudo /usr/bin/rsync" \
-      $dry_run $verbose $rsync_flags  \
-      /backup/snapshot/$backup_name/ --delete-after backupoperator@$remote_dest:/docker
+# Gluster backup
+# --------------
+backup_name="{{ source_host }}@{{ hostvars[source_host]['gluster_backup_source_dir'] | replace('/', '+') }}"
+backup_source_dir={{ hostvars[source_host]['gluster_backup_source_mount_point'] }}
+
+if ! perform_restore $backup_name $remote_dest $backup_source_dir
 then
-    log_info "Performed rsync /backup/snapshot/$backup_name/ -> backupoperator@$remote_dest:/docker"
-else
-    error=$?
-    log_error $error "Failed to rsync /backup/snapshot/$backup_name/ -> backupoperator@$remote_dest:/docker - error: $error"
-    result=91
+    result=1
 fi
+{% endif %}
+{% if hostvars[source_host]['lvm_backup_source'] %}
 
+# lvm backup
+# ----------
+backup_name="{{ source_host }}@{{ hostvars[source_host]['lvm_backup_source_dir'] | replace('/', '+') }}"
+backup_source_dir={{ hostvars[source_host]['lvm_backup_source_mount_point'] }}
+
+if ! perform_restore $backup_name $remote_dest $backup_source_dir
+then
+    result=1
+fi
+{% endif %}
 {% endfor %}
 
 exit $result

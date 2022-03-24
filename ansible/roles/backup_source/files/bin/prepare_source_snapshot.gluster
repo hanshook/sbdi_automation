@@ -13,7 +13,7 @@
 #   prepare_gluster_source_snapshot <options> 
 #
 #   where 
-#         <options> = [-v] [-t] [-size <snapshot_size>] [-name <snapshot_name>]
+#         <options> = [-v] [-t] [-name <snapshot_name>] <gluster_volume> <source_mount_point>
 #             
 #   -v    : verbose output - default false
 #   -t    : dry run and only output info  - default false
@@ -25,7 +25,6 @@
 # Read arguments and switches
 verbose=''
 dry_run=''
-snapshot_size="200M" # default 200 MB
 snapshot_name=''
 
 while true 
@@ -38,10 +37,6 @@ do
 	-t) dry_run="-t"
 	    shift
 	    ;;
-	-size) snapshot_size=$2
-	    shift
-	    shift
-	    ;;
 	-name) snapshot_name=$2
 	    shift
 	    shift
@@ -51,8 +46,8 @@ do
     esac
 done
 
-gluster_volume=docker
-source_mount_point={{ source_mount_point }}
+gluster_volume=$1
+source_mount_point=$2
 
 bin_dir=$(dirname $0)
 lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
@@ -61,8 +56,10 @@ lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
 
 log_logging_application="BACKUP"
 
-[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured"
 
+[ -z "$gluster_volume" ] && log_fatal 91 "No gluster volume provided"
+[ -z "$source_mount_point" ] && log_fatal 92 "No mount pointprovided"
 
 # Ensure mount point or exit
 
@@ -118,7 +115,6 @@ else
 
     fi
 fi
-
     
 
 if $deactivate_snapshot_on_exit

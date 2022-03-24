@@ -49,8 +49,8 @@ do
 done
 
 
-gluster_volume=docker
-source_mount_point={{ source_mount_point }}
+gluster_volume=$1 
+source_mount_point=$2 
 
 bin_dir=$(dirname $0)
 lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib} 
@@ -61,7 +61,8 @@ log_logging_application="BACKUP"
 
 [ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
 
-
+[ -z "$gluster_volume" ] &&  log_fatal  91 "No gluster volume provided" 
+[ -z "$source_mount_point" ] &&  log_fatal  92 "No source snapshot mount point provided" 
 
 [ -z "$snapshot_name" ] && snapshot_name="${gluster_volume}_backupsnap"
 

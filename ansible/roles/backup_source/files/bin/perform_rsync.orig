@@ -5,7 +5,7 @@
 #
 # 
 # usage:
-#   performe_rsync <options> 
+#   perform_rsync <options> <source_mount_point> <remote_dest> <target>
 #
 #   where 
 #         <options> = [-v] [-t]
@@ -36,11 +36,11 @@ do
     esac
 done
 
-source_mount_point={{ source_mount_point }}
-#remote_dest={{ hostvars[groups['backup_targets'][0]]['ansible_host'] }}
-backup_name={{ inventory_hostname }}
-rsync_flags=""
+source_mount_point=$1
+remote_dest=$2
+target=$3
 
+rsync_flags=""
 
 
 bin_dir=$(dirname $0)
@@ -51,18 +51,18 @@ lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
 
 log_logging_application="BACKUP"
 
-[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured"
 
+[ -z "$source_mount_point" ] && log_fatal 91 "No source mount point provided"
+[ -z "$remote_dest" ] && log_fatal 92 "No remote destination provided"
+[ -z "$target" ] && log_fatal 93 "No target provided"
+
+# Ensure there is one (and only one) trailing / in source dir - because of rsync semantics.
 source_dir=$(str_rtrim "$source_mount_point" /)
 source="${source_dir}/"
 
-target=/backup/current/${backup_name}
 
 result=0
-
-{% for target_host in groups['backup_targets'] %}
-
-remote_dest={{deployment_prefix}}-{{ target_host }}
 
 if /usr/bin/rsync -a -e /usr/bin/ssh --rsync-path="/usr/bin/sudo /usr/bin/rsync" \
       $dry_run $verbose $rsync_flags  \
@@ -75,6 +75,5 @@ else
     result=91
 fi
 
-{% endfor %}
 
 exit $result
