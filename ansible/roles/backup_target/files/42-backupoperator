@@ -6,8 +6,9 @@ Defaults        env_keep+=SSH_AUTH_SOCK
 
 Cmnd_Alias     BOP_TRG_SNAP = /opt/sbdi/backup/bin/create_backup_snapshot
 Cmnd_Alias     BOP_TRG_ACT_L_SNAP = /opt/sbdi/backup/bin/activate_latest_backup_snapshot
+Cmnd_Alias     BOP_TRG_ACT_SNAP = /opt/sbdi/backup/bin/activate_backup_snapshot
 Cmnd_Alias     BOP_TRG_DEACT_SNAP = /opt/sbdi/backup/bin/deactivate_backup_snapshot
 Cmnd_Alias     BOP_TRG_REST_SNAP = /opt/sbdi/backup/bin/restore_backup_snapshot
-Cmnd_Alias     BOP_TRG_ALL = BOP_TRG_SNAP, BOP_TRG_ACT_L_SNAP, BOP_TRG_DEACT_SNAP, BOP_TRG_REST_SNAP, /usr/bin/rsync
+Cmnd_Alias     BOP_TRG_ALL = BOP_TRG_SNAP, BOP_TRG_ACT_L_SNAP, BOP_TRG_ACT_SNAP, BOP_TRG_DEACT_SNAP, BOP_TRG_REST_SNAP, /usr/bin/rsync
 
 backupoperator ALL=(ALL) NOPASSWD: BOP_TRG_ALL

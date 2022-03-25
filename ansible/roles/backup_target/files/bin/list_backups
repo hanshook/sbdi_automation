@@ -1,0 +1,6 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib
+
+zfs list -t snapshot -o name -S creation | tail -n +2 | sed 's/.*@snap_//'

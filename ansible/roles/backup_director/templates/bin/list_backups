@@ -1,0 +1,11 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  
+
+
+[ $EUID -eq 0 ] && log_warn "Do *not* run as root"
+
+backup_target_host={{deployment_prefix}}-{{ groups['backup_targets'][0] }}
+
+ssh backupoperator@${backup_target_host} '/opt/sbdi/backup/bin/list_backups'

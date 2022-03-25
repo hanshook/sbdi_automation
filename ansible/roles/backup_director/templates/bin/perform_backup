@@ -1,7 +1,7 @@
 #! /bin/bash
 
 bin_dir=$(dirname $0)
-lib_dir=/opt/sbdi/lib  #${SOMO_LIBDIR:-$bin_dir/../lib}
+lib_dir=/opt/sbdi/lib  
 
 . $lib_dir/log_utils
 
@@ -9,40 +9,80 @@ log_logging_application="BACKUP"
 
 [ $EUID -eq 0 ] && log_warn "Do *not* run as root"
 
-# TODO: Use parallell ssh to perform taking all snapshots at same time.
+{% if groups['backup_sources'] | length > 0 %}
+log_info "There are {{ groups['backup_sources'] | length }} backup sources - thus pausing docker containers is suggested"
+pause_docker_containers=true
+{% else %}
+pause_docker_containers=false
+{% endif %}
 
 # Authorized SSH key is kept only on backup-director
-
 # Start ssh agent (needed for ssh -A) and load the key:
 
 eval `ssh-agent -s`
 ssh-add ~/.ssh/id_rsa
 
 
+BACKUP_SOURCE_HOSTS="{{ backup_source_hosts_names | join(' ') }}"
 
-{% for host in groups['backup_sources'] %}
+result=0
 
-go_on=true
+# Pause containers if needed
+# -------------------------
 
-log_info "Backing up {{ host }}"
+
+if $pause_docker_containers
+then
+    if ! ${bin_dir}/pause_containers
+    then
+	log_warn "Failed to pause containers - this may cause an inconsistent backup..."
+	result=81
+    fi
+fi
+
+
 
 # Prepare source snapshot
 # -----------------------
 
-if ssh backupoperator@{{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/prepare_source_snapshot'
+# we assume taking source snapshots will be successfull
+go_on_with_rsync=true
+
+# Use parallell ssh to perform taking all snapshots at same time.
+if parallel-ssh  -l backupoperator -i -H "${BACKUP_SOURCE_HOSTS}" 'sudo /opt/sbdi/backup/bin/prepare_source_snapshot' 
 then
-    log_info "Successfully prepared source snapshot for {{ host }}"
+    log_info "Successfully prepared source snapshot for hosts: ${BACKUP_SOURCE_HOSTS}"
 else
     error_code=$?
-    log_error "Failed to prepared source snapshot for {{ host }} - error: ${error_code}"
-    go_on=false
+    log_error "Failed to prepared source snapshots for hosts: ${BACKUP_SOURCE_HOSTS} - error: ${error_code}"
+    result=82
+    go_on_with_rsync=false
+    # We may theoretically continue with backup of hosts for which a source snapshot was successfull
+    # TODO: Implement a "partial" backup algorithm
 fi
 
-if $go_on
-then
 
-    # Rsync source snapshot -> backup target
-    # --------------------------------------
+# Unpause containers if we have paused them
+# -----------------------------------------
+
+if $pause_docker_containers
+then
+    if ! ${bin_dir}/unpause_containers
+    then
+	log_error "Failed to unpause containers - the entire system maight be paused..."
+	reusult=89
+    fi
+fi
+
+
+
+
+if $go_on_with_rsync
+then
+    # Rsync source snapshots -> backup target
+    # ---------------------------------------
+    
+    {% for host in groups['backup_sources'] %}
 
     log_info "Backup source snapshot (rsync) for {{ host }}"
     # Use ssh -A to bring it along for the RSYNC operation on the
@@ -50,41 +90,48 @@ then
     
     if ssh -A  backupoperator@{{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/perform_rsync'
     then
-	log_info "Successfully backed up source snapshot for {{ host }}"
+	log_info "Successfully backed up source snapshot for host: {{ host }}"
     else
 	error_code=$?
-	log_error "Failed to sync source snapshot for {{ host }} - error: ${error_code}"
+	log_error "Failed to sync source snapshot for host: {{ host }} - error: ${error_code}"
+	result=83
     fi
 
-
-    # Remove source snapshot
-    # ----------------------
-    
-    if ssh backupoperator@{{deployment_prefix}}-{{ host }} 'sudo /opt/sbdi/backup/bin/remove_source_snapshot'
-    then
-	log_info "Successfully removed source snapshot for {{ host }}"
-    else
-	error_code=$?
-	log_error "Failed to remove source snapshot for {{ host }} - error: ${error_code}"
-    fi
+    {% endfor %}
 fi
 
 
-
-{% endfor %}
-
-
-# Create target snapshot(s)
+# Remove source snapshots
 # -----------------------
 
-{% for target_host in groups['backup_targets'] %}
-
-if ssh -A backupoperator@{{deployment_prefix}}-{{ target_host }} 'sudo /opt/sbdi/backup/bin/create_backup_snapshot'
+if parallel-ssh  -l backupoperator -i -H "${BACKUP_SOURCE_HOSTS}" 'sudo /opt/sbdi/backup/bin/remove_source_snapshot' 
 then
-    log_info "Successfully created snapshot of backup"
+    log_info "Successfully removed source snapshots for hosts: ${BACKUP_SOURCE_HOSTS}"
 else
     error_code=$?
-    log_error "Failed create snapshot of backup - error: ${error_code}"
+    log_error "Failed to remove source snapshots for hosts: ${BACKUP_SOURCE_HOSTS} - error: ${error_code}"
+    result=84
 fi
 
-{% endfor %}
+
+if $go_on_with_rsync
+then
+
+    # Create target snapshot(s)
+    # -------------------------
+
+    {% for target_host in groups['backup_targets'] %}
+
+    if ssh -A backupoperator@{{deployment_prefix}}-{{ target_host }} 'sudo /opt/sbdi/backup/bin/create_backup_snapshot'
+    then
+	log_info "Successfully created snapshot of backup for target: {{ target_host }}"
+    else
+	error_code=$?
+	log_error "Failed create snapshot of backup for target: {{ target_host }} - error: ${error_code}"
+	result=85
+    fi
+    {% endfor %}
+fi
+
+
+exit $result

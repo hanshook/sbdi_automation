@@ -1,0 +1,31 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib
+
+. $lib_dir/log_utils
+
+log_logging_application="BACKUP"
+
+[ $EUID -eq 0 ] || log_fatal  88 "Root privileges reqiured" 
+
+snapshot_to_activate=$1
+
+if [ -z "${snapshot_to_activate}" ]
+then
+    log_fatal 91 "No backup snapshot provided"
+fi
+
+if ! zfs list -t snapshot -o name -s creation | tail -n +2 | grep -q $snapshot_to_activate
+then
+    log_fatal 92 "No such backup snapshot (${snapshot_to_activate}) found"
+fi
+
+
+if zfs clone $snapshot_to_activate backup/snapshot
+then
+    log_info "Activated snapshot: ${snapshot_to_activate} at backup/snapshot"
+else
+    error=$?
+    log_fatal 93 "Failed to activate snapshot: ${snapshot_to_activate} - error: ${error}" 
+fi

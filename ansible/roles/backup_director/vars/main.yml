@@ -3,3 +3,10 @@ directed_hosts: "{{ groups['backup_targets'] | union(groups['backup_sources']) |
 docker_hosts:  "{{  groups['docker'] | union(groups['docker_swarm']) }}"
 
 docker_host_names: "{{ docker_hosts | map('regex_replace', '^(.*)$', deployment_prefix+'-\\1') | list }}"
+
+backup_source_hosts: "{{ groups['backup_sources'] }}"
+
+nbr_of_backup_source_hosts: "{{ groups['backup_sources'] | length }}"
+
+backup_source_hosts_names: "{{ backup_source_hosts | map('regex_replace', '^(.*)$', deployment_prefix+'-\\1') | list }}"
+

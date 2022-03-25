@@ -10,7 +10,7 @@ log_logging_application="BACKUP"
 [ $EUID -eq 0 ] && log_warn "Do *not* run as root"
 
 eval `ssh-agent -s`
-ssh-add .ssh/id_rsa
+ssh-add ~/.ssh/id_rsa
 
 DOCKER_HOSTS="{{ docker_host_names | join(' ') }}"
 
@@ -20,6 +20,6 @@ then
     log_info "Successfully unpaused docker containers on: ${DOCKER_HOSTS}"
 else
     error_code=$?
-    log_error "Failed to unpause docker containers on: ${DOCKER_HOSTS} - error: ${error_code}"
+    log_error 72 "Failed to unpause docker containers on: ${DOCKER_HOSTS} - error: ${error_code}"
 fi
     

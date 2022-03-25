@@ -96,4 +96,8 @@
 
 - name: Accept backup targets SSH host keys for fqdns
   shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> /root/.ssh/known_hosts"
-  with_items: "{{ groups['backup_targets'] }}"   
+  with_items: "{{ groups['backup_targets'] }}"
+  
+- name: Accept SSH host keys for ips
+  shell:  "ssh-keyscan -H {{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }} >> /root/.ssh/known_hosts"
+  with_items: "{{ groups['backup_targets'] }}"

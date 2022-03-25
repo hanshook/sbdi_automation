@@ -83,7 +83,9 @@
   with_items:
     - create_backup_snapshot
     - activate_latest_backup_snapshot
+    - activate_backup_snapshot
     - deactivate_backup_snapshot
+    - list_backups
 
 - name: Install "restore backup" script
   template:
@@ -109,12 +111,16 @@
 - name: Remove known_hosts file of root
   file:
     state: absent
-    path: ~backupoperator/.ssh/known_hosts    
+    path: /root/.ssh/known_hosts    
 
 - name: Accept SSH host keys for hostnames
-  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts"
+  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> /root/.ssh/known_hosts"
   with_items: "{{ groups['backup_sources'] }}"
 
 - name: Accept SSH host keys for  fqdns
-  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
+  shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> /root/.ssh/known_hosts"
+  with_items: "{{ groups['backup_sources'] }}"
+
+- name: Accept SSH host keys for ips
+  shell:  "ssh-keyscan -H {{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }} >> /root/.ssh/known_hosts"
   with_items: "{{ groups['backup_sources'] }}"

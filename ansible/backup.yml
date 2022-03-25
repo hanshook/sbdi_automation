@@ -11,12 +11,6 @@
   roles:
     - backup_directed
 
-- name: Setup backup source nodes
-  become: true
-  hosts: backup_sources
-  roles:
-    - backup_source
-
 - name: "Take an inventory of volumes in our cloud"
   hosts: localhost
   tasks:
@@ -54,3 +48,10 @@
   hosts: docker_swarm:docker
   roles:
     - backup_docker_control
+
+- name: Setup backup source nodes
+  become: true
+  hosts: backup_sources
+  roles:
+    - backup_source
+

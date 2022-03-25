@@ -42,10 +42,12 @@
   with_items:
     - perform_backup
     - restore_latest_backup
+    - restore_backup
     - stop_docker
     - start_docker
     - pause_containers
     - unpause_containers
+    - list_backups
     
 
 - name: Ensure 'backupoperator/bin' folder
@@ -64,10 +66,12 @@
   with_items:
     - perform_backup
     - restore_latest_backup
+    - restore_backup
     - stop_docker
     - start_docker    
     - pause_containers
     - unpause_containers
+    - list_backups
 
 - name: Add the DOCKER_HOSTS environment variable
   lineinfile:
@@ -83,9 +87,13 @@
     path: ~backupoperator/.ssh/known_hosts
 
 - name: Accept SSH host keys for hostnames
-  shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~/.ssh/known_hosts' backupoperator"
+  shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~backupoperator/.ssh/known_hosts' backupoperator"
   with_items: "{{ directed_hosts }}"
 
 - name: Accept SSH host keys for  fqdns
-  shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~/.ssh/known_hosts' backupoperator"
+  shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~backupoperator/.ssh/known_hosts' backupoperator"
+  with_items: "{{ directed_hosts }}"
+
+- name: Accept SSH host keys for ips
+  shell:  "su -c 'ssh-keyscan -H {{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }} >> ~backupoperator/.ssh/known_hosts' backupoperator"
   with_items: "{{ directed_hosts }}"
