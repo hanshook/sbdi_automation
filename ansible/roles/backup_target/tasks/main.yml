@@ -108,10 +108,25 @@
 # Backup targets preform rsync via SSH when restoring backup data as root -> backup sources
 # Thus make sure bakup sources are known to root user:
   
-- name: Remove known_hosts file of root
-  file:
-    state: absent
-    path: /root/.ssh/known_hosts    
+# - name: Remove known_hosts file of root
+#   file:
+#     state: absent
+#     path: /root/.ssh/known_hosts
+
+- name: Remove previous backup targets SSH host keys for hostnames
+  shell:  "ssh-keygen -R  {{ deployment_prefix }}-{{ item }}"
+  ignore_errors: yes
+  with_items: "{{ groups['backup_sources'] }}"
+
+- name: Remove previous backup targets SSH host keys for fqdns
+  shell:  "ssh-keygen -R {{ deployment_prefix }}-{{ item }}.{{ domain }}"
+  ignore_errors: yes
+  with_items: "{{ groups['backup_sources'] }}"
+  
+- name: Remove previous SSH host keys for ips
+  shell:  "ssh-keygen -R {{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }}"
+  ignore_errors: yes
+  with_items: "{{ groups['backup_sources'] }}"        
 
 - name: Accept SSH host keys for hostnames
   shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> /root/.ssh/known_hosts"

@@ -44,7 +44,7 @@
 # into two groups:
 #   - swarm_worker_operational (host is joined to the swarm cluster)
 #   - swarm_worker_bootstrap (host needs to be joined to the cluster)
-- hosts: docker_swarm!swarm_managers
+- hosts: docker_swarm:!swarm_managers
   become: true
   tasks:
     - name: determine swarm status

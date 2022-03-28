@@ -22,6 +22,17 @@
     - jsondiff
     - pyyaml
 
+- name: Load kernel module ip_vs (seems to be neded by swarm)
+  modprobe:
+    name: ip_vs
+    state: present
+    
+- name: Ensure module ip_vs is loded at reboot
+  ansible.builtin.lineinfile:
+    path: /etc/modules
+    regexp: '^ip_vs'
+    line: ip_vs
+   
 - name: Download and install docker compose
   get_url:
     url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64"
