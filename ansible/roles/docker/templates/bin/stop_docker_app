@@ -48,7 +48,7 @@ else
     log_fatal 96 "Failed to remove docker swarm stack ${application_name}"
 fi
 
-if restart_httpproxy
+if $restart_httpproxy
 then
     # TODO: check if httpproxy is installed
     # TODO: logging and exit codes

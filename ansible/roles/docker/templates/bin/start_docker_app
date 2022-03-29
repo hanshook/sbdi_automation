@@ -33,12 +33,12 @@ fi
 
 if [[ -z ${DOCKER_VOLUMES+x} ]]
 then
-   log_fatal 93 "DOCKER_VOLUMES not defined in ${DOCKER_CTX}/etc/${application_name}/application.cfg" 
+   log_fatal 94 "DOCKER_VOLUMES not defined in ${DOCKER_CTX}/etc/${application_name}/application.cfg" 
 fi	    
 
 if [ ! -e  ${DOCKER_CTX}/etc/${application_name}/docker-compose.yml ]
 then
-    log_fatal 94 "${DOCKER_CTX}/etc/${application_name}/docker-compose.yml does not exist ..."
+    log_fatal 95 "${DOCKER_CTX}/etc/${application_name}/docker-compose.yml does not exist ..."
 fi
 
 export VOLUMES_CTX=${DOCKER_CTX}/var/volumes/${application_name}
@@ -55,7 +55,7 @@ else
 	    then
 		log_info "Created empty volume directory ${volume}"
 	    else
-		log_fatal 95 "Failed to created empty volume directory ${VOLUMES_CTX}/${volume}"
+		log_fatal 96 "Failed to created empty volume directory ${VOLUMES_CTX}/${volume}"
 	    fi
 	    
 	fi
@@ -84,10 +84,10 @@ if docker stack deploy --compose-file=docker-compose.yml ${application_name}
 then
     log_info "Deployed docker swarm stack ${application_name} - OK"
 else
-    log_fatal 96 "Failed to deploy docker swarm stack ${application_name}"
+    log_fatal 97 "Failed to deploy docker swarm stack ${application_name}"
 fi
 
-if restart_httpproxy
+if $restart_httpproxy
 then
     # TODO: check if httpproxy is installed
     # TODO: logging and exit codes
