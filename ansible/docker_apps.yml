@@ -31,35 +31,35 @@
   hosts: swarm_managers[0]
   vars:
     docker_ctx: "{{ docker_root | default('/docker') }}"
-    service_declarations: "{{ docker_services | dict2items }}"
+    application_declarations: "{{ docker_applications | dict2items }}"
   become: true
   tasks:
 
   - name: Deploy services
     include_role:
-      name: "{{ service_declaration.value['role']}}"
+      name: "{{ application_declaration.value['role']}}"
 #    vars:
-#      - config: "{{ docker_services[service_declaration.key].config | default({}) }}"
-    loop: "{{ service_declarations }}"
+#      - config: "{{ docker_applications[application_declaration.key].config | default({}) }}"
+    loop: "{{ application_declarations }}"
     loop_control:
-      loop_var: service_declaration
+      loop_var: application_declaration
 
 # TODO: Inject config here somehow
-# There is a bug in ansible that excludes vars: "{{ service_declaration.value['config'] }}"
+# There is a bug in ansible that excludes vars: "{{ application_declaration.value['config'] }}"
 # Might work with a vars_from file:
 # https://docs.ansible.com/ansible/2.3/include_role_module.html
       
   - name: Setup environment configuration for each service
     copy:
-      src: "docker/etc/env{{service_declaration.key}}.{{deployment_prefix}}.cfg"
-      dest: "{{ docker_ctx }}/etc/{{service_declaration.key}}/env/.env{{service_declaration.key}}"
+      src: "docker/etc/env{{application_declaration.key}}.{{deployment_prefix}}.cfg"
+      dest: "{{ docker_ctx }}/etc/{{application_declaration.key}}/env/.env{{application_declaration.key}}"
       decrypt: true
       owner: root
       group: docker
       mode: 0640
-    loop: "{{ service_declarations }}"
+    loop: "{{ application_declarations }}"
     loop_control:
-      loop_var: service_declaration
+      loop_var: application_declaration
 
 
   - name: Deploy HTTP proxy 

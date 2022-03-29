@@ -1,6 +1,6 @@
 
 
-docker_services:
+docker_applications:
   osticket:
     role: submodules/docker-osticket/ansible/roles/osticket
     httpproxy: true

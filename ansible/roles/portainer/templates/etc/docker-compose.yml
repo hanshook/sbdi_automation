@@ -58,6 +58,6 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/portainer"
+      device: "${DOCKER_CTX:-/docker}/var/volumes/portainer/portainer"
 
 # https://docs.portainer.io/v/ce-2.9/advanced/cli

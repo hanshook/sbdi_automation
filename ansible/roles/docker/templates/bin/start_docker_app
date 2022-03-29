@@ -1,0 +1,96 @@
+#! /bin/bash
+cd $(dirname $0)
+. /opt/sbdi/lib/log_utils
+
+log_logging_application="MGM"
+
+export DOCKER_CTX={{ docker_ctx | default('/docker') }}
+
+##cd ..
+#application_name=${PWD##*/}
+
+application_name=$1
+if [ -z "${application_name}" ]
+then
+    log_fatal 91 "No application name provided"
+fi
+
+log_logging_application="MGM/${application_name}"
+
+
+if [ ! -d ${DOCKER_CTX}/etc/${application_name} ]
+then
+    log_fatal 92 "No application found in  ${DOCKER_CTX}/etc/${application_name}"
+fi
+
+
+if [ ! -e  ${DOCKER_CTX}/etc/${application_name}/application.cfg ]
+then
+    log_fatal 93 "${DOCKER_CTX}/etc/${application_name}/application.cfg does not exist ..."
+fi
+
+. ${DOCKER_CTX}/etc/${application_name}/application.cfg
+
+if [[ -z ${DOCKER_VOLUMES} ]]
+then
+   log_fatal 93 "DOCKER_VOLUMES not defined in ${DOCKER_CTX}/etc/${application_name}/application.cfg" 
+fi	    
+
+if [ ! -e  ${DOCKER_CTX}/etc/${application_name}/docker-compose.yml ]
+then
+    log_fatal 94 "${DOCKER_CTX}/etc/${application_name}/docker-compose.yml does not exist ..."
+fi
+
+export VOLUMES_CTX=${DOCKER_CTX}/var/volumes/${application_name}
+
+if [ -z "$VOLUMES_CTX" ]
+then
+    log_warn "No docker volumes defined for aplication ${application_name}"
+else
+    for volume in ${DOCKER_VOLUMES+x}
+    do
+	if [ ! -d ${VOLUMES_CTX}/${volume} ]
+	then
+	    if sudo mkdir -p ${VOLUMES_CTX}/${volume}
+	    then
+		log_info "Created empty volume directory ${volume}"
+	    else
+		log_fatal 95 "Failed to created empty volume directory ${VOLUMES_CTX}/${volume}"
+	    fi
+	    
+	fi
+    done
+fi
+
+cd ${DOCKER_CTX}/etc/${application_name}
+
+restart_httpproxy=false
+
+if [ -e 'proxy.conf' ]
+then
+    if cp proxy.conf ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf
+    then
+	restart_httpproxy=true
+	log_info "Created ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf"
+    else
+	log_warn "Failed to create ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf"
+    fi
+fi
+
+export CURRENT_USER=$(id -u):$(id -g)
+
+log_info "Deploying docker swarm stack ${application_name}"
+if docker stack deploy --compose-file=docker-compose.yml ${application_name}
+then
+    log_info "Deployed docker swarm stack ${application_name} - OK"
+else
+    log_fatal 96 "Failed to deploy docker swarm stack ${application_name}"
+fi
+
+if restart_httpproxy
+then
+    # TODO: check if httpproxy is installed
+    # TODO: logging and exit codes
+    ${DOCKER_CTX}/usr/httpproxy/bin/restart.sh
+fi
+

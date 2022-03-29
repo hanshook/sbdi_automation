@@ -9,8 +9,19 @@
   with_items:
     - etc
     - etc/httpproxy
+    - etc/httpproxy/vhosts.d
     - usr/httpproxy
     - usr/httpproxy/bin
+    
+- name: Ensure write access for docker group
+  file:
+    path: "{{ docker_ctx }}/{{item}}"
+    mode: 0775
+    group: docker
+    recurse: yes
+    state: directory
+  with_items:
+    - etc/httpproxy/vhosts.d
 
 - name: Install maintenance scripts
   template:
@@ -20,6 +31,7 @@
   with_items:
     - start.sh
     - stop.sh
+    - restart.sh
     
 - name: Install "docker-compose.yml" 
   template:
@@ -29,6 +41,10 @@
     group: root
     mode: 0644
 
-# TODO: Start and stop scripts?
+- name: Install "application.cfg" 
+  template:
+    src: etc/application.cfg
+    dest: "{{ docker_ctx }}/etc/httpproxy/application.cfg"
+    mode: 0644
 
 # https://www.haproxy.com/blog/haproxy-ssl-termination/

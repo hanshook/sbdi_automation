@@ -67,4 +67,30 @@
   notify:
     - restart docker
     
+- name: Ensure /opt/sbdi folder
+  file: 
+    path: /opt/sbdi
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
 
+- name: Ensure /opt/sbdi/bin folder
+  file: 
+    path: /opt/sbdi/bin
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
+
+- name: Copy docker maintenance scripts
+  template:
+    src: "bin/{{ item }}"
+    dest: /opt/sbdi/bin/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - list_docker_apps
+    - start_docker_app
+    - stop_docker_app
