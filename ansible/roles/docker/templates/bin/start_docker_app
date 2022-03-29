@@ -31,7 +31,7 @@ fi
 
 . ${DOCKER_CTX}/etc/${application_name}/application.cfg
 
-if [[ -z ${DOCKER_VOLUMES} ]]
+if [[ -z ${DOCKER_VOLUMES+x} ]]
 then
    log_fatal 93 "DOCKER_VOLUMES not defined in ${DOCKER_CTX}/etc/${application_name}/application.cfg" 
 fi	    
@@ -47,7 +47,7 @@ if [ -z "$VOLUMES_CTX" ]
 then
     log_warn "No docker volumes defined for aplication ${application_name}"
 else
-    for volume in ${DOCKER_VOLUMES+x}
+    for volume in ${DOCKER_VOLUMES}
     do
 	if [ ! -d ${VOLUMES_CTX}/${volume} ]
 	then
