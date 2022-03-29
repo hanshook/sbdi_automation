@@ -1,11 +1,13 @@
 - name: Add docker repo key
   ansible.builtin.apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
-    state: present    
+    state: present
+    
 - name: Add docker repo
   ansible.builtin.apt_repository:
     repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
     state: present
+    
 - name: Install basic packages
   apt:
     pkg:
@@ -40,7 +42,13 @@
     dest: /usr/local/bin/docker-compose
     owner: root
     mode: 0755
-- name: Make sure the directory '/docker/var/lib/<hostname>' exists
+    
+- name: "Check if the directory /docker/var/lib/{{ host_name }} exists"
+  stat:
+    path: "/docker/var/lib/{{host_name}}"
+  register: docker_var_lib_stat
+    
+- name: "Make sure the directory /docker/var/lib/{{ host_name }} exists"
   file:
     path: "/docker/var/lib/{{host_name}}"
     owner: root
@@ -48,6 +56,8 @@
     mode: 0750
     recurse: yes
     state: directory
+  when: not docker_var_lib_stat.stat.exists
+  
 - name: copy Docker daemon config
   template:
     src: daemon.json
@@ -57,6 +67,7 @@
     mode: 0664
   notify:
     - restart docker
+    
 - name: Add admin users to docker group
   user:
     name: '{{ item.key }}'

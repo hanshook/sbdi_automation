@@ -9,7 +9,7 @@
   with_items:
     - etc
     - etc/httpproxy
-    - etc/httpproxy/vhosts.d
+    - etc/httpproxy/vhost.d
     - usr/httpproxy
     - usr/httpproxy/bin
     
@@ -21,7 +21,7 @@
     recurse: yes
     state: directory
   with_items:
-    - etc/httpproxy/vhosts.d
+    - etc/httpproxy/vhost.d
 
 - name: Install maintenance scripts
   template:
