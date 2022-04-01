@@ -6,12 +6,12 @@ networks:
 
 services:
   nginx-proxy:
-    image: nginxproxy/nginx-proxy
+    image: nginx:1-alpine
     ports:
       - "80:80"
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-      - {{ docker_ctx }}/etc/httpproxy/vhost.d:/etc/nginx/vhost.d:ro
+      - {{ docker_ctx }}/etc/httpproxy/conf.d:/etc/nginx/conf.d:ro
+      - {{ docker_ctx }}/etc/httpproxy/html:/usr/share/nginx/html/:ro
     networks:
       - {{ frontend_network }}
     deploy:

@@ -28,12 +28,18 @@ restart_httpproxy=false
 
 if [ -e 'proxy.conf' ]
 then
-    if  rm ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf
+    proxy_conf_file="${DOCKER_CTX}/etc/httpproxy/conf.d/${application_name}.conf"
+    if [ -e "${proxy_conf_file}" ]
     then
-	restart_httpproxy=true
-	log_info "Removed ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf"
+	if  rm "${proxy_conf_file}"
+	then
+	    restart_httpproxy=true
+	    log_info "Removed  proxy conf file: ${proxy_conf_file}"
+	else
+	    log_warn "Failed to remove proxy conf file: ${proxy_conf_file}"
+	fi
     else
-	log_warn "Failed to remove ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf"
+	log_warn "Found no proxy conf file to remove, i.e. ${proxy_conf_file} does not exist"
     fi
 fi
 
