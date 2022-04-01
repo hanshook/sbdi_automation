@@ -5,6 +5,24 @@
     install_recommends: no
   with_items:
     - haproxy
+  
+- name: "Ensure /etc/ssl/{{domain}} folder"
+  file:
+    path: "/etc/ssl/{{domain}}"
+    owner: root
+    group: haproxy
+    mode: 0750
+    state: directory
+
+- name: "Install {{domain}} cert"
+  copy:
+    src: "certs/{{domain}}.pem"
+    dest: "/etc/ssl/{{domain}}/{{domain}}.pem"
+    decrypt: true
+    owner: root
+    group: haproxy
+    mode: 0640
+    
 - name: configure ha proxy
   template:
     src: haproxy.cfg
