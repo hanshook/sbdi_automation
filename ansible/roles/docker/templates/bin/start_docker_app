@@ -68,7 +68,7 @@ restart_httpproxy=false
 
 if [ -e 'proxy.conf' ]
 then
-    if cp proxy.conf ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf
+    if cp proxy.conf ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}.conf
     then
 	restart_httpproxy=true
 	log_info "Created ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf"

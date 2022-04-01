@@ -11,7 +11,8 @@ services:
       - "80:80"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - {{ docker_ctx }}/etc/httpproxy/vhost.d:/etc/nginx/vhost.d:ro
+#      - {{ docker_ctx }}/etc/httpproxy/vhost.d:/etc/nginx/vhost.d:ro
+      - {{ docker_ctx }}/etc/httpproxy/vhost.d:/etc/nginx/conf.d
     networks:
       - {{ frontend_network }}
     deploy:

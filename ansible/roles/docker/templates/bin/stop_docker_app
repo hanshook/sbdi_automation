@@ -28,7 +28,7 @@ restart_httpproxy=false
 
 if [ -e 'proxy.conf' ]
 then
-    if  rm ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf
+    if  rm ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}.conf
     then
 	restart_httpproxy=true
 	log_info "Removed ${DOCKER_CTX}/etc/httpproxy/vhost.d/${application_name}_proxy.conf"
