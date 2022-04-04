@@ -66,10 +66,10 @@
     include_role:
       name: 'httpproxy'
 
-- name: Setup ha proxy access
-  hosts: access-1
-  # TODO: Setup on all access nodes.
+- name: Setup HA proxy access
+  hosts: gateways
   become: true
   roles:
     - haproxy
+
 
