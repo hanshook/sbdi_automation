@@ -6,16 +6,24 @@ access-1 nbr=11 flavor=ssc.xsmall floating_ip=130.238.29.21
 access-2 nbr=12 flavor=ssc.xsmall floating_ip=130.238.28.173
 
 [servers]
-manager-1 nbr=21 flavor=ssc.medium.highmem volume_gluster=100
-manager-2 nbr=22 flavor=ssc.medium.highmem volume_gluster=100
-manager-3 nbr=23 flavor=ssc.medium.highmem volume_gluster=100 volume_local_docker=400
-worker-1 nbr=31 flavor=ssc.medium.highmem volume_local_docker=400
-worker-2 nbr=32 flavor=ssc.medium.highmem volume_local_docker=400
-worker-3 nbr=33 flavor=ssc.medium.highmem 
+manager-1 nbr=21 flavor=ssc.large.highmem volume_gluster=350
+manager-2 nbr=22 flavor=ssc.large.highmem volume_gluster=350
+manager-3 nbr=23 flavor=ssc.large.highmem volume_gluster=350
+worker-1 nbr=31 flavor=ssc.large.highmem volume_gluster=350
+cassandra-1 nbr=41 flavor=ssc.large.highmem volume_local_docker=360
+cassandra-2 nbr=42 flavor=ssc.large.highmem volume_local_docker=360
+cassandra-3 nbr=43 flavor=ssc.large.highmem volume_local_docker=360
+cassandra-4 nbr=44 flavor=ssc.large.highmem volume_local_docker=360
+solr-1 nbr=41 flavor=ssc.medium.highmem volume_local_docker=160
+solr-2 nbr=42 flavor=ssc.medium.highmem volume_local_docker=160
+solr-3 nbr=43 flavor=ssc.medium.highmem volume_local_docker=160
+solr-4 nbr=44 flavor=ssc.medium.highmem volume_local_docker=160
 backup-director nbr=91 flavor=ssc.tiny
-backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=300
+backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=1200
 nagios nbr=97 flavor=ssc.tiny
 
+# Disk 3480 allocated for data storage 
+# To backup: 1926 GB ... 
 
 # Storage
 # =======
@@ -24,10 +32,7 @@ nagios nbr=97 flavor=ssc.tiny
 manager-1 
 manager-2
 manager-3
-
-#[storage:vars]
-#size=1GB
-# When is this used?
+worker-1
 
 
 # Backup
@@ -41,9 +46,10 @@ backup-target
 
 [backup_sources]
 manager-1 gluster_backup_source=true 
-worker-1 lvm_backup_source=true
-worker-2 lvm_backup_source=true
-manager-3 lvm_backup_source=true
+cassandra-1 lvm_backup_source=true
+cassandra-2 lvm_backup_source=true
+cassandra-3 lvm_backup_source=true
+cassandra-4 lvm_backup_source=true
 
 #Docker
 #======
@@ -53,8 +59,14 @@ manager-1
 manager-2
 manager-3
 worker-1
-worker-2
-worker-3
+cassandra-1
+cassandra-2
+cassandra-3
+cassandra-4
+solr-1
+solr-2
+solr-3
+solr-4
 
 [swarm_managers]
 manager-1
@@ -62,9 +74,14 @@ manager-2
 manager-3
 
 [swarm_local_storage]
-worker-1
-worker-2
-manager-3
+cassandra-1
+cassandra-2
+cassandra-3
+cassandra-4
+solr-1
+solr-2
+solr-3
+solr-4
 
 [docker]
 # host with non swarm docker and local storage

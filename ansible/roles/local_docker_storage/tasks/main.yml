@@ -4,7 +4,7 @@
   community.general.lvol:
     vg: vg_docker_local
     lv: lv_docker_local
-    size: 80%VG
+    size: 90%VG
     resizefs: yes
     force: yes
     

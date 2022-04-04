@@ -76,6 +76,10 @@ nagios
 # Deployment specific vars
 # ========================
 
+[storage:vars]
+# We do not need redundancy in testing
+replica_count=1 
+
 [all:vars]
 deployment_prefix=dev
 private_subnet=10.209.0.0/24

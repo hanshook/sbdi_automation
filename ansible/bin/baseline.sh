@@ -41,7 +41,7 @@ ansible-playbook docker.yml  $inventory_arg || exit 1
 ansible-playbook backup.yml  $inventory_arg || exit 1
 ansible-playbook nagios.yml  $inventory_arg || exit 1
 ansible-playbook ipsec_access.yml $inventory_arg || exit 1
-#ansible-playbook docker_apps.yml $inventory_arg
+ansible-playbook docker_apps.yml $inventory_arg
 
 duration=$SECONDS
 echo "Basline completed at $(date)"

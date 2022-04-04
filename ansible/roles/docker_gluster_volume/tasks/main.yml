@@ -20,6 +20,7 @@
     state: present
     name: docker
     bricks: /export/docker/gluster
+    replicas: "{{ replica_count }}"
     rebalance: yes
     cluster: "{{ groups['storage'] | map('regex_replace', '(^.*$)', deployment_prefix+'-\\1') | list }}"
   run_once: true
