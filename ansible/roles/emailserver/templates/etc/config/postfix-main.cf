@@ -1,0 +1,5 @@
+mydestination = localhost.$mydomain, localhost
+
+postscreen_upstream_proxy_protocol = haproxy
+postscreen_cache_map=btree:$data_directory/postscreen_10024_cache
+syslog_name=postfix/10024

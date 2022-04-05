@@ -3,13 +3,15 @@
 docker_applications:
   osticket:
     role: submodules/docker-osticket/ansible/roles/osticket
-    httpproxy: true
     config:
       osticket_version: 1.15.4.2
       test_param: "test param specific value"
+  emailserver:
+    role: emailserver
+    config:
+      test_param: "test param specific value"
   portainer:
     role: portainer
-    httpproxy: true
     config:
       test_param: "test param specific value"
 

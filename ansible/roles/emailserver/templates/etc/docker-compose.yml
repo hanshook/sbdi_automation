@@ -1,0 +1,59 @@
+version: '3.8'
+# Should use ingress network
+#networks:
+#  {{ frontend_network }}:
+#    external: true
+    
+services:
+  mailserver:
+    image: docker.io/mailserver/docker-mailserver:latest
+    hostname: mail
+    domainname: {{ domain }}
+ #   container_name: mailserver
+    env_file: "${DOCKER_CTX:-/docker}/etc/osticket/env/.envmailserver"
+    # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
+    # More information about the mailserver ports:
+    # https://docker-mailserver.github.io/docker-mailserver/edge/config/security/understanding-the-ports/
+    ports:
+      - "25:25"    # SMTP  (explicit TLS => STARTTLS)
+      - "143:143"  # IMAP4 (explicit TLS => STARTTLS)
+      - "465:465"  # ESMTP (implicit TLS)
+      - "587:587"  # ESMTP (explicit TLS => STARTTLS)
+      - "993:993"  # IMAP4 (implicit TLS)
+      - "2525:2525"
+      - "10143:10143"
+      - "10465:10465"
+      - "10587:10587"
+      - "10993:10993"
+    volumes:
+      - mailserver_data:/var/mail
+      - mailserver_state:/var/mail-state
+      - mailserver_logs:/var/log/mail
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKER_CTX:-/docker}/etc/mailserver/config/:/tmp/docker-mailserver/
+      - ${DOCKER_CTX:-/docker}/etc/mailserver/certs:/tmp/ssl:ro
+    restart: always
+    stop_grace_period: 1m
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+
+volumes:
+  mailserver_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/mailserver/mailserver_data"
+  mailserver_state:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/mailserver/mailserver_state"
+  mailserver_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/mailserver/mailserver_logs"

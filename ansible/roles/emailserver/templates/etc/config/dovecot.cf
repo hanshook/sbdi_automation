@@ -1,0 +1,19 @@
+service imap-login {
+  inet_listener imap {
+    port = 143
+  }
+  inet_listener imaps {
+    port = 993
+    ssl = yes
+  }
+
+  inet_listener imap_haproxy {
+    port = 10143
+    haproxy = yes
+  }
+  inet_listener imaps_haproxy {
+    port = 10993
+    ssl = yes
+    haproxy = yes
+  }
+}

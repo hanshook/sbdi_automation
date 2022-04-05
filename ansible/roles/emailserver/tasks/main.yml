@@ -1,0 +1,90 @@
+- name: Ensure configuration and script directories
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items:
+    - etc
+    - etc/emailserver
+    - etc/emailserver/env
+    - etc/emailserver/config
+    - etc/emailserver/certs
+    - usr/emailserver
+    - usr/emailserver/bin
+    - var/volumes
+    - var/volumes/emailserver
+
+- name: Ensure write access for docker group
+  file:
+    path: "{{ docker_ctx }}/{{item}}"
+    mode: 0775
+    group: docker
+    recurse: yes
+    state: directory
+  with_items:
+    - var/volumes/emailserver
+    - etc/emailserver/config
+
+# - name: Install maintenance scripts
+#   template:
+#     src: "bin/{{ item }}"
+#     dest: "{{ docker_ctx }}/usr/emailserver/bin/{{ item }}"
+#     mode: 0755
+#   with_items:
+#     - start.sh
+#     - stop.sh
+    
+- name: Install "docker-compose.yml" 
+  template:
+    src: etc/docker-compose.yml
+    dest: "{{ docker_ctx | default('/docker') }}/etc/emailserver/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+    
+- name: Install environemnt template 
+  copy:
+    src: etc/emailserverenv.template
+    dest: "{{ docker_ctx }}/etc/emailserver/env/emailserverenv.template"
+    mode: 0644
+    
+- name: Install "application.cfg" 
+  template:
+    src: etc/application.cfg
+    dest: "{{ docker_ctx }}/etc/emailserver/application.cfg"
+    mode: 0644
+    
+- name: Install seed config
+  template:
+    src: etc/config/{{item}}
+    dest: "{{ docker_ctx }}/etc/emailserver/config/{{item}}"
+    owner: root
+    group: docker
+    mode: 0664
+  with_items:
+    - dovecot-quotas.cf
+    - postfix-accounts.cf
+    - postfix-aliases.cf
+    - postfix-virtual.cf
+    
+- name: "Install {{domain}} cert"
+  copy:
+    src: "certs/{{domain}}.crt"
+    dest: "{{ docker_ctx }}/etc/emailserver/certs/{{domain}}.crt"
+    owner: root
+    group: docker
+    mode: 0644
+
+- name: "Install {{domain}} key"
+  copy:
+    src: "certs/{{domain}}.crt"
+    dest: "{{ docker_ctx }}/etc/emailserver/certs/{{domain}}.key"
+    decrypt: true
+    owner: root
+    group: docker
+    mode: 0640
+
+    
+
