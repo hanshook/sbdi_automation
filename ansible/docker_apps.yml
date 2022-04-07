@@ -27,7 +27,7 @@
 #         ipam_config:
 #           - subnet: 10.211.1.0/24
             
-- name: Install Docker Swarm Services
+- name: Install Docker Swarm Application
   hosts: swarm_managers[0]
   vars:
     docker_ctx: "{{ docker_root | default('/docker') }}"
@@ -35,7 +35,7 @@
   become: true
   tasks:
 
-  - name: Deploy services
+  - name: Deploy application
     include_role:
       name: "{{ application_declaration.value['role']}}"
 #    vars:
@@ -49,7 +49,7 @@
 # Might work with a vars_from file:
 # https://docs.ansible.com/ansible/2.3/include_role_module.html
       
-  - name: Setup environment configuration for each service
+  - name: Setup environment configuration for each application
     copy:
       src: "docker/etc/env{{application_declaration.key}}.{{deployment_prefix}}.cfg"
       dest: "{{ docker_ctx }}/etc/{{application_declaration.key}}/env/.env{{application_declaration.key}}"
