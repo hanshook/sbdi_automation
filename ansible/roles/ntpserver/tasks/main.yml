@@ -1,0 +1,24 @@
+
+
+- name: Install requried packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: no
+  with_items:
+    - ntp
+  become: yes
+
+- name: Configure NTP
+  template:
+    src: "{{ item }}"
+    dest: "/{{ item }}"
+    owner: root
+    group: root
+    mode: 0664
+  with_items:
+    - etc/ntp.conf
+  become: yes
+  notify:
+    - restart ntp
+
