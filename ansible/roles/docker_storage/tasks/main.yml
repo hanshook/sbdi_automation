@@ -1,16 +1,18 @@
 # Note! This role is dependent on the role: 'lvm_volume_group'
-
+- debug:
+    msg: "{{ lvm_device_info.disk.size | int / 900 | int }}"
+    
 - name: Create a thin lvm pool for storage of Docker config and volumes (tp_docker)
   community.general.lvol:
     vg: vg_docker
     thinpool: tp_docker
     size: 90%VG
-- name: Create a thin lvm volume for storage of Docker config and volumes (tlv_docker)
+- name: "Create a {{lvm_device_info.disk.size | int / 900 | int }}G thin lvm volume for storage of Docker config and volumes (tlv_docker)"
   community.general.lvol:
     vg: vg_docker
     lv: tlv_docker
     thinpool: tp_docker
-    size: 90%VG
+    size: "{{lvm_device_info.disk.size | int / 900  | int }}G"
 - name: Format the thin volume for docker data with xfs
   community.general.filesystem:
     fstype: xfs

@@ -1,18 +1,32 @@
-
-
-- name: Install requried packages
+- name: Install ntpdate, and ntp
   apt:
     name: "{{ item }}"
     state: present
     install_recommends: no
   with_items:
+    - ntpdate
     - ntp
   become: yes
 
-- name: Configure NTP server
+- name: stop ntp service
+  service:
+    name: ntp
+    state: stopped
+  
+- name: Sync time
   vars:
     primary_ntp_server: "{{  groups['gateways'][0] }}"
     primary_ntp_server_fqdn: "{{deployment_prefix}}-{{ primary_ntp_server }}.{{ domain }}"
+  ansible.builtin.command: "/usr/sbin/ntpdate {{ primary_ntp_server_fqdn }}"
+  become: yes
+  
+# - name: Disbale timesyncd
+#   ansible.builtin.command: /usr/bin/timedatectl set-ntp off
+#   become: yes
+  
+- name: Configure NTP server
+  vars:
+    primary_ntp_server: "{{  groups['gateways'][0] }}"
     common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
     restrict_clients: "{{common_ip_part}}.0 mask 255.255.255.0" 
     broadcast_net: "{{common_ip_part}}.255"
