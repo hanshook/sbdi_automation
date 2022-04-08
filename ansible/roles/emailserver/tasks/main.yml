@@ -68,10 +68,13 @@
     - postfix-accounts.cf
     - postfix-aliases.cf
     - postfix-virtual.cf
+    - dovecot.cf
+    - postfix-main.cf
+    - postfix-master.cf
     
 - name: "Install {{domain}} cert"
   copy:
-    src: "certs/{{domain}}.crt"
+    src: "etc/certs/{{domain}}.crt"
     dest: "{{ docker_ctx }}/etc/emailserver/certs/{{domain}}.crt"
     owner: root
     group: docker
@@ -79,7 +82,7 @@
 
 - name: "Install {{domain}} key"
   copy:
-    src: "certs/{{domain}}.crt"
+    src: "etc/certs/{{domain}}.crt"
     dest: "{{ docker_ctx }}/etc/emailserver/certs/{{domain}}.key"
     decrypt: true
     owner: root

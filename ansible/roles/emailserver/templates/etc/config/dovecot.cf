@@ -17,3 +17,6 @@ service imap-login {
     haproxy = yes
   }
 }
+
+
+# https://wiki.dovecot.org/HAProxy

@@ -10,7 +10,7 @@ services:
     hostname: mail
     domainname: {{ domain }}
  #   container_name: mailserver
-    env_file: "${DOCKER_CTX:-/docker}/etc/osticket/env/.envmailserver"
+    env_file: "${DOCKER_CTX:-/docker}/etc/emailserver/env/.envemailserver"
     # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
     # More information about the mailserver ports:
     # https://docker-mailserver.github.io/docker-mailserver/edge/config/security/understanding-the-ports/
@@ -30,8 +30,8 @@ services:
       - mailserver_state:/var/mail-state
       - mailserver_logs:/var/log/mail
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKER_CTX:-/docker}/etc/mailserver/config/:/tmp/docker-mailserver/
-      - ${DOCKER_CTX:-/docker}/etc/mailserver/certs:/tmp/ssl:ro
+      - ${DOCKER_CTX:-/docker}/etc/emailserver/config/:/tmp/docker-mailserver/
+      - ${DOCKER_CTX:-/docker}/etc/emailserver/certs:/tmp/ssl:ro
     restart: always
     stop_grace_period: 1m
     cap_add:
@@ -44,16 +44,16 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/mailserver/mailserver_data"
+      device: "${DOCKER_CTX:-/docker}/var/volumes/emailserver/mailserver_data"
   mailserver_state:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/mailserver/mailserver_state"
+      device: "${DOCKER_CTX:-/docker}/var/volumes/emailserver/mailserver_state"
   mailserver_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/mailserver/mailserver_logs"
+      device: "${DOCKER_CTX:-/docker}/var/volumes/emailserver/mailserver_logs"
