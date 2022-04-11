@@ -10,6 +10,9 @@
     - etc/emailserver
     - etc/emailserver/env
     - etc/emailserver/config
+    - etc/emailserver/config/opendkim
+    - etc/emailserver/config/opendkim/keys
+    - "etc/emailserver/config/opendkim/keys/{{domain}}"
     - etc/emailserver/certs
     - usr/emailserver
     - usr/emailserver/bin
@@ -27,14 +30,6 @@
     - var/volumes/emailserver
     - etc/emailserver/config
 
-# - name: Install maintenance scripts
-#   template:
-#     src: "bin/{{ item }}"
-#     dest: "{{ docker_ctx }}/usr/emailserver/bin/{{ item }}"
-#     mode: 0755
-#   with_items:
-#     - start.sh
-#     - stop.sh
     
 - name: Install "docker-compose.yml" 
   template:
@@ -70,7 +65,32 @@
     - postfix-virtual.cf
     - dovecot.cf
     - postfix-main.cf
-    - postfix-master.cf
+    - postfix-master.cf.extra
+    - user-patches.sh
+    - opendkim/KeyTable
+    - opendkim/SigningTable
+    - opendkim/TrustedHosts
+
+- name: Install dkim {{domain}} open key
+  copy:
+    src: etc/config/{{item}}
+    dest: "{{ docker_ctx }}/etc/emailserver/config/{{item}}"
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - opendkim/keys/{{domain}}/mail.txt
+    
+- name: Install dkim {{domain}} private key
+  copy:
+    src: etc/config/{{item}}
+    dest: "{{ docker_ctx }}/etc/emailserver/config/{{item}}"
+    decrypt: true
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - opendkim/keys/{{domain}}/mail.txt
     
 - name: "Install {{domain}} cert"
   copy:
