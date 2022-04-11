@@ -34,9 +34,9 @@ services:
       - ${DOCKER_CTX:-/docker}/etc/emailserver/certs:/tmp/ssl:ro
     restart: always
     stop_grace_period: 1m
-    cap_add:
-      - NET_ADMIN
-      - SYS_PTRACE
+#    cap_add:
+#      - NET_ADMIN
+#      - SYS_PTRACE
 
 volumes:
   mailserver_data:
