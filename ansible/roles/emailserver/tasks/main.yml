@@ -90,7 +90,7 @@
     group: root
     mode: 0600
   with_items:
-    - opendkim/keys/{{domain}}/mail.txt
+    - opendkim/keys/{{domain}}/mail.private
     
 - name: "Install {{domain}} cert"
   copy:
@@ -102,7 +102,7 @@
 
 - name: "Install {{domain}} key"
   copy:
-    src: "etc/certs/{{domain}}.crt"
+    src: "etc/certs/{{domain}}.key"
     dest: "{{ docker_ctx }}/etc/emailserver/certs/{{domain}}.key"
     decrypt: true
     owner: root
