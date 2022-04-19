@@ -1,42 +1,80 @@
 version: '3.8'
 # Should use ingress network
-#networks:
-#  {{ frontend_network }}:
-#    external: true
-    
+
+secrets:
+  sbdi-uat.se.crt:
+    file: "${DOCKER_CTX:-/docker}/etc/emailserver/certs/sbdi-uat.se.crt"
+  sbdi-uat.se.key:
+    file: "${DOCKER_CTX:-/docker}/etc/emailserver/certs/sbdi-uat.se.key"
+
 services:
   mailserver:
     image: docker.io/mailserver/docker-mailserver:latest
     hostname: mail
-    domainname: {{ domain }}
- #   container_name: mailserver
-    env_file: "${DOCKER_CTX:-/docker}/etc/emailserver/env/.envemailserver"
+    domainname: sbdi-uat.se
+     env_file: "${DOCKER_CTX:-/docker}/etc/emailserver/env/.envemailserver"
     # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
     # More information about the mailserver ports:
     # https://docker-mailserver.github.io/docker-mailserver/edge/config/security/understanding-the-ports/
+#    ports:
+#      - "25:25"    # SMTP  (explicit TLS => STARTTLS)
+#      - "143:143"  # IMAP4 (explicit TLS => STARTTLS)
+#      - "465:465"  # ESMTP (implicit TLS)
+#      - "587:587"  # ESMTP (explicit TLS => STARTTLS)
+#      - "993:993"  # IMAP4 (implicit TLS)
+#      - "2525:2525"
+#      - "10143:10143"
+#      - "10465:10465"
+#      - "10587:10587"
+#      - "10993:10993"
     ports:
-      - "25:25"    # SMTP  (explicit TLS => STARTTLS)
-      - "143:143"  # IMAP4 (explicit TLS => STARTTLS)
-      - "465:465"  # ESMTP (implicit TLS)
-      - "587:587"  # ESMTP (explicit TLS => STARTTLS)
-      - "993:993"  # IMAP4 (implicit TLS)
-      - "2525:2525"
-      - "10143:10143"
-      - "10465:10465"
-      - "10587:10587"
-      - "10993:10993"
+      - target:    25
+        published: 25
+        protocol:  tcp
+      - target:    143
+        published: 143
+        protocol:  tcp
+      - target:    465
+        published: 465
+        protocol:  tcp
+      - target:    587
+        published: 587
+        protocol:  tcp
+      - target:    993
+        published: 993
+        protocol:  tcp
+      - target:    2525
+        published: 2525
+        protocol:  tcp
+      - target:    10143
+        published: 10143
+        protocol:  tcp
+      - target:    10465
+        published: 10465
+        protocol:  tcp
+      - target:    10587
+        published: 10587
+        protocol:  tcp
+      - target:    10993
+        published: 10993
+        protocol:  tcp
     volumes:
       - mailserver_data:/var/mail
       - mailserver_state:/var/mail-state
       - mailserver_logs:/var/log/mail
       - /etc/localtime:/etc/localtime:ro
       - ${DOCKER_CTX:-/docker}/etc/emailserver/config/:/tmp/docker-mailserver/
-      - ${DOCKER_CTX:-/docker}/etc/emailserver/certs:/tmp/ssl:ro
+##      - ${DOCKER_CTX:-/docker}/etc/emailserver/certs:/tmp/ssl:ro
     restart: always
     stop_grace_period: 1m
-#    cap_add:
-#      - NET_ADMIN
-#      - SYS_PTRACE
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    secrets:
+      - source: sbdi-uat.se.crt
+        target: /tmp/ssl/sbdi-uat.se.crt
+      - source: sbdi-uat.se.key
+        target: /tmp/ssl/sbdi-uat.se.key
 
 volumes:
   mailserver_data:
