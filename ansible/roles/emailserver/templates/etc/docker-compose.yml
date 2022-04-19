@@ -12,7 +12,7 @@ services:
     image: docker.io/mailserver/docker-mailserver:latest
     hostname: mail
     domainname: sbdi-uat.se
-     env_file: "${DOCKER_CTX:-/docker}/etc/emailserver/env/.envemailserver"
+    env_file: "${DOCKER_CTX:-/docker}/etc/emailserver/env/.envemailserver"
     # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
     # More information about the mailserver ports:
     # https://docker-mailserver.github.io/docker-mailserver/edge/config/security/understanding-the-ports/
