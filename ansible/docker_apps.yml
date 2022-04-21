@@ -1,17 +1,17 @@
 ---
 # Work in progress
-- name: Fix local volumes
-  hosts: docker:docker_swarm
-  become: true
-  tasks:
-    - name: Make sure '/var/lib/docker_volume' is a link to  '/docker/var/lib/<hostname>/volumes'
-      file:
-        src: "/docker/var/lib/{{host_name}}/volumes"
-        dest: "/var/lib/docker_volumes"
-        owner: root
-        group: root
-        mode: 0750
-        state: link
+# - name: Fix local volumes
+#   hosts: docker:docker_swarm
+#   become: true
+#   tasks:
+#     - name: Make sure '/var/lib/docker_volume' is a link to  '/docker/var/lib/<hostname>/volumes'
+#       file:
+#         src: "/docker/var/lib/{{host_name}}/volumes"
+#         dest: "/var/lib/docker_volumes"
+#         owner: root
+#         group: root
+#         mode: 0750
+#         state: link
 
     
 # - name: Setup docker networks

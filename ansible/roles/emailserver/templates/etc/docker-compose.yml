@@ -9,7 +9,8 @@ secrets:
 
 services:
   mailserver:
-    image: docker.io/mailserver/docker-mailserver:latest
+#    image: docker.io/mailserver/docker-mailserver:9.1.0
+    image: docker.io/mailserver/docker-mailserver:10.5.0
     hostname: mail
     domainname: sbdi-uat.se
     env_file: "${DOCKER_CTX:-/docker}/etc/emailserver/env/.envemailserver"

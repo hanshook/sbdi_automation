@@ -2,7 +2,7 @@
 #    var: directed_hosts
 - debug:
     var: docker_host_names
-- name: Install paralllel-ssh
+- name: Install parallell-ssh
   apt:
     pkg:
     - pssh

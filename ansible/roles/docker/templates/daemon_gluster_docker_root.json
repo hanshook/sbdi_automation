@@ -1,0 +1,3 @@
+{
+    "data-root":"/docker/var/lib/{{host_name}}"
+}
