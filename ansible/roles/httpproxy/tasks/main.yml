@@ -12,6 +12,25 @@
     - etc/httpproxy/html
     - usr/httpproxy
     - usr/httpproxy/bin
+
+- name: Clean up old HTML files
+  shell: "/bin/rm -rf {{ docker_ctx }}/etc/httpproxy/html/*"
+    
+- name: Install HTML files
+  copy:
+    src: etc/html/
+    dest: "{{ docker_ctx }}/etc/httpproxy/html"
+    group: docker
+    owner: root
+
+- name: Install HTML files (from templates)
+  template:
+    src: "etc/html/{{ item }}"
+    dest: "{{ docker_ctx }}/etc/httpproxy/html/{{ item }}"
+    group: docker
+    mode: 0664
+  with_items:
+    - default/index.html
     
 - name: Ensure write access for docker group
   file:
@@ -45,26 +64,14 @@
     group: docker
     mode: 0644    
 
-- name: Clean up old HTML files
-  shell: "/bin/rm -rf {{ docker_ctx }}/etc/httpproxy/html/*"
-    
-- name: Install HTML files (from templates)
+- name: Install "static.conf" 
   template:
-    src: "etc/html/{{ item }}"
-    dest: "{{ docker_ctx }}/etc/httpproxy/html/{{ item }}"
+    src: static.conf
+    dest: "{{ docker_ctx }}/etc/httpproxy/conf.d/static.conf"
     group: docker
-    mode: 0664
-  with_items:
-    - index.html
+    mode: 0644    
 
-- name: Install HTML files
-  copy:
-    src: "etc/html/{{ item }}"
-    dest: "{{ docker_ctx }}/etc/httpproxy/html/{{ item }}"
-    group: docker
-    mode: 0664
-  with_items:
-    - sbdi-logo.png
+
 
 - name: Install maintenance scripts
   template:
