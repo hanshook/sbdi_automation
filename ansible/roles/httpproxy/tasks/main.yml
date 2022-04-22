@@ -10,16 +10,28 @@
     - etc/httpproxy
     - etc/httpproxy/conf.d
     - etc/httpproxy/html
+    - etc/httpproxy/html/default
+    - etc/httpproxy/html/static
     - usr/httpproxy
     - usr/httpproxy/bin
 
-- name: Clean up old HTML files
-  shell: "/bin/rm -rf {{ docker_ctx }}/etc/httpproxy/html/*"
-    
-- name: Install HTML files
+- name: Clean up old default HTML files
+  shell: "/bin/rm -rf {{ docker_ctx }}/etc/httpproxy/html/default/*"
+
+- name: Install default HTML files
   copy:
-    src: etc/html/
-    dest: "{{ docker_ctx }}/etc/httpproxy/html"
+    src: etc/html/default/
+    dest: "{{ docker_ctx }}/etc/httpproxy/html/default"
+    group: docker
+    owner: root
+
+- name: Clean up old static HTML files
+  shell: "/bin/rm -rf {{ docker_ctx }}/etc/httpproxy/html/static/*"
+    
+- name: Install static HTML files
+  copy:
+    src: "etc/html/static.{{domain}}/"
+    dest: "{{ docker_ctx }}/etc/httpproxy/html/static"
     group: docker
     owner: root
 
