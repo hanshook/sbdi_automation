@@ -1,0 +1,6 @@
+server_name: 'main'
+domain: 'sbdi.se'
+
+frontend_network: sbdi_frontend
+
+docker_volumes: ['wordpress_main_db', 'wordpress_main_html']

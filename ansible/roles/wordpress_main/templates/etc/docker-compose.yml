@@ -1,0 +1,40 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+services:
+
+  mysqldb-wordpress-main:
+    image: mysql:5.7
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_main"
+    volumes:
+      - wordpress_main_db:/var/lib/mysql
+    networks:
+      - {{ frontend_network }}
+
+  wordpress-main:
+    image: wordpress:latest
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_main"
+    depends_on:
+      - mysqldb-wordpress-main
+    volumes:
+      - wordpress_main_html:/var/www/html
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  wordpress_main_db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_main_db"    
+  wordpress_main_html:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_main_html"    
+

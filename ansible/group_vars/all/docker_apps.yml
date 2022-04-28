@@ -10,6 +10,10 @@ docker_applications:
     role: emailserver
     config:
       test_param: "test param specific value"
+  wordpress_main:
+    role: wordpress_main
+    config:
+      test_param: "test param specific value"
   portainer:
     role: portainer
     config:
