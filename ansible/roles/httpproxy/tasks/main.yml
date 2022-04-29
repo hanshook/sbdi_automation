@@ -69,12 +69,13 @@
     dest: "{{ docker_ctx }}/etc/httpproxy/application.cfg"
     mode: 0644
 
-- name: Install "default.conf" 
-  copy:
-    src: default.conf
-    dest: "{{ docker_ctx }}/etc/httpproxy/conf.d/default.conf"
-    group: docker
-    mode: 0644    
+# TODO: Fix a better default conf that does not catch / (that will go to worpress main)     
+# - name: Install "default.conf" 
+#   copy:
+#     src: default.conf
+#     dest: "{{ docker_ctx }}/etc/httpproxy/conf.d/default.conf"
+#     group: docker
+#     mode: 0644    
 
 - name: Install "static.conf" 
   template:
