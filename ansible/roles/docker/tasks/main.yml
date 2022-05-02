@@ -94,7 +94,7 @@
     mode: 0755 
     state: directory
 
-- name: Copy docker maintenance scripts
+- name: Copy docker (template) maintenance scripts
   template:
     src: "bin/{{ item }}"
     dest: /opt/sbdi/bin/{{ item }}
@@ -105,4 +105,13 @@
     - list_docker_apps
     - start_docker_app
     - stop_docker_app
+    
+- name: Copy docker maintenance scripts
+  copy:
+    src: "bin/{{ item }}"
+    dest: /opt/sbdi/bin/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
     - service_exec
