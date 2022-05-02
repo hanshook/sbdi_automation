@@ -125,7 +125,13 @@ __log_set_subject()
 	# running program in $0
         # remove leading "-" from $0 since $0 may be -bash (not bash) ... 
 	__log_func="${FUNCNAME[$1]}"
-	[ ! -z "$__log_func" ] && [[ "$__log_func" != "main" ]] && __log_logging="${__log_logging}::${__log_func}"
+	if [ ! -z "$__log_func" ]
+	then
+	    if  [[ "$__log_func" != "main" ]]
+	    then
+		__log_logging="${__log_logging}::${__log_func}"
+	    fi
+	fi
     fi
 } 
 
