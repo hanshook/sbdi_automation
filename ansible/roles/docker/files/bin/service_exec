@@ -7,6 +7,14 @@ i_arg=""
 while true 
 do
     case $1 in
+	-ti) t_arg="-t "
+	     i_arg="-i "
+	    shift
+	    ;;
+	-it) i_arg="-i "
+	     t_arg="-t "
+	    shift
+	    ;;
 	-t) t_arg="-t "
 	    shift
 	    ;;
