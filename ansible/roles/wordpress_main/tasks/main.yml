@@ -13,6 +13,8 @@
     - usr/wordpress_main/bin
     - var/volumes
     - var/volumes/wordpress_main
+    - var/backup
+    - var/backup/wordpress_main
 
 - name: Ensure write access for docker group
   file:
@@ -24,6 +26,7 @@
   with_items:
     - var/volumes/wordpress_main
     - etc/wordpress_main
+    - var/backup/wordpress_main
 
     
 - name: Install "docker-compose.yml" 
@@ -52,4 +55,11 @@
     dest: "{{ docker_ctx }}/etc/wordpress_main/proxy.conf"
     mode: 0644
     
-
+- name: Install maintenance scripts
+  template:
+    src: "bin/{{ item }}"
+    dest: "{{ docker_ctx }}/usr/wordpress_main/bin/{{ item }}"
+    mode: 0755
+  with_items:
+    - backup_db.sh       
+    - restore_db.sh

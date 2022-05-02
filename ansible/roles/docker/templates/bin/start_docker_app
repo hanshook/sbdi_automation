@@ -2,6 +2,8 @@
 cd $(dirname $0)
 . /opt/sbdi/lib/log_utils
 
+# TODO: https://opensource.com/article/18/3/creating-bash-completion-script
+
 log_logging_application="MGM"
 
 export DOCKER_CTX={{ docker_ctx | default('/docker') }}

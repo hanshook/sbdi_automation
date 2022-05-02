@@ -1,0 +1,40 @@
+#!/bin/bash
+set -e
+
+
+t_arg=""
+i_arg=""
+while true 
+do
+    case $1 in
+	-t) t_arg="-t "
+	    shift
+	    ;;
+	-i) i_arg="-i "
+	    shift
+	    ;;
+	*) break	    
+	   ;;
+    esac
+done
+
+
+SERVICE_NAME=$1;
+shift
+CMD="$@"
+
+. /opt/sbdi/lib/log_utils
+
+
+TASK_ID=$(docker service ps --filter 'desired-state=running' $SERVICE_NAME -q)
+NODE_ID=$(docker inspect --format '{{ .NodeID }}' $TASK_ID)
+CONTAINER_ID=$(docker inspect --format '{{ .Status.ContainerStatus.ContainerID }}' $TASK_ID)
+NODE_HOST=$(docker node inspect --format '{{ .Description.Hostname }}' $NODE_ID)
+
+# This might be an alternative:
+# export DOCKER_HOST="tcp://$NODE_HOST:2376"
+# docker exec ${i_arg} ${t_arg} $CONTAINER_ID "$CMD"
+
+log_info "Running docker exec ${i_arg}${t_arg}at node ${NODE_HOST} on container ${CONTAINER_ID} with ${CMD:0:8}..."
+
+ssh ${t_arg} $NODE_HOST "docker exec ${i_arg}${t_arg} $CONTAINER_ID \"$CMD\""

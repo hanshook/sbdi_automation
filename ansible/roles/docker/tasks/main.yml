@@ -105,3 +105,4 @@
     - list_docker_apps
     - start_docker_app
     - stop_docker_app
+    - service_exec
