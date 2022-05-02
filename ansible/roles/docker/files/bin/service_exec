@@ -45,4 +45,4 @@ NODE_HOST=$(docker node inspect --format '{{ .Description.Hostname }}' $NODE_ID)
 
 log_info "Running docker exec ${i_arg}${t_arg}at node ${NODE_HOST} on container ${CONTAINER_ID} with ${CMD:0:8}..."
 
-ssh ${t_arg} $NODE_HOST "docker exec ${i_arg}${t_arg} $CONTAINER_ID \"$CMD\""
+ssh ${t_arg} $NODE_HOST "docker exec ${i_arg}${t_arg} $CONTAINER_ID $CMD"

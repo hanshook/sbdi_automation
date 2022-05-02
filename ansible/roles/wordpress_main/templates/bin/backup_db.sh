@@ -10,7 +10,7 @@ export DOCKER_CTX={{ docker_ctx | default('/docker') }}
 
 env_file= "${DOCKER_CTX}/etc/${application_name}/env/.env${application_name}"
 
-[ ! -e "${env_file}" ] log_fatal 91 "env file does not exist: ${env_file}" 
+[ ! -e "${env_file}" ] && log_fatal 91 "env file does not exist: ${env_file}" 
 
 export $(grep -v '^#' ${env_file} | xargs)
 
