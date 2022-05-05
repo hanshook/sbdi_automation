@@ -6,10 +6,10 @@ access-1 nbr=11 flavor=ssc.xsmall floating_ip=130.238.29.21
 access-2 nbr=12 flavor=ssc.xsmall floating_ip=130.238.28.173
 
 [servers]
-manager-1 nbr=21 flavor=ssc.large.highmem volume_gluster=350
-manager-2 nbr=22 flavor=ssc.large.highmem volume_gluster=350
-manager-3 nbr=23 flavor=ssc.large.highmem volume_gluster=350
-worker-1 nbr=31 flavor=ssc.large.highmem volume_gluster=350
+manager-1 nbr=21 flavor=ssc.large.highmem volume_gluster=700
+manager-2 nbr=22 flavor=ssc.large.highmem volume_gluster=700
+manager-3 nbr=23 flavor=ssc.large.highmem volume_gluster=700
+#worker-1 nbr=31 flavor=ssc.large.highmem volume_gluster=350
 cassandra-1 nbr=41 flavor=ssc.large.highmem volume_local_docker=360
 cassandra-2 nbr=42 flavor=ssc.large.highmem volume_local_docker=360
 cassandra-3 nbr=43 flavor=ssc.large.highmem volume_local_docker=360
@@ -19,11 +19,10 @@ solr-2 nbr=52 flavor=ssc.medium.highmem volume_local_docker=160
 solr-3 nbr=53 flavor=ssc.medium.highmem volume_local_docker=160
 solr-4 nbr=54 flavor=ssc.medium.highmem volume_local_docker=160
 backup-director nbr=91 flavor=ssc.tiny
-backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=1200
+backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=500
 nagios nbr=97 flavor=ssc.tiny
 
-# Disk 3480 allocated for data storage 
-# To backup: 1926 GB ... 
+
 
 # Storage
 # =======
@@ -32,7 +31,7 @@ nagios nbr=97 flavor=ssc.tiny
 manager-1 
 manager-2
 manager-3
-worker-1
+#worker-1
 
 
 # Backup
@@ -58,7 +57,7 @@ cassandra-4 lvm_backup_source=true
 manager-1
 manager-2
 manager-3
-worker-1
+#worker-1
 cassandra-1
 cassandra-2
 cassandra-3

@@ -4,4 +4,4 @@
 
 lvm_device: /dev/vdb
 
-replica_count: 2
+replica_count: 3
