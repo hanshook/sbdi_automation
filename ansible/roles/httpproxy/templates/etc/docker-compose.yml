@@ -8,14 +8,24 @@ services:
   nginx-proxy:
     image: nginx:1-alpine
     ports:
-      - "80:80"
+      - target: 80
+        published: 80
+        protocol: tcp
     volumes:
       - {{ docker_ctx }}/etc/httpproxy/conf.d:/etc/nginx/conf.d:ro
       - {{ docker_ctx }}/etc/httpproxy/html:/usr/share/nginx/html/:ro
+      - cache_vol:/data/nginx/cache
+      
     networks:
       - {{ frontend_network }}
     deploy:
-      mode: global
+#      mode: global
+      replicas: 1
       placement:
         constraints: [node.role == manager]
 
+volumes:
+  cache_vol:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs

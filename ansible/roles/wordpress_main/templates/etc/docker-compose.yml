@@ -10,7 +10,7 @@ services:
     image: mysql:5.7
     env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_main"
     volumes:
-      - wordpress_main_db:/var/lib/mysql
+      - wordpress_main_db:/var/lib/mysql:cached
     networks:
       - {{ frontend_network }}
 
@@ -20,7 +20,7 @@ services:
     depends_on:
       - mysqldb-wordpress-main
     volumes:
-      - wordpress_main_html:/var/www/html
+      - wordpress_main_html:/var/www/html:cached
     networks:
       - {{ frontend_network }}
 
@@ -28,13 +28,11 @@ volumes:
   wordpress_main_db:
     driver: local
     driver_opts:
-      type: none
-      o: bind
+      type: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_main_db"    
   wordpress_main_html:
     driver: local
     driver_opts:
-      type: none
-      o: bind
+      type: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_main_html"    
 

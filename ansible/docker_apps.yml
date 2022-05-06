@@ -27,7 +27,7 @@
 #         ipam_config:
 #           - subnet: 10.211.1.0/24
             
-- name: Install Docker Swarm Application
+- name: Install Docker Swarm Applications
   hosts: swarm_managers[0]
   vars:
     docker_ctx: "{{ docker_root | default('/docker') }}"
@@ -35,11 +35,9 @@
   become: true
   tasks:
 
-  - name: Deploy application
+  - name: Deploy applications
     include_role:
       name: "{{ application_declaration.value['role']}}"
-#    vars:
-#      - config: "{{ docker_applications[application_declaration.key].config | default({}) }}"
     loop: "{{ application_declarations }}"
     loop_control:
       loop_var: application_declaration
@@ -61,14 +59,23 @@
     loop_control:
       loop_var: application_declaration
 
+- name: Deploy HTTP proxy
+  hosts: swarm_managers[0]
+  vars:
+    docker_ctx: "{{ docker_root | default('/docker') }}"
+    application_declarations: "{{ docker_applications | dict2items }}"
+  become: true
+  tags:
+    - httpproxy
+  roles:
+    - httpproxy
 
-  - name: Deploy HTTP proxy 
-    include_role:
-      name: 'httpproxy'
 
 - name: Setup HA proxy access
   hosts: gateways
   become: true
+  tags:
+    - haproxy
   roles:
     - haproxy
 

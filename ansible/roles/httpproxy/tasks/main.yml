@@ -26,9 +26,13 @@
     owner: root
 
 - name: Clean up old static HTML files
+  tags:
+    - static_html
   shell: "/bin/rm -rf {{ docker_ctx }}/etc/httpproxy/html/static/*"
     
 - name: Install static HTML files
+  tags:
+    - static_html
   copy:
     src: "etc/html/static.{{domain}}/"
     dest: "{{ docker_ctx }}/etc/httpproxy/html/static"
