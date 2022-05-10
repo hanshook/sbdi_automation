@@ -37,19 +37,20 @@ export BACKUP_CTX=${DOCKER_CTX}/var/backup/${application_name}
 
 cd ${BACKUP_CTX}
 
-if [ ! -z ${backup} ]
+if [ ! -z "${backup}" ]
 then
     [ ! -d ${backup} ] && log_fatal 96 "No backup found: ${BACKUP_CTX}/${backup}"
-else
     cd ${backup}
     log_info "Selected backup ${backup}"
+else
+    log_info "Select standard backup"
 fi
 
 [ ! -e ${BACKUP_TARBALL_NAME}.tgz ] &&  log_fatal 96 "${BACKUP_TARBALL_NAME}.tgz does not exist"
 
 SERVICE_NAME="${application_name}_${WORDPRESS_HOST}"
 
-log_info "Restoring /var/www/html from ${BACKUP_TARBALL_NAME}.tgz on ${SERVICE_NAME}"
+log_info "Restoring /var/www/html from $(pwd)/${BACKUP_TARBALL_NAME}.tgz on ${SERVICE_NAME}"
 #if /opt/sbdi/bin/service_exec -i $SERVICE_NAME rm -rf /var/www/html; tar xz -C / < ${BACKUP_TARBALL_NAME}.tgz
 if /opt/sbdi/bin/service_exec -i $SERVICE_NAME tar xz -C / < ${BACKUP_TARBALL_NAME}.tgz
 then

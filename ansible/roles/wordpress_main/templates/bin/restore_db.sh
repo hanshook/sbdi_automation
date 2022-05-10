@@ -63,7 +63,7 @@ fi
 
 SERVICE_NAME="${application_name}_${MYSQL_HOST}"
 
-log_info "Restoring database dump ${BACKUP_CTX}/${MYSQL_DATABASE}.sql to ${SERVICE_NAME}"
+log_info "Restoring database dump $(pwd)/${MYSQL_DATABASE}.sql to ${SERVICE_NAME}"
 if /opt/sbdi/bin/service_exec -i $SERVICE_NAME mysql --user root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < ${MYSQL_DATABASE}.sql
 then
     log_info "Restored database dump $(pwd)/${MYSQL_DATABASE}.sql to ${SERVICE_NAME}"
