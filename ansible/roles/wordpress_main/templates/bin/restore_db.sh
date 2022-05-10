@@ -50,12 +50,13 @@ export BACKUP_CTX=${DOCKER_CTX}/var/backup/${application_name}
 
 cd ${BACKUP_CTX}
 
-if [ ! -z ${backup} ]
+if [ ! -z "${backup}" ]
 then
     [ ! -d ${backup} ] && log_fatal 96 "No backup found: ${BACKUP_CTX}/${backup}"
-else
     cd ${backup}
     log_info "Selected backup ${backup}"
+else
+    log_info "Select standard backup"
 fi
 
 [ ! -e "${MYSQL_DATABASE}.sql" ] &&  log_fatal 96 "${MYSQL_DATABASE}.sql does not exist"
@@ -65,9 +66,9 @@ SERVICE_NAME="${application_name}_${MYSQL_HOST}"
 log_info "Restoring database dump ${BACKUP_CTX}/${MYSQL_DATABASE}.sql to ${SERVICE_NAME}"
 if /opt/sbdi/bin/service_exec -i $SERVICE_NAME mysql --user root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < ${MYSQL_DATABASE}.sql
 then
-    log_info "Restored database dump ${BACKUP_CTX}/${MYSQL_DATABASE}.sql to ${SERVICE_NAME}"
+    log_info "Restored database dump $(pwd)/${MYSQL_DATABASE}.sql to ${SERVICE_NAME}"
 else
-    log_fatal 1 "Failed to restored database dump ${BACKUP_CTX}/${MYSQL_DATABASE}.sql to ${SERVICE_NAME}"
+    log_fatal 1 "Failed to restored database dump $(pwd)/${MYSQL_DATABASE}.sql to ${SERVICE_NAME}"
 fi
 
 

@@ -53,7 +53,7 @@ export BACKUP_CTX=${DOCKER_CTX}/var/backup/${application_name}
 
 cd ${BACKUP_CTX}
 
-result=true
+
 
 secure_and_save_artefact() {
     
@@ -85,6 +85,8 @@ secure_and_save_artefact() {
 
 }
 
+success=true
+
 if ! $backup_db
 then
     log_info "Skipping db backup"
@@ -92,9 +94,12 @@ else
     # Backup database
     # ===============
 
-    SERVICE_NAME="${application_name}_${MYSQL_HOST}"
+
     ARTEFACT=${MYSQL_DATABASE}.sql
     ARTEFACT_NAME="database dump"
+
+    SERVICE_NAME="${application_name}_${MYSQL_HOST}"
+
     log_info "Creating ${ARTEFACT_NAME} from ${SERVICE_NAME} and saving it as ${BACKUP_CTX}/new_${ARTEFACT}"
     if /opt/sbdi/bin/service_exec $SERVICE_NAME mysqldump --user root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > new_${ARTEFACT}
     then
@@ -102,8 +107,9 @@ else
 	secure_and_save_artefact
     else
 	log_warn "Failed to create ${ARTEFACT_NAME} - removing any partial results"
-	rm -rf  new_${BACKUP_TARBALL_NAME}
 	success=false
+	# remove artefact if any
+	rm -rf  new_${ARTEFACT}
     fi
 fi
 
@@ -114,7 +120,6 @@ else
     # Backup files in /var/www/html
     # =============================
 
-    SERVICE_NAME="${application_name}_${WORDPRESS_HOST}"
 
     WORDPRESS_HOST=wordpress-main # TODO: (maybe) get this from somewhere
     BACKUP_TARBALL_NAME=var_www_html
@@ -122,16 +127,18 @@ else
     ARTEFACT=${BACKUP_TARBALL_NAME}.tgz
     ARTEFACT_NAME="/var/www/html tarball"
 
+    SERVICE_NAME="${application_name}_${WORDPRESS_HOST}"
     
     log_info "Creating ${ARTEFACT_NAME} from ${SERVICE_NAME} and saving it as ${BACKUP_CTX}/new_${ARTEFACT}"
-    if /opt/sbdi/bin/service_exec -i $SERVICE_NAME tar cz /var/www/html > new_${BACKUP_TARBALL_NAME}
+    if /opt/sbdi/bin/service_exec -i $SERVICE_NAME tar cz /var/www/html > new_${ARTEFACT}
     then
 	log_info "Sucessfully created ${ARTEFACT_NAME}"
 	secure_and_save_artefact
     else
 	log_warn "Failed to create ${ARTEFACT_NAME} - removing any partial results"
-	rm -rf  new_${BACKUP_TARBALL_NAME}
 	success=false
+	# remove artefact if any
+	rm -rf  new_${ARTEFACT}
     fi
 fi
 

@@ -61,5 +61,8 @@
     dest: "{{ docker_ctx }}/usr/wordpress_main/bin/{{ item }}"
     mode: 0755
   with_items:
-    - backup_db.sh       
+    - backup.sh       
     - restore_db.sh
+    - restore_html.sh
+    - translate_backup.sh
+    

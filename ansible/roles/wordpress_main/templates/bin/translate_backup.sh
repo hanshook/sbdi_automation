@@ -114,7 +114,7 @@ do
 done
 
 cd files
-if sudo tar cvzf ../${BACKUP_TARBALL_NAME}.tgz var/www/html
+if sudo tar czf ../${BACKUP_TARBALL_NAME}.tgz var/www/html
 then
     log_info "Packaged translated html files as ${BACKUP_CTX}/${translation_name}/${BACKUP_TARBALL_NAME}.tgz"
 else
