@@ -41,16 +41,19 @@
     loop: "{{ application_declarations }}"
     loop_control:
       loop_var: application_declaration
+    tags:
+      - applications
 
 # TODO: Inject config here somehow
 # There is a bug in ansible that excludes vars: "{{ application_declaration.value['config'] }}"
 # Might work with a vars_from file:
 # https://docs.ansible.com/ansible/2.3/include_role_module.html
       
-  - name: Setup environment configuration for each application
+
+  - name: Setup environment configuration for all applications
     copy:
-      src: "docker/etc/env{{application_declaration.key}}.{{deployment_prefix}}.cfg"
-      dest: "{{ docker_ctx }}/etc/{{application_declaration.key}}/env/.env{{application_declaration.key}}"
+      src: "docker/etc/{{application_declaration.key}}/{{deployment_prefix}}/"
+      dest: "{{ docker_ctx }}/etc/{{application_declaration.key}}/env/"
       decrypt: true
       owner: root
       group: docker
@@ -58,7 +61,10 @@
     loop: "{{ application_declarations }}"
     loop_control:
       loop_var: application_declaration
+    tags:
+      - configuration
 
+      
 - name: Deploy HTTP proxy
   hosts: swarm_managers[0]
   vars:
