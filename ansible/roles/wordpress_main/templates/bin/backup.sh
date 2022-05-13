@@ -20,6 +20,10 @@ do
     esac
 done
 
+site=${1:-"main"}
+
+	  
+
 [ $EUID -eq 0 ] && log_fatal 88 "Do *not* run as root"
 if ! id -nG "$USER" | grep -qw "docker"
 then
@@ -32,7 +36,15 @@ log_logging_application="MGM/${application_name}"
 
 export DOCKER_CTX={{ docker_ctx | default('/docker') }}
 
-env_file="${DOCKER_CTX}/etc/${application_name}/env/.env${application_name}"
+case $site in
+    main) break ;;
+    tools) break ;;
+    docs) break ;;
+    *) log_fatal 90 "site (${site} must be one of 'main', 'tools' or 'docs'" ;;
+esac
+			      
+env_file_name=".env${application_name%_*}_${site}" # grab everything up to first '_' (if _main in application_name)
+env_file="${DOCKER_CTX}/etc/${application_name}/env/${env_file_name}"
 
 [ ! -e "${env_file}" ] && log_fatal 91 "env file does not exist: ${env_file}" 
 
@@ -99,6 +111,7 @@ else
     ARTEFACT_NAME="database dump"
 
     SERVICE_NAME="${application_name}_${MYSQL_HOST}"
+#    SERVICE_NAME="${application_name%_*}_${MYSQL_HOST}"
 
     log_info "Creating ${ARTEFACT_NAME} from ${SERVICE_NAME} and saving it as ${BACKUP_CTX}/new_${ARTEFACT}"
     if /opt/sbdi/bin/service_exec $SERVICE_NAME mysqldump --user root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > new_${ARTEFACT}
@@ -121,13 +134,14 @@ else
     # =============================
 
 
-    WORDPRESS_HOST=wordpress-main # TODO: (maybe) get this from somewhere
-    BACKUP_TARBALL_NAME=var_www_html
+    WORDPRESS_HOST="wordpress-${site}" 
+    BACKUP_TARBALL_NAME=${site}_var_www_html
     
     ARTEFACT=${BACKUP_TARBALL_NAME}.tgz
     ARTEFACT_NAME="/var/www/html tarball"
 
     SERVICE_NAME="${application_name}_${WORDPRESS_HOST}"
+    #    SERVICE_NAME="${application_name%_*}_${WORDPRESS_HOST}"
     
     log_info "Creating ${ARTEFACT_NAME} from ${SERVICE_NAME} and saving it as ${BACKUP_CTX}/new_${ARTEFACT}"
     if /opt/sbdi/bin/service_exec -i $SERVICE_NAME tar cz /var/www/html > new_${ARTEFACT}
