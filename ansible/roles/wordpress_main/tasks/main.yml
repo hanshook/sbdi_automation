@@ -62,7 +62,6 @@
     mode: 0755
   with_items:
     - backup.sh       
-    - restore_db.sh
-    - restore_html.sh
-    - translate_backup.sh
+    - restore_backup.sh
+    - translate.sh
     

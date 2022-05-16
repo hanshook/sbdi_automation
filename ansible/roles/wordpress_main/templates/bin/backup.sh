@@ -4,6 +4,7 @@ cd $(dirname $0)
 
 backup_db=true
 backup_files=true
+backup=""
 while true 
 do
     case $1 in
@@ -15,6 +16,11 @@ do
 	    backup_files=false
 	    shift
 	    ;;
+	-to)
+	    backup=$2
+	    shift
+	    shift
+	    ;;		
 	*) break	    
 	   ;;
     esac
@@ -37,13 +43,17 @@ log_logging_application="MGM/${application_name}"
 export DOCKER_CTX={{ docker_ctx | default('/docker') }}
 
 case $site in
-    main) break ;;
-    tools) break ;;
-    docs) break ;;
+    main)  ;;
+    tools) ;;
+    docs)  ;;
     *) log_fatal 90 "site (${site} must be one of 'main', 'tools' or 'docs'" ;;
 esac
-			      
-env_file_name=".env${application_name%_*}_${site}" # grab everything up to first '_' (if _main in application_name)
+
+log_info "Will attempt to backup site ${site}"
+
+base_application_name="${application_name%_*}" # '_main' in application_name
+                                               # -> grab everything up to first '_' 
+env_file_name=".env${base_application_name}_${site}"  
 env_file="${DOCKER_CTX}/etc/${application_name}/env/${env_file_name}"
 
 [ ! -e "${env_file}" ] && log_fatal 91 "env file does not exist: ${env_file}" 
@@ -65,7 +75,30 @@ export BACKUP_CTX=${DOCKER_CTX}/var/backup/${application_name}
 
 cd ${BACKUP_CTX}
 
-
+if [ ! -z "${backup}" ]
+then
+    if [ -e ${backup} ]
+    then
+	log_warn "Backup ${backup} already exists - will be backed up"
+    fi
+    NEW_BACKUP_DIR=`mktemp -d -p .`
+    if chgrp docker ${NEW_BACKUP_DIR} && chmod 770 ${NEW_BACKUP_DIR}
+    then
+	if mv --backup=numbered -T ${NEW_BACKUP_DIR} ${backup}
+	then
+	    cd ${backup}
+	else
+	    rm -rf ${NEW_BACKUP_DIR}
+	    log_fatal 96 "Unable to create backup directory: ${backup}, mv --backup=numbered -T ${NEW_BACKUP_DIR} ${backup}, error: $?"
+	fi
+    else
+	rm -rf ${NEW_BACKUP_DIR}
+	log_fatal 96 "Unable to create backup directory: ${backup}, chgrp docker ${NEW_BACKUP_DIR} && chmod 770 ${NEW_BACKUP_DIR}, error: $?"
+    fi
+    log_info "Using backup location: $(pwd)"
+else
+    log_info "Using standard backup location: $(pwd)"
+fi
 
 secure_and_save_artefact() {
     
@@ -87,7 +120,7 @@ secure_and_save_artefact() {
 	rm -rf  new_${ARTEFACT}
     fi
 
-    if mv -b new_${ARTEFACT} ${ARTEFACT}
+    if mv --backup=numbered new_${ARTEFACT} ${ARTEFACT}
     then
 	log_info "Saved ${ARTEFACT_NAME} as ${ARTEFACT}"
     else
@@ -113,7 +146,7 @@ else
     SERVICE_NAME="${application_name}_${MYSQL_HOST}"
 #    SERVICE_NAME="${application_name%_*}_${MYSQL_HOST}"
 
-    log_info "Creating ${ARTEFACT_NAME} from ${SERVICE_NAME} and saving it as ${BACKUP_CTX}/new_${ARTEFACT}"
+    log_info "Creating ${ARTEFACT_NAME} from ${SERVICE_NAME} and saving it as $(pwd)/new_${ARTEFACT}"
     if /opt/sbdi/bin/service_exec $SERVICE_NAME mysqldump --user root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > new_${ARTEFACT}
     then
 	log_info "Sucessfully created ${ARTEFACT_NAME}"
@@ -143,7 +176,7 @@ else
     SERVICE_NAME="${application_name}_${WORDPRESS_HOST}"
     #    SERVICE_NAME="${application_name%_*}_${WORDPRESS_HOST}"
     
-    log_info "Creating ${ARTEFACT_NAME} from ${SERVICE_NAME} and saving it as ${BACKUP_CTX}/new_${ARTEFACT}"
+    log_info "Creating ${ARTEFACT_NAME} from ${SERVICE_NAME} and saving it as $(pwd)/new_${ARTEFACT}"
     if /opt/sbdi/bin/service_exec -i $SERVICE_NAME tar cz /var/www/html > new_${ARTEFACT}
     then
 	log_info "Sucessfully created ${ARTEFACT_NAME}"

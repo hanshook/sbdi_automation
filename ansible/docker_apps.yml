@@ -33,6 +33,8 @@
     docker_ctx: "{{ docker_root | default('/docker') }}"
     application_declarations: "{{ docker_applications | dict2items }}"
   become: true
+  tags:
+    - applications
   tasks:
 
   - name: Deploy applications
@@ -41,8 +43,6 @@
     loop: "{{ application_declarations }}"
     loop_control:
       loop_var: application_declaration
-    tags:
-      - applications
 
 # TODO: Inject config here somehow
 # There is a bug in ansible that excludes vars: "{{ application_declaration.value['config'] }}"
