@@ -85,7 +85,7 @@ volumes:
       type: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_tools_db"
       
-  wordpress_tools_db:
+  wordpress_docs_db:
     driver: local
     driver_opts:
       type: bind
