@@ -73,6 +73,7 @@ else
     then
 	wp_cli_exists=false
 	log_warn "No wp-cli found on wp host - will attempt install"
+	curl  --output - https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar | /opt/sbdi/bin/service_exec -i $SERVICE_NAME sed -n \'w /var/www/html/wp-cli.phar\'       
 	/opt/sbdi/bin/service_exec -i $SERVICE_NAME "curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar"
 	/opt/sbdi/bin/service_exec -i $SERVICE_NAME "chmod +x wp-cli.phar"
 	if  /opt/sbdi/bin/service_exec -i $SERVICE_NAME "[ -e wp-cli.phar ]"
@@ -84,7 +85,7 @@ else
 	    log_error "Failed to install wp-cli"
 	fi
     fi
-    if wp_cli_exists
+    if $wp_cli_exists
     then
 	log_info "Performing db translation"
 

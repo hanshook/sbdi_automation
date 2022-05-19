@@ -92,7 +92,7 @@ else
     # ===============
 
 
-    ARTEFACT=${site}-worpress-db.sql
+    ARTEFACT=${site}-wordpress-db.sql
     ARTEFACT_NAME="database dump"
 
     SERVICE_NAME="${application_name}_${MYSQL_HOST}"
@@ -118,7 +118,7 @@ else
 
 
     WORDPRESS_HOST="wordpress-${site}" 
-    BACKUP_TARBALL_NAME=${site}-worpress-files
+    BACKUP_TARBALL_NAME=${site}-wordpress-files
     
     ARTEFACT=${BACKUP_TARBALL_NAME}.tgz
     ARTEFACT_NAME="/var/www/html tarball"

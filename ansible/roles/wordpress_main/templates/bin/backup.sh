@@ -140,7 +140,7 @@ else
     # ===============
 
 
-    ARTEFACT=${site}-worpress-db.sql
+    ARTEFACT=${site}-wordpress-db.sql
     ARTEFACT_NAME="database dump"
 
     SERVICE_NAME="${application_name}_${MYSQL_HOST}"

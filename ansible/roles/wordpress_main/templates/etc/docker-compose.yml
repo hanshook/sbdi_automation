@@ -76,36 +76,42 @@ volumes:
   wordpress_main_db:
     driver: local
     driver_opts:
-      type: bind
+      type: none
+      o: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_main_db"
       
   wordpress_tools_db:
     driver: local
     driver_opts:
-      type: bind
+      type: none
+      o: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_tools_db"
       
   wordpress_docs_db:
     driver: local
     driver_opts:
-      type: bind
+      type: none
+      o: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_docs_db"
       
   wordpress_main_html:
     driver: local
     driver_opts:
-      type: bind
+      type: none
+      o: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_main_html"
       
   wordpress_tools_html:
     driver: local
     driver_opts:
-      type: bind
+      type: none
+      o: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_tools_html"
       
   wordpress_docs_html:
     driver: local
     driver_opts:
-      type: bind
+      type: none
+      o: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_docs_html"    
 
