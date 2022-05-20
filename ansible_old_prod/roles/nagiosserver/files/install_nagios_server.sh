@@ -46,12 +46,10 @@ fi
     
 if [ ! -z "${apache_port}" ]
 then
-    sed -i "s#Listen 80.*#Listem ${apache_port}#" /etc/apache2/ports.conf
-    sed -i "s#<VirtualHost: \*:80.*>#<VirtualHost: \*:${apache_port}>#" /etc/apache2/sites-enabled/000-default.conf
+    sed -i "s#Listen 80.*#Listen ${apache_port}#" /etc/apache2/ports.conf
+    sed -i "s#<VirtualHost \*:80.*>#<VirtualHost \*:${apache_port}>#" /etc/apache2/sites-enabled/000-default.conf
     systemctl restart apache2
 fi
-
-exit 0
 
 if apt-get install autoconf bc gawk dc build-essential gcc libc6 make wget unzip apache2 php libapache2-mod-php libgd-dev libmcrypt-dev make libssl-dev snmp libnet-snmp-perl gettext -y
 then

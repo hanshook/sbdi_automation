@@ -1,0 +1,21 @@
+# Ansible roles
+# =============
+
+
+
+# Nagios
+# ======
+
+[nagios_servers]
+sbdi-ext-1
+
+
+
+
+# Deployment specific vars
+# ========================
+
+[all:vars]
+#private_subnet=10.201.0.0/24
+domain=biodiverstity.se
+

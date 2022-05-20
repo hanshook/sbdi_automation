@@ -1,0 +1,28 @@
+#https://www.rosehosting.com/blog/how-to-install-nagios-4-and-monitor-your-servers-on-ubuntu-20-04/
+#https://www.howtoforge.com/tutorial/how-to-install-nagios-on-ubuntu-2004/
+
+# Script based Nagios server installion
+# For some (strange) reason this works while ansible based installation fails 
+
+- name: Ensure '/opt/sbdi/utils/bin' folder
+  file: 
+    path: /opt/sbdi/utils/bin
+    owner: root 
+    group: root
+    mode: 0755 
+    state: directory
+  become: yes    
+    
+- name: Install Nagios server install script
+  copy:
+    src: install_nagios_server.sh
+    dest: /opt/sbdi/utils/bin/install_nagios_server.sh
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes    
+
+# - name: Run Nagios server installation script
+#   command: /opt/sbdi/utils/bin/install_nagios_server.sh
+#   become: yes    
+  
