@@ -1,0 +1,7 @@
+
+# Default (fallback) block device to use for backup storage
+# NOTE: If a volume is not specified for a backup target
+# an ephimeral disk is assuemd to be present - and will be used.
+
+backup_data_device: /dev/vdb
+local_docker_storage_device: /dev/sdb

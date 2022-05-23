@@ -1,0 +1,24 @@
+# Common varibles:
+
+ansible_connection: ssh  
+  
+host_name: "{{ inventory_hostname }}"
+host_fqdn: "{{host_name}}.{{ domain }}"
+ansible_host: "{{  inventory_hostname }}.{{ domain }}"
+
+
+# Volumes
+# Where to attache volume devices?
+data_volume_device: /dev/vdc
+# Note! This does not currently work (ignorded by openstack - probably
+# not possible to set in kvm either...
+# We have currently not found any way to set or know
+# where the volume device might be attached.
+# It depends on if there is an ephemeral disk or other
+# volumes attached.
+
+
+root_disk_free_warning: 10%
+root_disk_free_critical: 5%
+
+    

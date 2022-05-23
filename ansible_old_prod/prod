@@ -3,7 +3,29 @@
 
 
 [servers]
-sbdi-ext-1
+#sbdi-ext-1
+cassandra-2-1 flavor=lm.xlarge.4d
+cassandra-2-2 flavor=lm.xlarge.4d
+cassandra-2-3 flavor=lm.xlarge.4d
+cassandra-2-4 flavor=lm.xlarge.4d
+
+[cassandra]
+cassandra-2-1
+cassandra-2-2
+cassandra-2-3
+cassandra-2-4
+
+[docker]
+cassandra-2-1
+cassandra-2-2
+cassandra-2-3
+cassandra-2-4
+
+[swarm_local_storage]
+cassandra-2-1
+cassandra-2-2
+cassandra-2-3
+cassandra-2-4
 
 # Nagios
 # ======
@@ -17,5 +39,7 @@ sbdi-ext-1
 
 [all:vars]
 #private_subnet=10.201.0.0/24
-domain=biodiverstity.se
+domain=biodiversitydata.se
+server_image=ubuntu-20.40-server-cloudimg-amd64-20200423
+
 

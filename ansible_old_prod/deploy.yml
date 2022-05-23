@@ -1,0 +1,49 @@
+---
+- name: Deploy Cloud Servers
+  hosts: localhost
+#  vars:
+#    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
+  tasks:
+
+ 
+
+ 
+      
+    #
+    # Servers
+    #
+    - name: "Ensure that all servers are deployed"
+      openstack.cloud.server:
+        name: "{{ item }}"
+        state: present
+        image: "{{server_image}}"
+        flavor: "{{ hostvars[item]['flavor'] }}"
+        network: bioatlas-network
+ #       auto_floating_ip: yes
+        key_name: "{{ lookup('env','USER') }}-nrm"
+      with_items: "{{ groups['servers'] }}"
+
+
+    - name: "Repeat to ensure security groups (Bugg workarround)"
+      openstack.cloud.server:
+        name: "{{ item }}"
+        state: present
+        image: "{{server_image}}"
+        flavor: "{{ hostvars[item]['flavor'] }}"
+        key_name: "{{ lookup('env','USER') }}_key"
+        # auto_floating_ip: no
+        # nics:
+        #   - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
+        security_groups:
+          - bioatlas-nfs
+          - bioatlas-default
+          - bioatlas-docker
+      with_items: "{{ groups['servers'] }}"
+
+
+      
+   
+
+ 
+
+      

@@ -1,0 +1,114 @@
+# The storage playbook will setup
+# 1. shared Gluster storage on all swarm nodes provided at the /docker mointpoint.
+# 2. local storage on all swarm nodes with local storage as well as non swarm docker nodes provided at the /local_docker mointpoint.
+#
+# The Gluster volume 'docker' is provided by the storage servers
+# There should be three (3) storage servers to enable safe reboot of any of these servers during maintenance
+#
+# The Gluster volume is backed by a thinly provissioned logical volume (lvm).
+# Thus Gluster volume snapshots may be used to backup all data in all docker containers instantly.
+#
+# Local docker storage is backed by an ordinary logical volume (lvm).
+# Thus also local docker storage may be backed up using lvm snapshots.
+
+---
+- name: "Take an inventory of volumes in our cloud"
+  hosts: localhost
+  tasks:
+    - name: "Register info about all volumes"
+      openstack.cloud.volume_info:
+      register: volume_info
+      
+- name: "Setup Gluster backed Docker storage on storage nodes"
+  hosts: storage
+  gather_facts: yes
+  become: true
+  tasks:
+    - name: "Filter out volume device id if there is a gluster volume attached"
+      set_fact:
+        volume_device_id:  "virtio-{{item.id}}"
+      with_items: "{{ hostvars['localhost'].volume_info.volumes }}"
+      when: item.name | regex_search("^"+inventory_hostname+"-volume_gluster$")
+
+    - name: "The volume device id that we are looking for:"
+      debug:
+        var: volume_device_id
+      
+    - name: "Set lvm_device of this host to be an atached volume if there is one attached"
+      set_fact:
+        lvm_device:  "/dev/{{ item }}"
+      with_items: "{{ ansible_facts.devices }}"
+      when: ansible_facts.devices[item].links.ids | select('in', volume_device_id) | list | length > 0
+
+    # Note1: If we do not find a volume attached to a storage node
+    # we will use the default for lvm_device which is likely to be /dev/vdb
+    # This corresponds to using an ephimerial device
+
+    - name: "Setup storage for Docker data on {{ lvm_device }}"
+      include_role:
+        name: docker_storage
+        
+    - name: "Setup Gluster Server"  
+      include_role:
+        name: gluster_server
+
+    
+# - name: "Setup GlusterFS Volume for Docker data" 
+#   hosts: "{{ groups['storage'][0] }}"
+#   become: true
+#   roles:
+#   - role: docker_gluster_volume
+    
+# - name: "Setup Gluster Clients on all swarm nodes that are not also backends" 
+#   hosts: docker_swarm:!storage
+#   become: true
+#   roles:
+#   - role: gluster_client
+    
+# - name: "Ensure Gluster backed Docker data access on all swarm nodes"
+#   hosts: docker_swarm
+#   become: true
+#   roles:
+#   - role: docker_data_access
+
+- name: "Setup *local* Docker storage"
+  hosts: swarm_local_storage
+  gather_facts: yes
+  become: true
+  vars:
+    local_docker_storage_device: /dev/sdb
+  tasks:
+    - name: "Filter out volume device id if there is a docker local storage volume attached"
+      set_fact:
+        local_docker_storage_device_id:  "virtio-{{item.id}}"
+      with_items: "{{ hostvars['localhost'].volume_info.volumes }}"
+      when: item.name | regex_search("^"+"-"+inventory_hostname+"-volume_local_docker$")
+
+    - name: "The volume device id that we are looking for:"
+      debug:
+        var: local_docker_storage_device_id
+      
+    # - name: "Set local_docker_storage_device of this host to be an atached volume if there is one attached"
+    #   set_fact:
+    #     local_docker_storage_device:  "/dev/{{ item }}"
+    #   with_items: "{{ ansible_facts.devices }}"
+    #   when: ansible_facts.devices[item].links.ids | select('in', local_docker_storage_device_id) | list | length > 0
+
+    # Note1: If we do not find a local storage volume attached
+    # we will use the default for local_docker_storage_device (which is likely to be /dev/vdb)
+    # This corresponds to using an ephimerial device
+
+    - name: "Setup *local* storage for Docker data on {{ local_docker_storage_device }}"
+      include_role:
+        name: local_docker_storage
+        
+
+
+# http://manpages.ubuntu.com/manpages/xenial/man7/lvmthin.7.html
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/logical_volume_manager_administration/thinly_provisioned_volume_creation
+# https://www.theurbanpenguin.com/thin-provisioning-lvm2/
+
+# https://medium.com/@mshajeer/pre-requisites-for-installing-glusterfs-with-ibm-cloud-private-a18c2b0ebafb
+# https://kubesphere.com.cn/en/docs/reference/storage-system-installation/glusterfs-server/
+
+

@@ -1,0 +1,11 @@
+--- 
+- name: Install basic sw, utility scripts,
+  hosts: servers
+  become: true
+  tasks:
+    - name: SBDI utility scripts
+      include_role:
+        name: sbdi_utility_scripts
+
+
+  
