@@ -12,10 +12,10 @@ log_info "Installing Nagios server"
 [ $EUID -eq 0 ] || log_fatal 88 "Root privileges reqiured to install Nagios Server"
 
 # Read arguments and switches
-local verbose=""           # -v 
-local dry_run=""           # -t 
-local nagios_admin_pw=""   # -p
-local apache_port=""       # -port
+verbose=""           # -v 
+dry_run=""           # -t 
+nagios_admin_pw=""   # -p
+apache_port=""       # -port
 while true 
 do
     case $1 in
@@ -37,7 +37,10 @@ do
 	   ;;
     esac
 done
-if apt-get install apache2 
+
+
+#if RUNLEVEL=1 apt-get --reinstall install apache2 
+if apt-get --reinstall install apache2 
 then
     log_info "Installed apache2 - OK"
 else
@@ -46,14 +49,23 @@ fi
     
 if [ ! -z "${apache_port}" ]
 then
-    sed -i "s#Listen 80.*#Listem ${apache_port}#" /etc/apache2/ports.conf
-    sed -i "s#<VirtualHost: \*:80.*>#<VirtualHost: \*:${apache_port}>#" /etc/apache2/sites-enabled/000-default.conf
+    log_info "Configuring apache to listen to port ${apache_port}"
+    systemctl stop apache2
+    sed -i "s#^Listen .*#Listen ${apache_port}#" /etc/apache2/ports.conf
+    sed -i "s#<VirtualHost.*\*:.*>#<VirtualHost \*:${apache_port}>#" /etc/apache2/sites-enabled/000-default.conf
+    if systemctl restart apache2
+    then
+	log_info "Restarted apache after configuring server port: ${apache_port}"
+    else
+	log_fatal 91 "Unable to restart apache after configuring server port: ${apache_port}"
+    fi
+else
+    log_info "Not changing apache server port"
     systemctl restart apache2
 fi
 
-exit 0
 
-if apt-get install autoconf bc gawk dc build-essential gcc libc6 make wget unzip apache2 php libapache2-mod-php libgd-dev libmcrypt-dev make libssl-dev snmp libnet-snmp-perl gettext -y
+if apt-get install autoconf bc gawk dc build-essential gcc libc6 make wget unzip php libapache2-mod-php libgd-dev libmcrypt-dev make libssl-dev snmp libnet-snmp-perl gettext -y
 then
     log_info "Installed dependencies - OK"
 else

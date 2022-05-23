@@ -2,14 +2,14 @@
 # =============
 
 
+[servers]
+sbdi-ext-1
 
 # Nagios
 # ======
 
 [nagios_servers]
 sbdi-ext-1
-
-
 
 
 # Deployment specific vars

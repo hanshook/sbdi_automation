@@ -23,7 +23,7 @@
   become: yes    
 
 - name: Run Nagios server installation script
-  command: /opt/sbdi/utils/bin/install_nagios_server.sh
+  command: "/opt/sbdi/utils/bin/install_nagios_server.sh -port {{ nagios_server_port }}"
   become: yes    
 
 # Ansible style Nagios server instalation (not working):
