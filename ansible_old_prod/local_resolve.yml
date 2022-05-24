@@ -2,10 +2,6 @@
 - name: Setup Cloud Server access on localhost
   hosts: localhost
   tasks:
-  - name: Creating an empty file
-    file:
-      path: "/home/hans/testfile"
-      state: touch
   - name: Remove old servers from the /etc/hosts file
     become: yes
     lineinfile:

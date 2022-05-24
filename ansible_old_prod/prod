@@ -3,9 +3,7 @@
 
 
 [servers]
-#sbdi-ext-1 floating_ip=89.45.234.38
-#bas-main floating_ip=89.45.234.20
-#sbdi-1-1 floating_ip=89.45.232.129
+
 cassandra-2-1 flavor=lm.xlarge.4d floating_ip=89.45.234.37
 cassandra-2-2 flavor=lm.xlarge.4d floating_ip=89.45.234.58
 cassandra-2-3 flavor=lm.xlarge.4d floating_ip=89.45.232.154
@@ -14,6 +12,16 @@ solr-2-1 flavor=lb.xlarge.1d floating_ip=89.45.233.171
 solr-2-2 flavor=lb.xlarge.1d floating_ip=89.45.233.188
 solr-2-3 flavor=lb.xlarge.1d floating_ip=89.45.233.189
 solr-2-4 flavor=lb.xlarge.1d floating_ip=89.45.233.198
+
+sbdi-ext-1 floating_ip=89.45.234.38
+bas-main floating_ip=89.45.234.20
+sbdi-1-1 floating_ip=89.45.232.129
+solr-1 floating_ip=89.45.232.180
+solr-2 floating_ip=89.45.232.151
+cassandra-1 floating_ip=89.45.233.218
+cassandra-2 floating_ip=89.45.234.144
+cassandra-3 floating_ip=89.45.234.146
+cassandra-4 floating_ip=89.45.233.213
 
 [cassandra]
 cassandra-2-1
