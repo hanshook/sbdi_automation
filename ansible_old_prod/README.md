@@ -43,4 +43,16 @@ Change to your prefered editor in: export EDITOR=/usr/bin/emacs
 
 ## Prerequsites
 
-Same as for ../ansible
+For Safespring access put following in /etc/hosts/file:
+
+```
+193.11.89.226 api.cloud.ipnett.se
+193.11.89.225 cinder.api.cloud.ipnett.se
+193.11.89.225 glance.api.cloud.ipnett.se
+193.11.89.225 keystone.api.cloud.ipnett.se
+193.11.89.225 neutron.api.cloud.ipnett.se
+193.11.89.225 nova.api.cloud.ipnett.se
+
+```
+
+For setting up authentication follow instructions in ../ansible
