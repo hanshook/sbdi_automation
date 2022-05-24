@@ -15,6 +15,7 @@ This repository contains Ansible playbooks for:
 
 1. Prepare your host (i.e. prepare /etc/hosts): ```ansible-playbook local_resolve.yml```
    Note: If your password is diffrent on your local machine ```group_vars/all/become.yml``` may need updating.
+   it is also possible to temporarily remove ```group_vars/all/become.yml``` and run ```ansible-playbook local_resolve.yml --ask-become-pass```
 
 2. Deploy vms, setup netorking and data volumes: ```ansible-playbook deploy.yml``` 
 
