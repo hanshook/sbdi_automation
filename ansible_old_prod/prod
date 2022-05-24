@@ -3,11 +3,17 @@
 
 
 [servers]
-#sbdi-ext-1
-cassandra-2-1 flavor=lm.xlarge.4d
-cassandra-2-2 flavor=lm.xlarge.4d
-cassandra-2-3 flavor=lm.xlarge.4d
-cassandra-2-4 flavor=lm.xlarge.4d
+#sbdi-ext-1 floating_ip=89.45.234.38
+#bas-main floating_ip=89.45.234.20
+#sbdi-1-1 floating_ip=89.45.232.129
+cassandra-2-1 flavor=lm.xlarge.4d floating_ip=89.45.234.37
+cassandra-2-2 flavor=lm.xlarge.4d floating_ip=89.45.234.58
+cassandra-2-3 flavor=lm.xlarge.4d floating_ip=89.45.232.154
+cassandra-2-4 flavor=lm.xlarge.4d floating_ip=89.45.234.182
+solr-2-1 flavor=lb.xlarge.1d floating_ip=89.45.233.171
+solr-2-2 flavor=lb.xlarge.1d floating_ip=89.45.233.188
+solr-2-3 flavor=lb.xlarge.1d floating_ip=89.45.233.189
+solr-2-4 flavor=lb.xlarge.1d floating_ip=89.45.233.198
 
 [cassandra]
 cassandra-2-1
@@ -15,17 +21,31 @@ cassandra-2-2
 cassandra-2-3
 cassandra-2-4
 
+[solr]
+solr-2-1
+solr-2-2
+solr-2-3
+solr-2-4
+
 [docker]
 cassandra-2-1
 cassandra-2-2
 cassandra-2-3
 cassandra-2-4
+solr-2-1
+solr-2-2
+solr-2-3
+solr-2-4
 
 [swarm_local_storage]
 cassandra-2-1
 cassandra-2-2
 cassandra-2-3
 cassandra-2-4
+solr-2-1
+solr-2-2
+solr-2-3
+solr-2-4
 
 # Nagios
 # ======
@@ -38,7 +58,7 @@ sbdi-ext-1
 # ========================
 
 [all:vars]
-#private_subnet=10.201.0.0/24
+private_subnet=192.168.1.0/24
 domain=biodiversitydata.se
 server_image=ubuntu-20.40-server-cloudimg-amd64-20200423
 

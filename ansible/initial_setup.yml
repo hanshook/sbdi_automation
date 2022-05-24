@@ -51,5 +51,7 @@
       - software-properties-common
       - emacs-nox
       - elpa-yaml-mode
+      - tree
+      
 
   

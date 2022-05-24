@@ -1,0 +1,23 @@
+---
+- name: Setup SSH access to Servers (Phase I)
+  hosts: localhost
+  tasks:
+    - name: Remove previous hostname realted SSH keys from known hosts
+      shell: "ssh-keygen -R {{ item }}"
+      ignore_errors: yes
+      with_items: "{{ groups['servers'] }}"
+    - name: Remove previous fqdn related SSH keys from known hosts
+      shell: "ssh-keygen -R {{ item }}.{{ domain }}"
+      ignore_errors: yes
+      with_items: "{{ groups['servers'] }}"
+    - name: Remove previous ip related SSH keys from known host
+      shell: "ssh-keygen -R {{  hostvars[item]['floating_ip'] }}"
+      ignore_errors: yes
+      with_items: "{{ groups['servers']  }}"
+    - name: Accept SSH host keys for gatway hostnames
+      shell:  "ssh-keyscan -H {{ item }} >> ~/.ssh/known_hosts"
+      with_items: "{{ groups['servers'] }}"
+    - name: Accept SSH host keys for gateway fqdn
+      shell:  "ssh-keyscan -H {{ item }}.{{ domain }} >> ~/.ssh/known_hosts"
+      with_items: "{{ groups['servers'] }}"
+      

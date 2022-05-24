@@ -1,0 +1,16 @@
+- name: "Setup initialize solr volumes"
+  hosts: solr
+  gather_facts: yes
+  become: true
+  tasks:
+    - name: Ensure volume directories
+      file:
+        path: "/docker_local/var/volumes/{{item}}"
+        owner: root
+        group: docker
+        mode: 0770
+        state: directory
+      with_items:
+        - solr
+        - "solr/{{ inventory_hostname }}"
+
