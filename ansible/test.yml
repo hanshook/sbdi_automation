@@ -28,3 +28,12 @@
 #         var: host_name
 #     - debug:
 #         var: host_fqdn
+
+
+- name: Test2
+  hosts: backup_sources
+  tasks:
+    - debug:
+        var: gluster_backup_name 
+    - debug:
+        msg: "{{ gluster_backup_name.split('@')[1] | replace('+', '/') }}" 
