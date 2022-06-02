@@ -4,24 +4,29 @@
 
 [servers]
 
-cassandra-2-1 flavor=lm.xlarge.4d floating_ip=89.45.234.37
-cassandra-2-2 flavor=lm.xlarge.4d floating_ip=89.45.234.58
-cassandra-2-3 flavor=lm.xlarge.4d floating_ip=89.45.232.154
-cassandra-2-4 flavor=lm.xlarge.4d floating_ip=89.45.234.182
-solr-2-1 flavor=lb.xlarge.1d floating_ip=89.45.233.171
-solr-2-2 flavor=lb.xlarge.1d floating_ip=89.45.233.188
-solr-2-3 flavor=lb.xlarge.1d floating_ip=89.45.233.189
-solr-2-4 flavor=lb.xlarge.1d floating_ip=89.45.233.198
+snic-gateway flavor=b.tiny
+#snic-gateway flavor=b.tiny floating_ip=89.45.234.37 
+# cassandra-2-1 flavor=lm.xlarge.4d floating_ip=89.45.234.37
+# cassandra-2-2 flavor=lm.xlarge.4d floating_ip=89.45.234.58
+# cassandra-2-3 flavor=lm.xlarge.4d floating_ip=89.45.232.154
+# cassandra-2-4 flavor=lm.xlarge.4d floating_ip=89.45.234.182
+# solr-2-1 flavor=lb.xlarge.1d floating_ip=89.45.233.171
+# solr-2-2 flavor=lb.xlarge.1d floating_ip=89.45.233.188
+# solr-2-3 flavor=lb.xlarge.1d floating_ip=89.45.233.189
+# solr-2-4 flavor=lb.xlarge.1d floating_ip=89.45.233.198
 
-sbdi-ext-1 floating_ip=89.45.234.38
-bas-main floating_ip=89.45.234.20
-sbdi-1-1 floating_ip=89.45.232.129
-solr-1 floating_ip=89.45.232.180
-solr-2 floating_ip=89.45.232.151
-cassandra-1 floating_ip=89.45.233.218
-cassandra-2 floating_ip=89.45.234.144
-cassandra-3 floating_ip=89.45.234.146
-cassandra-4 floating_ip=89.45.233.213
+# sbdi-ext-1 floating_ip=89.45.234.38
+# bas-main floating_ip=89.45.234.20
+# sbdi-1-1 floating_ip=89.45.232.129
+# solr-1 floating_ip=89.45.232.180
+# solr-2 floating_ip=89.45.232.151
+# cassandra-1 floating_ip=89.45.233.218
+# cassandra-2 floating_ip=89.45.234.144
+# cassandra-3 floating_ip=89.45.234.146
+# cassandra-4 floating_ip=89.45.233.213
+
+[internal_servers]
+snic-gateway
 
 [cassandra]
 cassandra-2-1
@@ -61,6 +66,12 @@ solr-2-4
 [nagios_servers]
 sbdi-ext-1
 
+# SNIC Connection
+# ===============
+
+[snic_access]
+snic-gateway snic_vpn_server_ip=130.238.28.173
+
 
 # Deployment specific vars
 # ========================
@@ -69,5 +80,7 @@ sbdi-ext-1
 private_subnet=192.168.1.0/24
 domain=biodiversitydata.se
 server_image=ubuntu-20.40-server-cloudimg-amd64-20200423
+
+snic_internal_network=10.201.0.0/24
 
 

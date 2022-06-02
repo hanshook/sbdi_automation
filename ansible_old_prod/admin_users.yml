@@ -4,6 +4,8 @@
   remote_user: ubuntu
   become: true
   tasks:
+  - debug:
+      var: ansible_ssh_common_args
   - name: Create admin users 
     user:
       name: "{{ item.key }}"

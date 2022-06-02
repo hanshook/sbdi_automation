@@ -1,0 +1,37 @@
+- name: "Determine ipsec users"
+  set_fact:
+    ip_sec_users: "{{ admin_users | dict2items | selectattr('value.ipsec_access', 'equalto', true) | list  }}"
+
+# - name: "Show us the users selected"
+#   debug:
+#     var: ip_sec_users
+
+- name: Install needed packages
+  apt:
+    pkg:
+    - net-tools
+    - ca-certificates
+    - strongswan
+    - xl2tpd
+    - linux-generic
+      
+- name: "Upload ipsec client install scrip - if there are ipsec users"
+  template:
+    src: "vpnclient_setup.sh"
+    dest: /tmp/vpnclient_setup.sh
+    owner: root
+    mode: 0755
+  when: ip_sec_users | length > 0
+
+
+- name: "Ensure ipsec client - if there are ipsec users"
+  ansible.builtin.shell: "sudo sh /tmp/vpnclient_setup.sh"
+  when: ip_sec_users | length > 0
+
+- name: "Delete ipsec install scrip and its contained secret"
+  file:
+    state: absent
+    path: /tmp/vpnclient_setup.sh
+
+
+
