@@ -1,0 +1,4 @@
+#ansible_connection: ssh
+
+ansible_ssh_common_args: "-J bas-main.{{ domain }}"
+#ansible_host: "{{deployment_prefix}}-{{  inventory_hostname }}.{{ domain }}"
