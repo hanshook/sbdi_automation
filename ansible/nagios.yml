@@ -1,9 +1,12 @@
 - name: Install and configure Nagios server
   hosts: nagios_servers
   become: true
-  roles:
-    - role: nagiosserver
-      tags: nagiosserver
+  tasks:
+    - name: Setup Nagios servver
+      include_role:
+        name: nagiosserver
+      vars:
+        nagios_server_port: 80 
       
 - name: Configure NRPE Clients for monitoring
   hosts: gateways:servers:!nagios_servers

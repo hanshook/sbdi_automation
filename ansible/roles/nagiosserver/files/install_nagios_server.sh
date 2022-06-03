@@ -40,7 +40,7 @@ done
 
 
 #if RUNLEVEL=1 apt-get --reinstall install apache2 
-if apt-get --reinstall install apache2 
+if apt-get --reinstall -y install apache2 
 then
     log_info "Installed apache2 - OK"
 else
