@@ -1,0 +1,6 @@
+---
+- hosts: snic_access
+  become: true
+  roles:
+  - ipsec_client
+

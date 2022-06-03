@@ -4,7 +4,7 @@
 
 [servers]
 
-snic-gateway flavor=b.tiny
+link flavor=b.tiny
 #snic-gateway flavor=b.tiny floating_ip=89.45.234.37 
 # cassandra-2-1 flavor=lm.xlarge.4d floating_ip=89.45.234.37
 # cassandra-2-2 flavor=lm.xlarge.4d floating_ip=89.45.234.58
@@ -26,7 +26,7 @@ snic-gateway flavor=b.tiny
 # cassandra-4 floating_ip=89.45.233.213
 
 [internal_servers]
-snic-gateway
+#link
 
 [cassandra]
 cassandra-2-1
@@ -70,7 +70,7 @@ sbdi-ext-1
 # ===============
 
 [snic_access]
-snic-gateway snic_vpn_server_ip=130.238.28.173
+link snic_vpn_server_ip=130.238.28.173
 
 
 # Deployment specific vars
