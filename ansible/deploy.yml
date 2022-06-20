@@ -110,6 +110,14 @@
         port_range_max: 53
         remote_ip_prefix: 0.0.0.0/0
 
+    - name: "Ensure UDP 53 access DNS security group"
+      openstack.cloud.security_group_rule:
+        security_group: dns_access
+        protocol: udp
+        port_range_min: 53
+        port_range_max: 53
+        remote_ip_prefix: 0.0.0.0/0
+
     #
     # Internal Network
     #
