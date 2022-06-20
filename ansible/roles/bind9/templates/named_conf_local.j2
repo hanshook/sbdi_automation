@@ -1,0 +1,21 @@
+acl "trusted" {
+{% if bind9_default_trusted_addresses is defined and bind9_default_trusted_addresses|length %}
+{% for addr in bind9_default_trusted_addresses %}
+    {{ addr }};
+{% endfor %}
+{% endif %}
+{% if bind9_custom_trusted_addresses is defined and bind9_custom_trusted_addresses|length %}
+{% for addr in bind9_custom_trusted_addresses %}
+    {{ addr }};
+{% endfor %}
+{% endif %}
+};
+
+{% if bind9_include_configs is defined and bind9_include_configs|length %}
+{% for file_path in bind9_include_configs %}
+include "{{ file_path }}";
+{% endfor %}
+{% endif %}
+{% if bind9_forwarders is defined and bind9_forwarders|length %}
+include "/etc/bind/zones.conf";
+{% endif %}

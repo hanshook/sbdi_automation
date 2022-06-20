@@ -1,0 +1,11 @@
+{{ bind9_statistics_log_directory }}/{{ bind9_statistics_log_filename }} {
+   daily
+   rotate 4
+   compress
+   delaycompress
+   create 0644 bind bind
+   missingok
+   postrotate
+       rndc reload > /dev/null
+   endscript
+}

@@ -1,0 +1,19 @@
+{% if bind9_default_nameserver is defined %}
+nameserver {{ bind9_default_nameserver }}
+{% endif %}
+{% if bind9_custom_nameservers is defined and bind9_custom_nameservers|length %}
+{% for item in bind9_custom_nameservers %}
+nameserver {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if bind9_forwarders is defined and bind9_forwarders|length %}
+{% for key, value in bind9_forwarders.items() %}
+search {{ key }}
+{% endfor %}
+{% endif %}
+{% if bind9_resolv_conf_options is defined and bind9_resolv_conf_options|length %}
+{% for item in bind9_resolv_conf_options %}
+{{ item.key }} {{ item.value }}
+{% endfor %}
+{% endif %}

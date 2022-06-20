@@ -1,0 +1,7 @@
+{% for key, value in bind9_forwarders.items() %}
+zone "{{ key }}" {
+    type forward;
+    forward only;
+    forwarders { {% for server in value.servers %} {{ server }}; {% endfor %}};
+};
+{% endfor %}

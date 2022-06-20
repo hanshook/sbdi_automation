@@ -1,0 +1,23 @@
+$ORIGIN {{ reverse_net }}.in-addr.arpa.
+
+@     3600	IN    SOA    {{ inventory_hostname }}.{{ domain }}.  root.{{ inventory_hostname }}.{{ domain }}. (
+  	     	    	   {{ dns_serial }} ; Serial
+			28800          ; Refresh - 8 hours
+			7200           ; Retry - 2 hours
+			604800         ; Expire - 1 week
+			86400          ; Minimum - 1 day
+)
+
+;; Name Servers
+{% for host in groups['gateways'] %}
+@    3600   IN    NS     {{ host }}.{{ domain }}.
+{% endfor %}
+
+;; Servers and gateways (internally)
+
+{% for host in groups['gateways'] %}
+{{ hostvars[host]['nbr'] }} 3600  IN PTR  {{deployment_prefix}}-{{ host }}.{{ domain }}.
+{% endfor %}
+{% for host in groups['servers'] %}
+{{ hostvars[host]['nbr'] }} 3600  IN PTR  {{deployment_prefix}}-{{ host }}.{{ domain }}.
+{% endfor %}

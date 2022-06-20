@@ -23,6 +23,13 @@
         name: vpn_access
         description: "IPSEC VPN Access"
         state: present
+    - name: "Ensure DNS Security Group"
+      openstack.cloud.security_group:
+        name: dns_access
+        description: "DNS Access"
+        state: present
+
+        
     - name: "Ensure HTTP access in http_access security group"
       openstack.cloud.security_group_rule:
         security_group: http_access
@@ -94,6 +101,14 @@
         port_range_min: 1701
         port_range_max: 1701
         remote_ip_prefix: 0.0.0.0/0
+        
+    - name: "Ensure TCP 53 access DNS security group"
+      openstack.cloud.security_group_rule:
+        security_group: dns_access
+        protocol: tcp
+        port_range_min: 53
+        port_range_max: 53
+        remote_ip_prefix: 0.0.0.0/0
 
     #
     # Internal Network
@@ -161,6 +176,7 @@
           - http_access
           - email_access
           - vpn_access
+          - dns_access
           - default
       with_items: "{{ groups['gateways'] }}"
 
@@ -178,6 +194,7 @@
           - http_access
           - email_access
           - vpn_access
+          - dns_access
           - default
       with_items: "{{ groups['gateways'] }}"
 

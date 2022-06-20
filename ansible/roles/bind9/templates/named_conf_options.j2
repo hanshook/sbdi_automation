@@ -1,0 +1,50 @@
+statistics-channels {
+    inet 127.0.0.1 port 8653 allow { 127.0.0.1; };
+    inet ::1 port 8653 allow { ::1; };
+};
+options {
+	directory "{{ bind9_directory }}";
+{% if bind9_dnssec_validation.enabled %}
+	dnssec-validation {{ bind9_dnssec_validation.mode | default('auto', true) }};
+{% endif %}
+	auth-nxdomain {{ bind9_auth_nxdomain }};
+
+{% if bind9_listen_ipv4.addresses is defined and bind9_listen_ipv4.addresses|length %}
+	listen-on port {{ bind9_listen_ipv4.port | default('53', true) }} {
+{% for addr in bind9_listen_ipv4.addresses %}
+		{{ addr }};
+{% endfor %}
+	};
+{% endif %}
+{% if bind9_listen_ipv6.addresses is defined and bind9_listen_ipv6.addresses|length %}
+	listen-on-v6 port {{ bind9_listen_ipv6.port | default('53', true) }} {
+{% for addr in bind9_listen_ipv6.addresses %}
+		{{ addr }};
+{% endfor %}
+	};
+{% endif %}
+	version "not of your business";
+	allow-recursion { trusted; };
+{% if bind9_enable_statistics %}
+	statistics-file "{{ bind9_statistics_log_directory }}/{{ bind9_statistics_log_filename }}";
+{% endif %}
+{% if bind9_custom_options is defined and bind9_custom_options|length %}
+{% for item in bind9_custom_options %}
+	{{ item.key }} {{ item.value }};
+{% endfor %}
+{% endif %}
+};
+
+{% if bind9_slave_zones is defined and bind9_slave_zones|length %}
+{% for key, value in bind9_slave_zones.items() %}
+zone "{{ key }}" {
+	type slave;
+	file "{{ value.file|default(key, true) }}";
+	masters {
+{% for addr in value.masters %}
+		{{ addr }};
+{% endfor %}
+	};
+};
+{% endfor %}
+{% endif %}

@@ -1,0 +1,19 @@
+today: "{{ lookup('pipe','date +%Y%m%d') }}"
+    
+# Note! common_ip_part is used elsewhere but then with a trailing '.':
+common_ip_part_without_trailing_dot: "{{ private_subnet | regex_replace('\\.0\\/.+$', '') }}"
+reverse_net: "{{ common_ip_part_without_trailing_dot.split('.') | reverse | list | join('.') }}"
+    
+# Remember our UAT has no publicly accessible dns
+dns_server_ip: "{{ floating_ip }}"
+
+# Lookup SOA record from our DNS server
+soa_record: "{{ lookup('community.general.dig', domain, '@'+dns_server_ip, 'qtype=SOA') }}"
+    
+# Remember our DNS server may not hav been setup -> thus we may have no soa_record:
+soa_serial_value: "{{ soa_record.split(' ')[2] if soa_record else today+'00' }}"
+
+soa_srl_day: "{{ soa_serial_value[:8] }}"
+soa_srl_inc: "{{ soa_serial_value[9:] }}"
+soa_srl_new_inc: "{{ '%02d' % (soa_srl_inc|int + 1) }}"
+dns_serial: "{{ soa_srl_day + soa_srl_new_inc|string if (soa_srl_day == today) else today + '01' }}"

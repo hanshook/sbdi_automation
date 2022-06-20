@@ -1,0 +1,54 @@
+$ORIGIN {{ domain }}.
+
+@     3600	IN    SOA    {{ inventory_hostname }}.{{ domain }}.  root.{{ inventory_hostname }}.{{ domain }}. (
+  	     	    	   {{ dns_serial }} ; Serial
+			28800          ; Refresh - 8 hours
+			7200           ; Retry - 2 hours
+			604800         ; Expire - 1 week
+			86400          ; Minimum - 1 day
+)
+
+;; Name Servers
+{% for host in groups['gateways'] %}
+@    3600   IN    NS     {{ host }}.{{ domain }}.
+{% endfor %}
+
+;; Mail Servers
+@     IN    MX     10 mail.{{ domain }}.
+
+
+;; Access Points (Round robbin)
+
+{% for host in groups['gateways'] %}
+@      	       	3600  IN  A       {{ hostvars[host]['floating_ip'] }}
+{% endfor %}
+
+;; Access Points (externally)
+
+{% for host in groups['gateways'] %}
+{{ host }}      3600  IN  A       {{ hostvars[host]['floating_ip'] }}
+{% endfor %}
+
+
+; CNAME Records
+www  3600    IN  CNAME   @
+mail 3600    IN	 CNAME 	 @
+*    3600    IN  CNAME   @
+
+
+;; Servers and gateways (internally)
+
+{% for host in groups['gateways'] %}
+{{deployment_prefix}}-{{ host }} 3600  IN A    {{common_ip_part}}{{ hostvars[host]['nbr'] }};
+{% endfor %}
+{% for host in groups['servers'] %}
+{{deployment_prefix}}-{{ host }} 3600  IN A    {{common_ip_part}}{{ hostvars[host]['nbr'] }};
+{% endfor %}
+
+
+
+;; mail._domainkey	 3600	 IN TXT v=DKIM1; h=sha256; k=rsa; p=MIIBHjANBgkqhkiG9w0BAQEFAAOCAQsAMIIBBgKB/gCsb7VLdAGWg/77dMoLnS3bRb7e9s6QsNHJbB2xPEEYlWlJjJp6UFoQcREnuFw6rfFh6FbKSGpDoPc8J4gYmsxMXowxdcK3k60bIHQtomzUlNyE+W2/ZfBQ+oJrD+I6JXm+qljSL4vXNFXXyV+7EAMbkNiCyGbbH7Idn4zkOn3lVpk4BlvFK/Lc4n9yvzWbtx9bH9cv7ki1cJzoeWNkmRXSo1VyoW5A8AEcM+4u1N/+QqjfA9b5wYZ2x4rzI6tWtDp1dk/9zm6afILER9WOeoLHHX0jrbq4gmgJ2iGkC2Urw6X0PRu9pXGoasn0TGbA3qPYNeK2xio8L22p/jXFAgMBAAE=
+
+
+;; https://wiki.debian.org/Bind9
+;; https://serverfault.com/questions/122689/is-there-a-difference-between-and-when-using-bind

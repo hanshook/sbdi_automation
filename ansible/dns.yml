@@ -1,0 +1,11 @@
+--- 
+- name: Install zone files on DNS Servers
+  hosts: gateways
+  vars:
+    bind9_listen_ipv4:
+      port: 53
+      addresses: ['any']
+  become: true
+  roles:
+    - bind9
+#    - bind9_zone_files

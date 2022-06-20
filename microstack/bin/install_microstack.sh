@@ -170,6 +170,7 @@ virtualenv -p /usr/bin/python3 "${HOME}/${OS_CLI_VENV_DIR}"
 pip3 install --upgrade pip
 pip3 install python-openstackclient python-neutronclient
 pip3 install ansible openstacksdk
+pip3 install dnspython
 ansible-galaxy collection install openstack.cloud
 deactivate
 

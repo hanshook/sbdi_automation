@@ -1,0 +1,35 @@
+---
+
+bind9_packages:
+  - bind9
+  - bind9utils
+
+bind9_ipv4_only: false
+bind9_default_trusted_addresses: [ '127.0.0.1', '::1', '10.0.0.0/8', 'fd00::/8']
+bind9_directory: /var/cache/bind
+bind9_auth_nxdomain: 'no'
+bind9_custom_trusted_addresses: []
+bind9_include_configs: []
+bind9_dnssec_validation:
+  enabled: true
+  mode: 'auto'
+
+bind9_default_nameserver: '127.0.0.1'
+bind9_custom_nameservers: [ '8.8.8.8', '2001:4860:4860::8844' ]
+bind9_custom_options: []
+bind9_resolv_conf_options: []
+
+bind9_listen_ipv4:
+  port: 53
+  addresses: ['127.0.0.1']
+bind9_listen_ipv6:
+  port: 53
+  addresses: ['::1']
+
+bind9_forwarders: {}
+bind9_slave_zones: {}
+
+bind9_enable_statistics: true
+bind9_statistics_log_directory: /var/log/named
+bind9_statistics_log_filename: named.stats
+bind9_statistics_logrotate_cfg: /etc/logrotate.d/bind

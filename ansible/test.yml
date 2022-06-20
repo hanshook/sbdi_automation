@@ -1,8 +1,40 @@
 ---
 - name: Test
-  hosts: backup_sources
-  roles:
-    - test
+  hosts: localhost
+
+  vars:
+    dns_server_ip: "{{ hostvars[groups['gateways'][0]]['floating_ip'] }}"
+    today: "{{ lookup('pipe','date +%Y%m%d') }}"
+    soa_record: "{{ lookup('community.general.dig', domain, '@'+dns_server_ip, 'qtype=SOA') }}"
+    #soa_record: "{{ lookup('community.general.dig', domain, '@8.8.8.8', 'qtype=SOA') }}"
+    soa_serial_value: "{{ soa_record.split(' ')[2] if soa_record else today+'00' }}"
+    srl_day: "{{ soa_serial_value[:8] }}"
+    srl_inc: "{{ soa_serial_value[9:] }}"
+    srl_new_inc: "{{ '%02d' % (srl_inc|int + 1) }}"
+    dns_serial: "{{ srl_day + srl_new_inc|string if (srl_day == today) else today + '01' }}"
+    
+    common_ip_part_without_trailing_dot: "{{ private_subnet | regex_replace('\\.0\\/.+$', '') }}"
+    reverse_net: "{{ common_ip_part_without_trailing_dot.split('.') | reverse | list | join('.') }}"
+  tasks:
+    - debug:
+        msg: " DNS server ip is {{dns_server_ip}}"
+    - debug:
+        msg: " SOA record is {{ soa_record }}."
+    - debug:
+        msg: " Serial value in SOA is {{ soa_serial_value }}"
+    - debug:
+        msg: " Serial day in SOA is {{ srl_day  }}"
+    - debug:
+        msg: " Serial inc in SOA is {{ srl_inc }}"
+    - debug:
+        msg: " Serial new inc is {{ srl_new_inc }}"
+    - debug:
+        msg: " New serial value in SOA is {{ dns_serial }}"
+    - debug:
+        msg: " common_ip_part_without_trailing_dot is {{ common_ip_part_without_trailing_dot }}"
+    - debug:
+        msg: " reverse_net is {{ reverse_net }}"
+    
     
 # - name: ShellTest
 #   hosts: localhost
@@ -30,10 +62,10 @@
 #         var: host_fqdn
 
 
-- name: Test2
-  hosts: backup_sources
-  tasks:
-    - debug:
-        var: gluster_backup_name 
-    - debug:
-        msg: "{{ gluster_backup_name.split('@')[1] | replace('+', '/') }}" 
+# - name: Test2
+#   hosts: backup_sources
+#   tasks:
+#     - debug:
+#         var: gluster_backup_name 
+#     - debug:
+#         msg: "{{ gluster_backup_name.split('@')[1] | replace('+', '/') }}" 

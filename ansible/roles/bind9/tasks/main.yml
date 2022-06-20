@@ -1,0 +1,99 @@
+---
+
+- name: gather required facts
+  setup:
+    gather_subset: [min, virtual]
+  when: ansible_distribution_release is not defined or ansible_virtualization_type is not defined
+
+- name: package installation
+  apt:
+    name: "{{ bind9_packages }}"
+    update_cache: true
+    cache_valid_time: 86400
+
+- name: enable bind9 service
+  service:
+    name: bind9
+    enabled: true
+
+- name: remove resolvconf package
+  apt:
+    name: resolvconf
+    state: absent
+    purge: true
+
+- name: resolv.conf configuration
+  template:
+    src: resolv_conf.j2
+    dest: /etc/resolv.conf
+
+- name: bind9 configuration
+  template:
+    src: named_conf_options.j2
+    dest: /etc/bind/named.conf.options
+  notify: restart bind9 service
+
+- name: bind9 local configuration
+  template:
+    src: named_conf_local.j2
+    dest: /etc/bind/named.conf.local
+  notify: restart bind9 service
+
+- name: ensure inclusions presence
+  file:
+    path: "{{ item }}"
+    state: touch
+    mode: 0644
+    owner: root
+    group: bind
+    modification_time: preserve
+    access_time: preserve
+  with_items: "{{ bind9_include_configs }}"
+  when: bind9_include_configs is defined and bind9_include_configs | length > 0
+
+- name: enable ipv4 only
+  lineinfile:
+    dest: /etc/default/bind9
+    regexp: 'OPTIONS='
+    line: 'OPTIONS="-u bind -4"'
+  when: bind9_ipv4_only|bool and ansible_distribution_release != 'focal'
+  notify: restart bind9 service
+
+- name: enable ipv4 only
+  lineinfile:
+    dest: /etc/default/named
+    regexp: 'OPTIONS='
+    line: 'OPTIONS="-u bind -4"'
+  when: bind9_ipv4_only|bool and ansible_distribution_release == 'focal'
+  notify: restart bind9 service
+
+- name: preparations for stats collection
+  block:
+    - name: prepare directory in /var/log
+      file:
+        path: "{{ bind9_statistics_log_directory }}"
+        state: directory
+        owner: "bind"
+        group: "bind"
+    - name: create named.stats
+      copy:
+        content: ""
+        dest: /var/log/named/named.stats
+        force: no
+        group: bind
+        owner: bind
+        mode: 0644
+    - name: prepare logrotate file
+      template:
+        src: logrotate.j2
+        dest: "{{ bind9_statistics_logrotate_cfg }}"
+  when: bind9_enable_statistics
+
+- name: prepare forward zones configuration
+  template:
+    src: zone_forward.j2
+    dest: /etc/bind/zones.conf
+  when: bind9_forwarders | length > 0
+
+- name: flush_handlers
+  meta: flush_handlers
