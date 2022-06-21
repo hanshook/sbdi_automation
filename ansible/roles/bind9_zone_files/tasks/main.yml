@@ -21,6 +21,16 @@
     dest: "/var/cache/bind/master/{{reverse_net}}.in-addr.arpa"
     owner: bind
     group: bind
-    mode: 0644    
+    mode: 0644
+    
+- name: Install namde.conf.zone file
+  template:
+    src: named.conf.zones
+    dest: "/etc/bind/named.conf.zones"
+    owner: root
+    group: bind
+    mode: 0644
+  notify:
+    - restart bind9 service
 
 
