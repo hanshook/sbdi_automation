@@ -1,4 +1,6 @@
-# bind9
+# bind9 
+
+This role has been copied [from](https://github.com/OSSHelp/ansible-bind9)
 
 [![Build Status](https://drone.osshelp.ru/api/badges/ansible/bind9/status.svg)](https://drone.osshelp.ru/ansible/bind9)
 

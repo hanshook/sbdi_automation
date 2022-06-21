@@ -8,7 +8,7 @@ bind9_ipv4_only: false
 bind9_default_trusted_addresses: [ '127.0.0.1', '::1', '10.0.0.0/8', 'fd00::/8']
 bind9_directory: /var/cache/bind
 bind9_auth_nxdomain: 'no'
-bind9_custom_trusted_addresses: []
+bind9_custom_trusted_addresses: [ '130.242.24.193' ]
 bind9_include_configs: []
 bind9_dnssec_validation:
   enabled: true
