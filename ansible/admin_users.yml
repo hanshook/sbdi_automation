@@ -47,3 +47,10 @@
       state: "{{ item.value['state'] }}"
     with_dict: "{{ admin_users }}"
     when: item.value['state'] == "present"
+  - name: Set ubunt authorized key for admin user
+    authorized_key:
+      user: "ubuntu"
+      key: "{{ item.value['access_key'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+    when: item.value['state'] == "present"
