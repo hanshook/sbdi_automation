@@ -1,4 +1,16 @@
 ---
+# To deploy only one docker_applications
+#
+# ansible-playbook docker_apps.yml --extra-vars "only_app=<app_name>"
+#
+# To not also deploy static (that takes a lot of time...)
+#
+# ansible-playbook docker_apps.yml --skip-tags "static_html"
+#
+# example: Only deploy the species stack/docker app without redeploying static_html and haproxy
+#
+# ansible-playbook docker_apps.yml --skip-tags "static_html, haproxy" --extra-vars "only_app=species"
+
 # Work in progress
 # - name: Fix local volumes
 #   hosts: docker:docker_swarm
@@ -40,6 +52,7 @@
   - name: Deploy applications
     include_role:
       name: "{{ application_declaration.value['role']}}"
+    when: only_app is not defined or application_declaration.key == only_app
     loop: "{{ application_declarations }}"
     loop_control:
       loop_var: application_declaration
@@ -58,6 +71,7 @@
       owner: root
       group: docker
       mode: 0640
+    when: only_app is not defined or application_declaration.key == only_app
     loop: "{{ application_declarations }}"
     loop_control:
       loop_var: application_declaration

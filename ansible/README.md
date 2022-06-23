@@ -41,6 +41,12 @@ This repository contains Ansible playbooks for:
 
 13. Setup Docker Applications (work in progress): ```ansible-playbook docker_apps.yml```
 
+Example:
+
+Only deploy the species stack/docker app without redeploying static_html and haproxy:
+
+```ansible-playbook docker_apps.yml --skip-tags "static_html, haproxy" --extra-vars "only_app=species" ```
+
 TODO: Setup logging and log analysis
 
 Note: To do all of the above (except step 1 and 5) run  ```ansible/bin/basline.sh```
