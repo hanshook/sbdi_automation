@@ -21,7 +21,18 @@ solr-4 nbr=54 flavor=ssc.medium.highmem volume_local_docker=160
 backup-director nbr=91 flavor=ssc.tiny
 backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=500
 nagios nbr=97 flavor=ssc.tiny
+spark-1 nbr=61 flavor=ssc.large.highmem volume_local_docker=360
+spark-2 nbr=62 flavor=ssc.large.highmem volume_local_docker=360
+spark-3 nbr=63 flavor=ssc.large.highmem volume_local_docker=360
+spark-4 nbr=64 flavor=ssc.large.highmem volume_local_docker=360
 
+# Spark Cluster
+# =======
+[spark]
+spark-1
+spark-2
+spark-3
+spark-4
 
 
 # Storage
@@ -84,7 +95,10 @@ solr-4
 
 [docker]
 # host with non swarm docker and local storage
-
+spark-1
+spark-2
+spark-3
+spark-4
 
 # Nagios
 # ======
