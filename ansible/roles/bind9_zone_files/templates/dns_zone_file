@@ -14,7 +14,7 @@ $ORIGIN {{ domain }}.
 {% endfor %}
 
 ;; Mail Servers
-@     IN    MX     10 mail.{{ domain }}.
+@    3600   IN    MX     10 mail.{{ domain }}.
 
 
 ;; Access Points (Round robbin)

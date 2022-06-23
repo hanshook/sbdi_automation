@@ -1,0 +1,26 @@
+---
+- name: configuration check
+  block:
+    - name: check bind9 configuration
+      command: named-checkconf /etc/bind/named.conf
+      ignore_errors: true
+      register: bind9_syntax_check
+      changed_when: false
+
+    - name: show errors
+      debug:
+        msg: "{{ bind9_syntax_check.stdout }}"
+      when: bind9_syntax_check.rc != 0
+
+    - name: Notify if bad syntax
+      assert:
+        that:
+          - bind9_syntax_check.rc == 0
+        fail_msg: "bind9 configuration check failed. You should check debug information above and fix the problem(s)."
+
+    - name: restart bind9 service
+      systemd:
+        name: bind9
+        state: restarted
+      when: bind9_syntax_check.rc == 0
+  when: not ansible_check_mode

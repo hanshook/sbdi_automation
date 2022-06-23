@@ -41,6 +41,45 @@
     state: absent
     path: /tmp/updatevpnusers.sh
 
+- name: "Remove google dns from /etc/ppp/options.xl2tpd"
+  lineinfile:
+    path: /etc/ppp/options.xl2tpd
+    regexp: '^ms-dns.*$'
+    state: absent
+    backup: yes
+    
+- name: "Add our gatways as DNS servers in /etc/ppp/options.xl2tpd"
+  lineinfile:
+    path: /etc/ppp/options.xl2tpd
+    line: "ms-dns {{ hostvars[item]['floating_ip'] }}"
+    insertafter: EOF
+  with_items: "{{ groups['gateways'] }}"
+
+- name: "Set our gatways as DNS servers in /etc/ipsec.conf"
+  lineinfile:
+    path: /etc/ipsec.conf
+    regexp: '^  modecfgdns=.*$'
+    line: "  modecfgdns=\"{{ groups['gateways'] | map('extract', hostvars, ['floating_ip']) | join(' ') }}\""
+    backup: yes
+
+    
+- name: "Set our gatways as DNS servers in /etc/ipsec.d/ikev2.conf"
+  lineinfile:
+    path: /etc/ipsec.d/ikev2.conf
+    regexp: '^  modecfgdns=.*$'
+    line: "  modecfgdns=\"{{ groups['gateways'] | map('extract', hostvars, ['floating_ip']) | join(' ') }}\""
+    backup: yes
+
+- name: restart ipsec
+  service:
+    name: ipsec
+    state: restarted
+    
+- name: restart xl2tpd
+  service:
+    name: xl2tpd
+    state: restarted
+
 # TODO: Check if ipsec is installed for following two steps
     
 - name: "Download ipsec uninstall script - if there are no ipsec users"

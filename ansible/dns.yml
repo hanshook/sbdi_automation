@@ -1,11 +1,16 @@
 --- 
-- name: Install zone files on DNS Servers
+- name: Install bind9 on DNS Servers
   hosts: gateways
   vars:
     bind9_listen_ipv4:
       port: 53
       addresses: ['any']
+    bind9_include_configs: [ '/etc/bind/named.conf.zones' ]
   become: true
   roles:
     - bind9
-#    - bind9_zone_files
+- name: Install zone files on DNS Servers
+  hosts: gateways
+  become: true
+  roles:
+    - bind9_zone_files

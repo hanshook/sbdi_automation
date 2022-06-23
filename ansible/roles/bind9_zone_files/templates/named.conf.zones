@@ -1,0 +1,14 @@
+zone "{{ reverse_net }}.in-addr.arpa" {
+     allow-query { any; };
+     type master;
+     notify yes;
+     file "master/{{ reverse_net }}.in-addr.arpa";
+};
+
+
+zone "{{ domain }}" {
+     allow-query { any; };
+     type master;
+     notify yes;
+     file "master/{{ domain }}";
+};
