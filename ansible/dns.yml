@@ -5,6 +5,7 @@
     bind9_listen_ipv4:
       port: 53
       addresses: ['any']
+    bind9_custom_trusted_addresses: [ '192.168.0.0/16' ]  
     bind9_include_configs: [ '/etc/bind/named.conf.zones' ]
   become: true
   roles:

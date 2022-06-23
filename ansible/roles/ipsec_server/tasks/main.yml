@@ -51,7 +51,7 @@
 - name: "Add our gatways as DNS servers in /etc/ppp/options.xl2tpd"
   lineinfile:
     path: /etc/ppp/options.xl2tpd
-    line: "ms-dns {{ hostvars[item]['floating_ip'] }}"
+    line: "ms-dns {{ common_ip_part+(hostvars[item]['nbr'] | string) }}"
     insertafter: EOF
   with_items: "{{ groups['gateways'] }}"
 
@@ -59,7 +59,7 @@
   lineinfile:
     path: /etc/ipsec.conf
     regexp: '^  modecfgdns=.*$'
-    line: "  modecfgdns=\"{{ groups['gateways'] | map('extract', hostvars, ['floating_ip']) | join(' ') }}\""
+    line: "  modecfgdns=\"{{ groups['gateways'] | map('extract', hostvars, ['nbr']) | map('regex_replace', '^(.*)$', common_ip_part+'\\1') | join(' ') }}\""
     backup: yes
 
     
@@ -67,7 +67,7 @@
   lineinfile:
     path: /etc/ipsec.d/ikev2.conf
     regexp: '^  modecfgdns=.*$'
-    line: "  modecfgdns=\"{{ groups['gateways'] | map('extract', hostvars, ['floating_ip']) | join(' ') }}\""
+    line: "  modecfgdns=\"{{ groups['gateways'] | map('extract', hostvars, ['nbr']) | map('regex_replace', '^(.*)$', common_ip_part+'\\1') | join(' ') }}\""
     backup: yes
 
 - name: restart ipsec
