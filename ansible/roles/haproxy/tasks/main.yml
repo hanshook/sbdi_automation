@@ -23,6 +23,14 @@
     group: haproxy
     mode: 0640
     
+- name: "Install /etc/haproxy/cors.lua"
+  copy:
+    src: "cors.lua"
+    dest: "/etc/haproxy/cors.lua"
+    owner: root
+    group: haproxy
+    mode: 0644
+    
 - name: configure ha proxy
   template:
     src: haproxy.cfg
