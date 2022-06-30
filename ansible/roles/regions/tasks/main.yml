@@ -1,0 +1,70 @@
+---
+# tasks file for regions
+- name: Ensure configuration and script directories
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items:
+    - etc
+    - etc/regions
+    - etc/regions/env
+    - etc/regions/config
+    - usr/regions
+    - usr/regions/bin
+
+- name: Ensure write access for docker group
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    mode: 0775
+    group: docker
+    recurse: yes
+    state: directory
+  with_items:
+    - etc/regions
+
+- name: Install "envregions.template"
+  copy:
+    src: etc/envregions.template
+    dest: "{{ docker_ctx }}/etc/regions/env/envregions.template"
+    mode: 0644
+
+- name: Install "docker-compose.yml"
+  template:
+    src: etc/docker-compose.yml
+    dest: "{{ docker_ctx | default('/docker') }}/etc/regions/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install regions configuration file
+  template:
+    src: etc/config/regions-config.properties
+    dest: "{{ docker_ctx | default('/docker') }}/etc/regions/config/regions-config.properties"
+    mode: 0644
+
+- name: Install regions menu configuration file
+  template:
+    src: etc/config/menu-config.json
+    dest: "{{ docker_ctx | default('/docker') }}/etc/regions/config/menu-config.json"
+    mode: 0644
+
+- name: Install regions state-emblems configuration file
+  template:
+    src: etc/config/state-emblems.json
+    dest: "{{ docker_ctx | default('/docker') }}/etc/regions/config/state-emblems.json"
+    mode: 0644
+
+- name: Install "application.cfg"
+  template:
+    src: etc/application.cfg
+    dest: "{{ docker_ctx | default('/docker') }}/etc/regions/application.cfg"
+    mode: 0644
+
+- name: Install "proxy.conf"
+  template:
+    src: etc/proxy.conf
+    dest: "{{ docker_ctx | default('/docker') }}/etc/regions/proxy.conf"
+    mode: 0644
