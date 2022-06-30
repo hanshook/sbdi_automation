@@ -1,0 +1,62 @@
+---
+# tasks file for species
+- name: Ensure configuration and script directories
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items:
+    - etc
+    - etc/species
+    - etc/species/env
+    - etc/species/config
+    - usr/species
+    - usr/species/bin
+    - var/volumes
+    - var/volumes/species
+
+- name: Ensure write access for docker group
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    mode: 0775
+    group: docker
+    recurse: yes
+    state: directory
+  with_items:
+    - var/volumes/species
+    - etc/species
+    
+- name: Install "docker-compose.yml" 
+  template:
+    src: etc/docker-compose.yml
+    dest: "{{ docker_ctx | default('/docker') }}/etc/species/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+ 
+- name: Install bie configuration files  
+  template:
+    src: etc/config/ala-bie-config.properties
+    dest: "{{ docker_ctx | default('/docker') }}/etc/species/config/ala-bie-config.properties"
+    mode: 0644
+ 
+- name: Install bieindex configuration files  
+  template:
+    src: etc/config/bie-index-config.properties
+    dest: "{{ docker_ctx | default('/docker') }}/etc/species/config/bie-index-config.properties"
+    mode: 0644
+
+- name: Install "application.cfg" 
+  template:
+    src: etc/application.cfg
+    dest: "{{ docker_ctx | default('/docker') }}/etc/species/application.cfg"
+    mode: 0644
+
+- name: Install "proxy.conf" 
+  template:
+    src: etc/proxy.conf
+    dest: "{{ docker_ctx | default('/docker') }}/etc/species/proxy.conf"
+    mode: 0644
+

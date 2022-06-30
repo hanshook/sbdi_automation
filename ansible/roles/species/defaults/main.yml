@@ -1,0 +1,6 @@
+---
+# defaults file for species
+frontend_network: sbdi_frontend
+
+docker_volumes: ['data_bieindex','data_solr']
+
