@@ -18,7 +18,18 @@ docker_applications:
     role: portainer
     config:
       test_param: "test param specific value"
-
+  species:
+    role: species
+    config:
+      test_param: "test param specific value"
+  spatial:
+    role: spatial
+    config:
+      test_param: "test param specific value"
+  regions:
+    role: regions
+    config:
+      test_param: "test param specific value"
 
 # General deployment options:
   
