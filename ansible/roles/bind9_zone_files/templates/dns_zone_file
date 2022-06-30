@@ -17,7 +17,7 @@ $ORIGIN {{ domain }}.
 @    3600   IN    MX     10 mail.{{ domain }}.
 
 
-;; Access Points (Round robbin)
+;; Access Points (Round robbin) 
 
 {% for host in groups['gateways'] %}
 @      	       	3600  IN  A       {{ hostvars[host]['floating_ip'] }}

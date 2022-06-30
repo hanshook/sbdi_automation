@@ -1,8 +1,6 @@
 ---
 - name: Deploy Cloud Servers
   hosts: localhost
-#  vars:
-#    common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
   tasks:
 
     #
@@ -17,11 +15,6 @@
       openstack.cloud.security_group:
         name: email_access
         description: "Email SMTP/IMAP/POP Access"
-        state: present
-    - name: "Ensure VPN Security Group"
-      openstack.cloud.security_group:
-        name: vpn_access
-        description: "IPSEC VPN Access"
         state: present
     - name: "Ensure DNS Security Group"
       openstack.cloud.security_group:
@@ -80,28 +73,6 @@
         port_range_max: 993
         remote_ip_prefix: 0.0.0.0/0
 
-    - name: "Ensure UPD 500 access VPN security group"
-      openstack.cloud.security_group_rule:
-        security_group: vpn_access
-        protocol: udp
-        port_range_min: 500
-        port_range_max: 500
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure UPD 4500 access VPN security group"
-      openstack.cloud.security_group_rule:
-        security_group: vpn_access
-        protocol: udp
-        port_range_min: 4500
-        port_range_max: 4500
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure UPD 1701 access VPN security group"
-      openstack.cloud.security_group_rule:
-        security_group: vpn_access
-        protocol: udp
-        port_range_min: 1701
-        port_range_max: 1701
-        remote_ip_prefix: 0.0.0.0/0
-        
     - name: "Ensure TCP 53 access DNS security group"
       openstack.cloud.security_group_rule:
         security_group: dns_access
@@ -183,7 +154,6 @@
         security_groups:
           - http_access
           - email_access
-          - vpn_access
           - dns_access
           - default
       with_items: "{{ groups['gateways'] }}"
@@ -201,11 +171,11 @@
         security_groups:
           - http_access
           - email_access
-          - vpn_access
           - dns_access
           - default
       with_items: "{{ groups['gateways'] }}"
 
+      
     #
     # Volumes
     #
@@ -286,17 +256,70 @@
         nat_destination: "{{ deployment_prefix  }}_sbdi_network"
       with_items: "{{ groups['gateways'] }}"
       
-    # - name: "Ensure external IPs on servers - only for testing"
-    #   openstack.cloud.floating_ip:
-    #     state: present
-    #     server: "{{ deployment_prefix }}-{{ item }}"
-    #     network: external
-    #     reuse: yes
-    #     floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
-    #     nat_destination: "{{ deployment_prefix  }}_sbdi_network"
-    #   with_items: "{{ groups['servers'] }}"
-    #   when: hostvars[item]['floating_ip'] is defined 
+    - name: "Ensure external IPs on servers (with floating ip)"
+      openstack.cloud.floating_ip:
+        state: present
+        server: "{{ deployment_prefix }}-{{ item }}"
+        network: "{{ external_network }}"
+        reuse: yes
+        floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
+        nat_destination: "{{ deployment_prefix  }}_sbdi_network"
+      with_items: "{{ groups['servers'] }}"
+      when: hostvars[item]['floating_ip'] is defined 
 
+
+    #
+    # VPN Access
+    #
+    # Note! Assumption vpn access is only provided to servers, i.e. *not* to gateways!
+    #
+    - name: "Ensure VPN Security Group"
+      openstack.cloud.security_group:
+        name: vpn_access
+        description: "IPSEC VPN Access"
+        state: present
+    - name: "Ensure UPD 500 access VPN security group"
+      openstack.cloud.security_group_rule:
+        security_group: vpn_access
+        protocol: udp
+        port_range_min: 500
+        port_range_max: 500
+        remote_ip_prefix: 0.0.0.0/0
+    - name: "Ensure UPD 4500 access VPN security group"
+      openstack.cloud.security_group_rule:
+        security_group: vpn_access
+        protocol: udp
+        port_range_min: 4500
+        port_range_max: 4500
+        remote_ip_prefix: 0.0.0.0/0
+    - name: "Ensure UPD 1701 access VPN security group"
+      openstack.cloud.security_group_rule:
+        security_group: vpn_access
+        protocol: udp
+        port_range_min: 1701
+        port_range_max: 1701
+        remote_ip_prefix: 0.0.0.0/0
+        
+
+    - name: "Ensure that all ipsec_servers have VPN access"
+      openstack.cloud.server:
+        name: "{{ deployment_prefix }}-{{ item }}"
+        image: "{{server_image}}"
+        flavor: "{{ hostvars[item]['flavor'] }}"
+        security_groups:
+          - vpn_access
+          - default
+      with_items: "{{ groups['ipsec_servers'] }}"
+
+    - name: "Repeat to ensure that all ipsec_servers have VPN access (Bugg workarround)"
+      openstack.cloud.server:
+        name: "{{ deployment_prefix }}-{{ item }}"
+        image: "{{server_image}}"
+        flavor: "{{ hostvars[item]['flavor'] }}"
+        security_groups:
+          - vpn_access
+          - default          
+      with_items: "{{ groups['ipsec_servers'] }}"
 
   
     # - name: "Get volume info"

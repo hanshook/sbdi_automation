@@ -18,13 +18,14 @@ solr-1 nbr=51 flavor=ssc.medium.highmem volume_local_docker=160
 solr-2 nbr=52 flavor=ssc.medium.highmem volume_local_docker=160
 solr-3 nbr=53 flavor=ssc.medium.highmem volume_local_docker=160
 solr-4 nbr=54 flavor=ssc.medium.highmem volume_local_docker=160
-backup-director nbr=91 flavor=ssc.tiny
-backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=500
-nagios nbr=97 flavor=ssc.tiny
 spark-1 nbr=61 flavor=ssc.large.highmem volume_local_docker=360
 spark-2 nbr=62 flavor=ssc.large.highmem volume_local_docker=360
 spark-3 nbr=63 flavor=ssc.large.highmem volume_local_docker=360
 spark-4 nbr=64 flavor=ssc.large.highmem volume_local_docker=360
+backup-director nbr=91 flavor=ssc.tiny
+backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=1500
+nagios nbr=97 flavor=ssc.tiny
+connect-1 nbr=101 flavor=ssc.xsmall floating_ip=130.238.29.73 
 
 # Spark Cluster
 # =======
@@ -111,8 +112,8 @@ nagios
 # =============
 
 [ipsec_servers]
-access-2
-
+#access-2
+connect-1
 
 # Deployment specific vars
 # ========================
