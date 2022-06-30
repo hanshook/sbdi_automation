@@ -9,3 +9,12 @@ standalone_deployment: no
 # Will we expose internal volumes?
 development_deployment: no 
 
+# Set this to configure cors to some regexp
+# Test your regexp of type PCRE with a tool like https://www.regextester.com/
+# Sample:  ^https?:\/\/(localhost|l-a\.site|.*\.l-a\.site)
+domain_regexp: "{{ domain | replace('.', '\\.') }}"
+nginx_cors_origin_regexp: "^https?:\/\/(localhost|{{ domain_regexp }}|.*\\.{{ domain_regexp }})"
+nginx_cors_headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range"
+nginx_cors_methods: "GET, POST, OPTIONS"
+# by default, Access-Control-Allow-Credentials header is not included; to include it, set this to True
+nginx_cors_allow_credentials: False

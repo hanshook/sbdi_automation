@@ -1,0 +1,60 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_bieindex:
+    file: "${DOCKER_CTX:-/docker}/etc/species/config/bie-index-config.properties"
+  config_biehub:
+    file: "${DOCKER_CTX:-/docker}/etc/species/config/ala-bie-config.properties"
+
+services:
+  bieindex:
+    image: bioatlas/ala-bieindex:v1.0
+    environment:
+      JAVA_OPTS: -Xmx4g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    configs:
+      - source: config_bieindex
+        target: /data/bie-index/config/bie-index-config.properties
+    volumes:
+      - data_bieindex:/data
+    networks:
+      - {{ frontend_network }}
+
+  biehub:
+    image: bioatlas/ala-biehub:v1.0
+    environment:
+      JAVA_OPTS: -Xmx2g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    configs:
+      - source: config_biehub
+        target: /data/ala-bie/config/ala-bie-config.properties
+    networks:
+      - {{ frontend_network }}
+
+  solr:
+    image: bioatlas/ala-solr:v0.6
+    environment:
+      SOLR_HEAP: 8g
+      SOLR_OPTS: "-Dlog4j2.formatMsgNoLookups=true"
+    volumes:
+      - data_solr:/opt/solr
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  data_bieindex:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/species/data_bieindex"
+      
+  data_solr:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/species/data_solr"
+

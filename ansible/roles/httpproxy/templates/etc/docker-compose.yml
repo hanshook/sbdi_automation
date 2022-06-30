@@ -12,6 +12,7 @@ services:
         published: 80
         protocol: tcp
     volumes:
+      - {{ docker_ctx }}/etc/httpproxy/ala-cors.conf:/etc/nginx/ala-cors.conf:ro
       - {{ docker_ctx }}/etc/httpproxy/conf.d:/etc/nginx/conf.d:ro
       - {{ docker_ctx }}/etc/httpproxy/html:/usr/share/nginx/html/:ro
       - cache_vol:/data/nginx/cache
