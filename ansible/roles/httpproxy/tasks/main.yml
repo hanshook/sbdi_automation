@@ -81,14 +81,18 @@
 #     group: docker
 #     mode: 0644    
 
+- name: Install "ala-cors.conf"
+  template:
+    src: etc/ala-cors.j2
+    dest: "{{ docker_ctx }}/etc/httpproxy/ala-cors.conf"
+    mode: 0644
+
 - name: Install "static.conf" 
   template:
     src: static.conf
     dest: "{{ docker_ctx }}/etc/httpproxy/conf.d/static.conf"
     group: docker
     mode: 0644    
-
-
 
 - name: Install maintenance scripts
   template:
