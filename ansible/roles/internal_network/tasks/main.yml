@@ -1,0 +1,22 @@
+---
+#
+# Internal Network
+#
+- name: "Ensure network: {{ deployment_prefix  }}_sbdi_network"
+  openstack.cloud.network:
+    state: present
+    name: "{{ deployment_prefix  }}_sbdi_network"
+- name: "Ensure subnet {{ deployment_prefix }}_sbdi_subnet"
+  openstack.cloud.subnet: 
+    state: present
+    network_name: "{{ deployment_prefix }}_sbdi_network"
+    name: "{{ deployment_prefix }}_sbdi_subnet"
+    cidr: "{{ private_subnet }}"
+- name: "Ensure router: {{ deployment_prefix  }}_sbdi_router"
+  openstack.cloud.router:
+    state: present
+    name: "{{ deployment_prefix  }}_sbdi_router"
+    network: "{{ external_network }}"
+    interfaces:
+      - "{{ deployment_prefix }}_sbdi_subnet"
+

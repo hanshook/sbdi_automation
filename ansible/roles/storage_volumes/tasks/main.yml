@@ -1,0 +1,51 @@
+---
+#
+# Volumes
+#
+
+- name: "Ensure gluster data volumes"
+  openstack.cloud.volume:
+    state: present
+    size: "{{hostvars[item]['volume_gluster']}}"
+    display_name: "{{ deployment_prefix }}-{{ item }}-volume_gluster"
+  with_items: "{{ groups['servers'] }}"
+  when:  hostvars[item]['volume_gluster'] is defined
+
+# - name: "Debug output - data volumes"
+#   debug:
+#     msg: "Attache volume: {{ deployment_prefix }}-{{ item }}-volume at: {{ deployment_prefix }}-{{ item }} as: {{ hostvars[item]['data_volume_device'] }}"
+#   with_items: "{{ groups['gateways'] + groups['servers'] }}"
+#   when:  hostvars[item]['volume'] is defined 
+      
+- name: "Ensure backup data volumes"
+  openstack.cloud.volume:
+    state: present
+    size: "{{hostvars[item]['volume_backup']}}"
+    display_name: "{{ deployment_prefix }}-{{ item }}-volume_backup"
+  with_items: "{{ groups['servers'] }}"
+  when:  hostvars[item]['volume_backup'] is defined 
+
+- name: "Ensure local docker data volumes"
+  openstack.cloud.volume:
+    state: present
+    size: "{{hostvars[item]['volume_local_docker']}}"
+    display_name: "{{ deployment_prefix }}-{{ item }}-volume_local_docker"
+  with_items: "{{ groups['servers'] }}"
+  when:  hostvars[item]['volume_local_docker'] is defined 
+
+
+     # - name: "Get volume info"
+    #   openstack.cloud.volume_info:
+    #   register: volume_info
+      
+    # - name: "Print volume info"
+    #   debug:
+    #     var:  volume_info
+
+    # - name: "Get server info"
+    #   openstack.cloud.server_info:
+    #   register: server_info
+      
+    # - name: "Print server info"
+    #   debug:
+    #     var:  server_info

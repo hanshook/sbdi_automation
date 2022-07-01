@@ -1,0 +1,158 @@
+---
+# ----------    
+# HTTP/HTTPS
+# ----------    
+- name: "Ensure HTTP/HTTPS Security Group"
+  openstack.cloud.security_group:
+    name: http_access
+    description: "HTTP/HTTPS Access"
+    state: present
+- name: "Ensure HTTP access in http_access security group"
+  openstack.cloud.security_group_rule:
+    security_group: http_access
+    protocol: tcp
+    port_range_min: 80
+    port_range_max: 80
+    remote_ip_prefix: "{{ http_remote_ip_prefix }}"
+- name: "Ensure HTTPS access in http_access security group"
+  openstack.cloud.security_group_rule:
+    security_group: http_access
+    protocol: tcp
+    port_range_min: 443
+    port_range_max: 443
+    remote_ip_prefix: "{{ http_remote_ip_prefix }}"
+
+# -------------------------------------------------    
+# HTTP/HTTPS For Testing (Access from NRM and SNIC)
+# -------------------------------------------------
+
+- name: "Ensure HTTP/HTTPS UAT Security Group"
+  openstack.cloud.security_group:
+    name: http_access_uat
+    description: "HTTP/HTTPS Access for UAT Testing"
+    state: present
+- name: "Ensure NRM HTTP access in http_access_uat security group"
+  openstack.cloud.security_group_rule:
+    security_group: http_access_uat
+    protocol: tcp
+    port_range_min: 80
+    port_range_max: 80
+    remote_ip_prefix: "130.242.24.0/24"
+- name: "Ensure SNIC HTTP access in http_access_uat security group"
+  openstack.cloud.security_group_rule:
+    security_group: http_access_uat
+    protocol: tcp
+    port_range_min: 80
+    port_range_max: 80
+    remote_ip_prefix: "130.238.29.0/24"
+- name: "Ensure NRM HTTPS access in http_access_uat security group"
+  openstack.cloud.security_group_rule:
+    security_group: http_access_uat
+    protocol: tcp
+    port_range_min: 443
+    port_range_max: 443
+    remote_ip_prefix: "130.242.24.0/24"
+- name: "Ensure SNIC HTTPS access in http_access_uat security group"
+  openstack.cloud.security_group_rule:
+    security_group: http_access_uat
+    protocol: tcp
+    port_range_min: 443
+    port_range_max: 443
+    remote_ip_prefix: "130.238.29.0/24"
+
+# -----    
+# Email
+# -----
+- name: "Ensure email Security Group"
+  openstack.cloud.security_group:
+    name: email_access
+    description: "Email SMTP/IMAP/POP Access"
+    state: present
+- name: "Ensure SMTP access in email_access security group"
+  openstack.cloud.security_group_rule:
+    security_group: email_access
+    protocol: tcp
+    port_range_min: 25
+    port_range_max: 25
+    remote_ip_prefix: 0.0.0.0/0
+- name: "Ensure SMTPS access in email_access security group"
+  openstack.cloud.security_group_rule:
+    security_group: email_access
+    protocol: tcp
+    port_range_min: 465
+    port_range_max: 465
+    remote_ip_prefix: 0.0.0.0/0
+- name: "Ensure SMTP TLS access in email_access security group"
+  openstack.cloud.security_group_rule:
+    security_group: email_access
+    protocol: tcp
+    port_range_min: 587
+    port_range_max: 587
+    remote_ip_prefix: 0.0.0.0/0
+- name: "Ensure IMAP access in email_access security group"
+  openstack.cloud.security_group_rule:
+    security_group: email_access
+    protocol: tcp
+    port_range_min: 143
+    port_range_max: 143
+    remote_ip_prefix: 0.0.0.0/0
+- name: "Ensure IMAPS access in email_access security group"
+  openstack.cloud.security_group_rule:
+    security_group: email_access
+    protocol: tcp
+    port_range_min: 993
+    port_range_max: 993
+    remote_ip_prefix: 0.0.0.0/0
+
+# ---    
+# DNS    
+# ---    
+- name: "Ensure DNS Security Group"
+  openstack.cloud.security_group:
+    name: dns_access
+    description: "DNS Access"
+    state: present
+- name: "Ensure TCP 53 access DNS security group"
+  openstack.cloud.security_group_rule:
+    security_group: dns_access
+    protocol: tcp
+    port_range_min: 53
+    port_range_max: 53
+    remote_ip_prefix: 0.0.0.0/0
+- name: "Ensure UDP 53 access DNS security group"
+  openstack.cloud.security_group_rule:
+    security_group: dns_access
+    protocol: udp
+    port_range_min: 53
+    port_range_max: 53
+    remote_ip_prefix: 0.0.0.0/0
+
+# ---------    
+# IPSEC VPN
+# ---------
+- name: "Ensure VPN Security Group"
+  openstack.cloud.security_group:
+    name: vpn_access
+    description: "IPSEC VPN Access"
+    state: present
+- name: "Ensure UPD 500 access VPN security group"
+  openstack.cloud.security_group_rule:
+    security_group: vpn_access
+    protocol: udp
+    port_range_min: 500
+    port_range_max: 500
+    remote_ip_prefix: 0.0.0.0/0
+- name: "Ensure UPD 4500 access VPN security group"
+  openstack.cloud.security_group_rule:
+    security_group: vpn_access
+    protocol: udp
+    port_range_min: 4500
+    port_range_max: 4500
+    remote_ip_prefix: 0.0.0.0/0
+- name: "Ensure UPD 1701 access VPN security group"
+  openstack.cloud.security_group_rule:
+    security_group: vpn_access
+    protocol: udp
+    port_range_min: 1701
+    port_range_max: 1701
+    remote_ip_prefix: 0.0.0.0/0
