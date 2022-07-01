@@ -16,6 +16,8 @@
     - usr/species/bin
     - var/volumes
     - var/volumes/species
+  tags:
+    - app_directory
 
 - name: Ensure write access for docker group
   file:
@@ -27,36 +29,47 @@
   with_items:
     - var/volumes/species
     - etc/species
-    
-- name: Install "docker-compose.yml" 
+  tags:
+    - write_access
+
+- name: Install "docker-compose.yml"
   template:
     src: etc/docker-compose.yml
     dest: "{{ docker_ctx | default('/docker') }}/etc/species/docker-compose.yml"
     owner: root
     group: root
     mode: 0644
- 
-- name: Install bie configuration files  
+  tags:
+    - docker_compose
+
+- name: Install bie configuration files
   template:
     src: etc/config/ala-bie-config.properties
     dest: "{{ docker_ctx | default('/docker') }}/etc/species/config/ala-bie-config.properties"
     mode: 0644
- 
-- name: Install bieindex configuration files  
+  tags:
+    - app_config
+
+- name: Install bieindex configuration files
   template:
     src: etc/config/bie-index-config.properties
     dest: "{{ docker_ctx | default('/docker') }}/etc/species/config/bie-index-config.properties"
     mode: 0644
+  tags:
+    - app_config
 
-- name: Install "application.cfg" 
+- name: Install "application.cfg"
   template:
     src: etc/application.cfg
     dest: "{{ docker_ctx | default('/docker') }}/etc/species/application.cfg"
     mode: 0644
+  tags:
+    - application_cfg
 
-- name: Install "proxy.conf" 
+- name: Install "proxy.conf"
   template:
     src: etc/proxy.conf
     dest: "{{ docker_ctx | default('/docker') }}/etc/species/proxy.conf"
     mode: 0644
-
+  tags:
+    - proxy_conf

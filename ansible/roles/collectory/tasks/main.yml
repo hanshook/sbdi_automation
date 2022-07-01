@@ -14,6 +14,8 @@
     - etc/collectory/config
     - usr/collectory
     - usr/collectory/bin
+  tags:
+    - app_directory
 
 - name: Ensure write access for docker group
   file:
@@ -24,12 +26,16 @@
     state: directory
   with_items:
     - etc/collectory
+  tags:
+    - write_access
 
 - name: Install "envcollectory.template"
   copy:
     src: etc/envcollectory.template
     dest: "{{ docker_ctx }}/etc/collectory/env/envcollectory.template"
     mode: 0644
+  tags:
+    - env_template
 
 - name: Install "docker-compose.yml"
   template:
@@ -38,21 +44,29 @@
     owner: root
     group: root
     mode: 0644
+  tags:
+    - docker_compose
 
 - name: Install collectory configuration file
   template:
     src: etc/config/ala-collectory-config.properties
     dest: "{{ docker_ctx | default('/docker') }}/etc/collectory/config/ala-collectory-config.properties"
     mode: 0644
+  tags:
+    - app_config
 
 - name: Install "application.cfg"
   template:
     src: etc/application.cfg
     dest: "{{ docker_ctx | default('/docker') }}/etc/collectory/application.cfg"
     mode: 0644
+  tags:
+    - application_cfg
 
 - name: Install "proxy.conf"
   template:
     src: etc/proxy.conf
     dest: "{{ docker_ctx | default('/docker') }}/etc/collectory/proxy.conf"
     mode: 0644
+  tags:
+    - proxy_conf

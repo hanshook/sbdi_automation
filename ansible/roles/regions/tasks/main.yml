@@ -14,6 +14,8 @@
     - etc/regions/config
     - usr/regions
     - usr/regions/bin
+  tags:
+    - app_directory
 
 - name: Ensure write access for docker group
   file:
@@ -24,12 +26,16 @@
     state: directory
   with_items:
     - etc/regions
+  tags:
+    - write_access
 
 - name: Install "envregions.template"
   copy:
     src: etc/envregions.template
     dest: "{{ docker_ctx }}/etc/regions/env/envregions.template"
     mode: 0644
+  tags:
+    - env_template
 
 - name: Install "docker-compose.yml"
   template:
@@ -38,33 +44,45 @@
     owner: root
     group: root
     mode: 0644
+  tags:
+    - docker_compose
 
 - name: Install regions configuration file
   template:
     src: etc/config/regions-config.properties
     dest: "{{ docker_ctx | default('/docker') }}/etc/regions/config/regions-config.properties"
     mode: 0644
+  tags:
+    - app_config
 
 - name: Install regions menu configuration file
   template:
     src: etc/config/menu-config.json
     dest: "{{ docker_ctx | default('/docker') }}/etc/regions/config/menu-config.json"
     mode: 0644
+  tags:
+    - app_config
 
 - name: Install regions state-emblems configuration file
   template:
     src: etc/config/state-emblems.json
     dest: "{{ docker_ctx | default('/docker') }}/etc/regions/config/state-emblems.json"
     mode: 0644
+  tags:
+    - app_config
 
 - name: Install "application.cfg"
   template:
     src: etc/application.cfg
     dest: "{{ docker_ctx | default('/docker') }}/etc/regions/application.cfg"
     mode: 0644
+  tags:
+    - application_cfg
 
 - name: Install "proxy.conf"
   template:
     src: etc/proxy.conf
     dest: "{{ docker_ctx | default('/docker') }}/etc/regions/proxy.conf"
     mode: 0644
+  tags:
+    - proxy_conf
