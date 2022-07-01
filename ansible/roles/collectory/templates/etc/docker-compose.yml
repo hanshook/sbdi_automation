@@ -1,0 +1,48 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_collectory:
+    file: "${DOCKER_CTX:-/docker}/etc/collectory/config/ala-collectory-config.properties"
+
+services:
+  mysqldb:
+    image: mysql:5.7
+    env_file: "${DOCKER_CTX:-/docker}/etc/collectory/env/.envcollectory"
+    volumes:
+      - db_data_collectory:/var/lib/mysql
+    networks:
+      - {{ frontend_network }}
+
+  collectory:
+    image: bioatlas/ala-collectory:v1.0
+    depends_on:
+      - mysqldb
+    environment:
+      JAVA_OPTS: -Xmx2g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    volumes:
+      - data_collectory:/data/ala-collectory
+    env_file: "${DOCKER_CTX:-/docker}/etc/collectory/env/.envcollectory"
+    configs:
+      - source: config_collectory
+        target: /tmp/ala-collectory-config.properties
+    command: /bin/ash -c "envsubst < /tmp/ala-collectory-config.properties > /data/ala-collectory/config/ala-collectory-config.properties && catalina.sh run"
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  db_data_collectory:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/collectory/db_data_collectory"
+  data_collectory:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/collectory/data_collectory"

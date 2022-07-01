@@ -30,6 +30,10 @@ docker_applications:
     role: regions
     config:
       test_param: "test param specific value"
+  collectory:
+    role: collectory
+    config:
+      test_param: "test param specific value"
 
 # General deployment options:
   
