@@ -9,7 +9,6 @@
     owner: root
     group: root
     mode: 0775
-    recurse: yes
   when: docker_mount_point.stat.exists == false
 - name: Mount docker gluster volume at "/docker" permanently 
   ansible.posix.mount:
@@ -31,7 +30,6 @@
     owner: root
     group: root
     mode: 0755
-    recurse: yes
     state: directory
   with_items:
     - etc

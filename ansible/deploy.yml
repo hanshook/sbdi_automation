@@ -1,115 +1,71 @@
 ---
-- name: Deploy Cloud Servers
+- name: Ensure Security Groups and rules
+  hosts: localhost
+  roles:
+    - roles/deploy/security_groups
+  tags:
+    - security_groups
+
+- name: Ensure Internal Network
+  hosts: localhost
+  roles:
+    - roles/deploy/internal_network
+  tags:
+    - internal_network
+    
+- name: Ensure Storage Volumes
+  hosts: localhost
+  roles:
+    - roles/deploy/storage_volumes
+  tags:
+    - storage
+
+#
+# Compute security groups for all hosts
+# and set them as facts
+#
+
+- name: Set Gateway security groups
+  hosts: gateways
+  tasks:
+    - set_fact:
+        security_groups: ['http_access', 'email_access', 'dns_access', 'default']
+  tags:
+    - hosts
+        
+- name: Set Server security groups
+  hosts: servers
+  tasks:
+    - set_fact:
+        security_groups: ['default']
+  tags:
+    - hosts
+    
+- name: Set IPSEC Server security groups
+  hosts: ipsec_servers
+  tasks:
+    - set_fact:
+        security_groups: "{{ security_groups | union(['vpn_access']) }}" 
+  tags:
+    - hosts
+        
+- name: List security groups
+  hosts: gateways + servers
+  tasks:
+    - debug:
+        var: security_groups
+  tags:
+    - hosts
+
+    
+#
+# Deploy all hosts, set internal and external ips, security groups and attach storage 
+#
+
+- name: Deploy Hosts
   hosts: localhost
   tasks:
-
-    #
-    # Security Groups
-    #
-    - name: "Ensure HTTP/HTTPS Security Group"
-      openstack.cloud.security_group:
-        name: http_access
-        description: "HTTP/HTTPS Access"
-        state: present
-    - name: "Ensure email Security Group"
-      openstack.cloud.security_group:
-        name: email_access
-        description: "Email SMTP/IMAP/POP Access"
-        state: present
-    - name: "Ensure DNS Security Group"
-      openstack.cloud.security_group:
-        name: dns_access
-        description: "DNS Access"
-        state: present
-
-        
-    - name: "Ensure HTTP access in http_access security group"
-      openstack.cloud.security_group_rule:
-        security_group: http_access
-        protocol: tcp
-        port_range_min: 80
-        port_range_max: 80
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure HTTPS access in http_access security group"
-      openstack.cloud.security_group_rule:
-        security_group: http_access
-        protocol: tcp
-        port_range_min: 443
-        port_range_max: 443
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure SMTP access in email_access security group"
-      openstack.cloud.security_group_rule:
-        security_group: email_access
-        protocol: tcp
-        port_range_min: 25
-        port_range_max: 25
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure SMTPS access in email_access security group"
-      openstack.cloud.security_group_rule:
-        security_group: email_access
-        protocol: tcp
-        port_range_min: 465
-        port_range_max: 465
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure SMTP TLS access in email_access security group"
-      openstack.cloud.security_group_rule:
-        security_group: email_access
-        protocol: tcp
-        port_range_min: 587
-        port_range_max: 587
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure IMAP access in email_access security group"
-      openstack.cloud.security_group_rule:
-        security_group: email_access
-        protocol: tcp
-        port_range_min: 143
-        port_range_max: 143
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure IMAPS access in email_access security group"
-      openstack.cloud.security_group_rule:
-        security_group: email_access
-        protocol: tcp
-        port_range_min: 993
-        port_range_max: 993
-        remote_ip_prefix: 0.0.0.0/0
-
-    - name: "Ensure TCP 53 access DNS security group"
-      openstack.cloud.security_group_rule:
-        security_group: dns_access
-        protocol: tcp
-        port_range_min: 53
-        port_range_max: 53
-        remote_ip_prefix: 0.0.0.0/0
-
-    - name: "Ensure UDP 53 access DNS security group"
-      openstack.cloud.security_group_rule:
-        security_group: dns_access
-        protocol: udp
-        port_range_min: 53
-        port_range_max: 53
-        remote_ip_prefix: 0.0.0.0/0
-
-    #
-    # Internal Network
-    #
-    - name: "Ensure network: {{ deployment_prefix  }}_sbdi_network"
-      openstack.cloud.network:
-        state: present
-        name: "{{ deployment_prefix  }}_sbdi_network"
-    - name: "Ensure subnet {{ deployment_prefix }}_sbdi_subnet"
-      openstack.cloud.subnet: 
-        state: present
-        network_name: "{{ deployment_prefix }}_sbdi_network"
-        name: "{{ deployment_prefix }}_sbdi_subnet"
-        cidr: "{{ private_subnet }}"
-    - name: "Ensure router: {{ deployment_prefix  }}_sbdi_router"
-      openstack.cloud.router:
-        state: present
-        name: "{{ deployment_prefix  }}_sbdi_router"
-        network: "{{ external_network }}"
-        interfaces:
-          - "{{ deployment_prefix }}_sbdi_subnet"
-
+    
     #
     # Internal IPs
     #
@@ -121,12 +77,16 @@
         fixed_ips:
           - ip_address: "{{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }}"
       with_items: "{{ groups['gateways'] + groups['servers'] }}"
-
+      tags:
+        - hosts
+        - hosts_internal_ips
       
     #
-    # Servers
+    # Deploy Hosts
     #
-    - name: "Ensure that all servers are deployed"
+    # Note! There is a bug: security groups are not addedd if not done twice...
+    
+    - name: "Ensure that hosts are deployed"
       openstack.cloud.server:
         name: "{{ deployment_prefix }}-{{ item }}"
         state: present
@@ -136,81 +96,29 @@
         nics:
           - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
         key_name: "{{ lookup('env','USER') }}_key"
-      with_items: "{{ groups['servers'] }}"
+        security_groups: hostvars[item]['security_groups']
+      with_items: "{{ groups['servers'] +  groups['gateways'] }}"
+      tags:
+        - hosts
 
-    #
-    # Gateways
-    #
-    - name: "Ensure that all gateways are deployed"
+    - name: "Repeat to ensure security groups for hosts are correct (Bugg workarround)"
       openstack.cloud.server:
         name: "{{ deployment_prefix }}-{{ item }}"
         state: present
         image: "{{server_image}}"
         flavor: "{{ hostvars[item]['flavor'] }}"
-        key_name: "{{ lookup('env','USER') }}_key"
         auto_floating_ip: no
         nics:
           - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
-        security_groups:
-          - http_access
-          - email_access
-          - dns_access
-          - default
-      with_items: "{{ groups['gateways'] }}"
-
-    - name: "Repeat to ensure security groups (Bugg workarround)"
-      openstack.cloud.server:
-        name: "{{ deployment_prefix }}-{{ item }}"
-        state: present
-        image: "{{server_image}}"
-        flavor: "{{ hostvars[item]['flavor'] }}"
         key_name: "{{ lookup('env','USER') }}_key"
-        auto_floating_ip: no
-        nics:
-          - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
-        security_groups:
-          - http_access
-          - email_access
-          - dns_access
-          - default
-      with_items: "{{ groups['gateways'] }}"
-
-      
+        security_groups: "{{ hostvars[item]['security_groups'] }}"
+      with_items: "{{ groups['servers'] +  groups['gateways'] }}"
+      tags:
+        - hosts
+        
     #
-    # Volumes
+    # Attach storage to hosts
     #
-
-    - name: "Ensure gluster data volumes"
-      openstack.cloud.volume:
-        state: present
-        size: "{{hostvars[item]['volume_gluster']}}"
-        display_name: "{{ deployment_prefix }}-{{ item }}-volume_gluster"
-      with_items: "{{ groups['servers'] }}"
-      when:  hostvars[item]['volume_gluster'] is defined
-
-    # - name: "Debug output - data volumes"
-    #   debug:
-    #     msg: "Attache volume: {{ deployment_prefix }}-{{ item }}-volume at: {{ deployment_prefix }}-{{ item }} as: {{ hostvars[item]['data_volume_device'] }}"
-    #   with_items: "{{ groups['gateways'] + groups['servers'] }}"
-    #   when:  hostvars[item]['volume'] is defined 
-      
-    - name: "Ensure backup data volumes"
-      openstack.cloud.volume:
-        state: present
-        size: "{{hostvars[item]['volume_backup']}}"
-        display_name: "{{ deployment_prefix }}-{{ item }}-volume_backup"
-      with_items: "{{ groups['servers'] }}"
-      when:  hostvars[item]['volume_backup'] is defined 
-
-    - name: "Ensure local docker data volumes"
-      openstack.cloud.volume:
-        state: present
-        size: "{{hostvars[item]['volume_local_docker']}}"
-        display_name: "{{ deployment_prefix }}-{{ item }}-volume_local_docker"
-      with_items: "{{ groups['servers'] }}"
-      when:  hostvars[item]['volume_local_docker'] is defined 
-
-      
     - name: "Attach gluster data volumes to servers"
       openstack.cloud.server_volume:
         state: present
@@ -219,6 +127,10 @@
         device: "{{ hostvars[item]['data_volume_device'] }}"
       with_items: "{{ groups['servers'] }}"
       when:  hostvars[item]['volume_gluster'] is defined
+      tags:
+        - hosts
+        - hosts_storage
+        - hosts_gluster_storage
       
     - name: "Attach backup data volumes to servers"
       openstack.cloud.server_volume:
@@ -228,6 +140,10 @@
         device: "{{ hostvars[item]['data_volume_device'] }}"
       with_items: "{{ groups['servers'] }}"
       when:  hostvars[item]['volume_backup'] is defined
+      tags:
+        - hosts
+        - hosts_storage
+        - hosts_backup_storage
 
     - name: "Attach local docker data volumes to servers"
       openstack.cloud.server_volume:
@@ -237,24 +153,14 @@
         device: "{{ hostvars[item]['data_volume_device'] }}"
       with_items: "{{ groups['servers'] }}"
       when:  hostvars[item]['volume_local_docker'] is defined 
-
-
- 
-
+      tags:
+        - hosts
+        - hosts_storage
+        - hosts_local_storage
       
     #
-    # External access 
+    # Attach floating ips 
     #
-      
-    - name: "Ensure external IPs on gateways"
-      openstack.cloud.floating_ip:
-        state: present
-        server: "{{ deployment_prefix }}-{{ item }}"
-        network: "{{ external_network }}"
-        reuse: yes
-        floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
-        nat_destination: "{{ deployment_prefix  }}_sbdi_network"
-      with_items: "{{ groups['gateways'] }}"
       
     - name: "Ensure external IPs on servers (with floating ip)"
       openstack.cloud.floating_ip:
@@ -264,77 +170,13 @@
         reuse: yes
         floating_ip_address: "{{  hostvars[item]['floating_ip'] }}"
         nat_destination: "{{ deployment_prefix  }}_sbdi_network"
-      with_items: "{{ groups['servers'] }}"
+      with_items: "{{ groups['gateways'] + groups['servers'] }}"
       when: hostvars[item]['floating_ip'] is defined 
+      tags:
+        - hosts
+        - hosts_floating_ips
 
 
-    #
-    # VPN Access
-    #
-    # Note! Assumption vpn access is only provided to servers, i.e. *not* to gateways!
-    #
-    - name: "Ensure VPN Security Group"
-      openstack.cloud.security_group:
-        name: vpn_access
-        description: "IPSEC VPN Access"
-        state: present
-    - name: "Ensure UPD 500 access VPN security group"
-      openstack.cloud.security_group_rule:
-        security_group: vpn_access
-        protocol: udp
-        port_range_min: 500
-        port_range_max: 500
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure UPD 4500 access VPN security group"
-      openstack.cloud.security_group_rule:
-        security_group: vpn_access
-        protocol: udp
-        port_range_min: 4500
-        port_range_max: 4500
-        remote_ip_prefix: 0.0.0.0/0
-    - name: "Ensure UPD 1701 access VPN security group"
-      openstack.cloud.security_group_rule:
-        security_group: vpn_access
-        protocol: udp
-        port_range_min: 1701
-        port_range_max: 1701
-        remote_ip_prefix: 0.0.0.0/0
-        
-
-    - name: "Ensure that all ipsec_servers have VPN access"
-      openstack.cloud.server:
-        name: "{{ deployment_prefix }}-{{ item }}"
-        image: "{{server_image}}"
-        flavor: "{{ hostvars[item]['flavor'] }}"
-        security_groups:
-          - vpn_access
-          - default
-      with_items: "{{ groups['ipsec_servers'] }}"
-
-    - name: "Repeat to ensure that all ipsec_servers have VPN access (Bugg workarround)"
-      openstack.cloud.server:
-        name: "{{ deployment_prefix }}-{{ item }}"
-        image: "{{server_image}}"
-        flavor: "{{ hostvars[item]['flavor'] }}"
-        security_groups:
-          - vpn_access
-          - default          
-      with_items: "{{ groups['ipsec_servers'] }}"
-
+ 
   
-    # - name: "Get volume info"
-    #   openstack.cloud.volume_info:
-    #   register: volume_info
-      
-    # - name: "Print volume info"
-    #   debug:
-    #     var:  volume_info
-
-    # - name: "Get server info"
-    #   openstack.cloud.server_info:
-    #   register: server_info
-      
-    # - name: "Print server info"
-    #   debug:
-    #     var:  server_info
     

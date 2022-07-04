@@ -27,19 +27,21 @@ This repository contains Ansible playbooks for:
 
 6. Install software, update and configure servers and gateways: ```ansible-playbook initial_setup.yml```
 
-7. NTP syncronized time: ```ansible-playbook ntp.yml```
+7. Name resolution: ```ansible-playbook name_resolution.yml```
 
-8. Setup storage for docker data and configuration: ```ansible-playbook storage.yml```
+8. Setup syncronized time: ```ansible-playbook time_sync.yml```
 
-9. Setup Docker and Docker Swarm: ```ansible-playbook docker.yml```
+9. Setup storage for docker data and configuration: ```ansible-playbook storage.yml```
 
-10. Setup backup: ```ansible-playbook backup.yml```
+10. Setup Docker and Docker Swarm: ```ansible-playbook docker.yml```
 
-11. Setup Nagios monitoring: ```ansible-playbook nagios.yml```
+11. Setup backup: ```ansible-playbook backup.yml```
 
-12. Setup IPSEC VPN access: ```ansible-playbook ipsec_access.yml```
+12. Setup Nagios monitoring: ```ansible-playbook nagios.yml```
 
-13. Setup Docker Applications (work in progress): ```ansible-playbook docker_apps.yml```
+13. Setup IPSEC VPN access: ```ansible-playbook ipsec_access.yml```
+
+14. Setup Docker Applications (work in progress): ```ansible-playbook docker_apps.yml```
 
 Example:
 

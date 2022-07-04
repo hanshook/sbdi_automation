@@ -36,7 +36,8 @@ ansible-playbook admin_users.yml $inventory_arg || exit 1
 # For the time beeing do not do:
 # ansible-playbook harden.yml $inventory_arg || exit 1
 ansible-playbook initial_setup.yml  $inventory_arg || exit 1
-ansible-playbook ntp.yml $inventory_arg  || exit 1
+ansible-playbook name_resolution.yml $inventory_arg  || exit 1
+ansible-playbook time_sync.yml $inventory_arg  || exit 1
 ansible-playbook storage.yml $inventory_arg  || exit 1
 ansible-playbook docker.yml  $inventory_arg || exit 1
 ansible-playbook backup.yml  $inventory_arg || exit 1

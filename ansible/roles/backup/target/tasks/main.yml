@@ -117,25 +117,49 @@
   shell:  "ssh-keygen -R  {{ deployment_prefix }}-{{ item }}"
   ignore_errors: yes
   with_items: "{{ groups['backup_sources'] }}"
+  tags:
+    - host_keys
 
 - name: Remove previous backup targets SSH host keys for fqdns
   shell:  "ssh-keygen -R {{ deployment_prefix }}-{{ item }}.{{ domain }}"
   ignore_errors: yes
   with_items: "{{ groups['backup_sources'] }}"
+  tags:
+    - host_keys
   
 - name: Remove previous SSH host keys for ips
   shell:  "ssh-keygen -R {{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }}"
   ignore_errors: yes
   with_items: "{{ groups['backup_sources'] }}"        
+  tags:
+    - host_keys
 
 - name: Accept SSH host keys for hostnames
   shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> /root/.ssh/known_hosts"
+  register: keyscan_result
+  until: keyscan_result is succeeded
+  retries: 10
+  delay: 1
   with_items: "{{ groups['backup_sources'] }}"
+  tags:
+    - host_keys
 
 - name: Accept SSH host keys for  fqdns
   shell:  "ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> /root/.ssh/known_hosts"
+  register: keyscan_result
+  until: keyscan_result is succeeded
+  retries: 10
+  delay: 1
   with_items: "{{ groups['backup_sources'] }}"
+  tags:
+    - host_keys
 
 - name: Accept SSH host keys for ips
   shell:  "ssh-keyscan -H {{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }} >> /root/.ssh/known_hosts"
+  register: keyscan_result
+  until: keyscan_result is succeeded
+  retries: 10
+  delay: 1
   with_items: "{{ groups['backup_sources'] }}"
+  tags:
+    - host_keys

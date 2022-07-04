@@ -26,7 +26,7 @@
   remote_user: ubuntu
   become: true
   roles:
-  - role: etchosts
+  - role: roles/name_resolution/etc_hosts
 
 - name: Setup SSH access to Servers (Phase II)
   hosts: localhost
@@ -45,8 +45,8 @@
   vars:
     ansible_ssh_common_args: "-J ubuntu@{{ deployment_prefix }}-{{ groups['gateways'][0] }}.{{ domain }}"
   roles:
-    - role: etchosts
-      tags: etchosts
+    - role: roles/name_resolution/etc_hosts
+#      tags: etchosts
 
 
 #      register: known_hosts_script

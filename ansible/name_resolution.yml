@@ -1,0 +1,38 @@
+--- 
+- name: Install bind9 (DNS Server) on gateways
+  hosts: gateways
+  vars:
+    bind9_listen_ipv4:
+      port: 53
+      addresses: ['any']
+    bind9_custom_trusted_addresses: [ '192.168.0.0/16' ]  
+    bind9_include_configs: [ '/etc/bind/named.conf.zones' ]
+  become: true
+  roles:
+    - roles/name_resolution/bind9
+  tags:
+    - dns_server
+    
+- name: Install zone files on DNS Servers
+  hosts: gateways
+  become: true
+  roles:
+    - roles/name_resolution/bind9_zone_files
+  tags:
+    - dns_server
+
+- name: Setup Name /etc/hosts files on Gateways
+  hosts: gateways
+  become: true
+  roles:
+    - role: roles/name_resolution/etc_hosts
+  tags:
+    - etc_hosts
+
+- name: Setup Name /etc/hosts files on Servers
+  hosts: servers
+  become: true
+  roles:
+    - role: roles/name_resolution/etc_hosts   
+  tags:
+    - etc_hosts

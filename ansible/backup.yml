@@ -1,15 +1,20 @@
 ---
+# Note! Just to setup known_host files for root and bakup_director:
+#  
+# ansible-playbook backup.yml --tags="host_keys"
+#
+
 - name: Setup backup user for director
   become: true
   hosts: backup_director
   roles:
-    - backup_director
+    - roles/backup/director
 
-- name: Setup backup user for sourec and target 
+- name: Setup backup user for sources and target 
   become: true
   hosts: backup_targets:backup_sources:docker_swarm:docker
   roles:
-    - backup_directed
+    - roles/backup/directed
 
 - name: "Take an inventory of volumes in our cloud"
   hosts: localhost
@@ -41,17 +46,17 @@
 
     - name: "Setup backup target node with backup data on {{ backup_data_device }}"
       include_role:
-        name: backup_target
+        name: roles/backup/target
 
-- name: "Setup backup docker control node"
+- name: "Ensure that backup user is able to stop and start docker deamon and containers"
   become: true
   hosts: docker_swarm:docker
   roles:
-    - backup_docker_control
+    - roles/backup/docker_control
 
-- name: Setup backup source nodes
+- name: "Setup backup source nodes"
   become: true
   hosts: backup_sources
   roles:
-    - backup_source
+    - roles/backup/source
 
