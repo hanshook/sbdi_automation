@@ -1,0 +1,12 @@
+--- 
+- name: Setup NTP (server) on gateways
+  hosts: gateways
+  become: true
+  roles:
+  - roles/time_sync/ntpserver
+
+- name: Setup NTP (client) on servers
+  hosts: servers
+  become: true
+  roles:
+  - roles/time_sync/ntpclient
