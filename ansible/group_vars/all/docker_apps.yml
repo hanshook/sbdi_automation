@@ -34,6 +34,18 @@ docker_applications:
     role: collectory
     config:
       test_param: "test param specific value"
+  nameindex:
+    role: nameindex
+    config:
+      test_param: "test param specific value"
+  biocachebackend:
+    role: biocachebackend
+    config:
+      test_param: "test param specific value"
+  loggerservice:
+    role: loggerservice
+    config:
+      test_param: "test param specific value"
 
 # General deployment options:
   
