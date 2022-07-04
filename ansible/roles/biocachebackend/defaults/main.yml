@@ -1,0 +1,5 @@
+---
+# defaults file for biocachebackend
+frontend_network: sbdi_frontend
+
+docker_volumes: ['data_biocachebackend']

@@ -1,0 +1,46 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_biocache:
+    file: "${DOCKER_CTX:-/docker}/etc/biocachebackend/config/biocache-config.properties"
+  config_blacklist:
+    file: "${DOCKER_CTX:-/docker}/etc/biocachebackend/config/blacklistMediaUrls.txt"
+
+services:
+  biocachebackend:
+    image: bioatlas/ala-biocachebackend:v2.6.1
+    command: /bin/ash
+    environment:
+      - BIOCACHE_MEMORY_OPTS=-Xmx8g -Xms1g -Xss1024k
+    env_file: "${DOCKER_CTX:-/docker}/etc/biocachebackend/env/.envbiocachebackend"
+    volumes:
+      - data_nameindex:/data/lucene/namematching
+      - data_biocachebackend:/data
+    configs:
+      - source: config_blacklist
+        target: /data/biocache/config/blacklistMediaUrls.txt
+      - source: config_biocache
+        target: /data/biocache/config/biocache-config.properties
+    deploy:
+      restart_policy:
+        condition: none
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  data_biocachebackend:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/biocachebackend/data_biocachebackend"
+  data_nameindex:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/nameindex/data_nameindex"
