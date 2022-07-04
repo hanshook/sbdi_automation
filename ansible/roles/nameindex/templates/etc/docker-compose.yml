@@ -1,0 +1,25 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+services:
+  nameindex:
+    image: bioatlas/ala-nameindex:v3.5-squash
+    command: /bin/ash
+    volumes:
+      - data_nameindex:/data/lucene/namematching
+    deploy:
+      restart_policy:
+        condition: none
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  data_nameindex:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/nameindex/data_nameindex"
