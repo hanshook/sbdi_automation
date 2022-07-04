@@ -4,7 +4,7 @@
   tasks:
     - name: Setup Nagios servver
       include_role:
-        name: nagiosserver
+        name: roles/monitoring/nagiosserver
       vars:
         nagios_server_port: 80 
       
@@ -12,10 +12,10 @@
   hosts: gateways:servers:!nagios_servers
   become: true
   roles:
-    - monitored_by_nagios
+    - roles/monitoring/monitored_by_nagios
 
 - name: Configure Nagios Server Monitoring
   hosts: nagios_servers
   become: true
   roles:
-    - nagios_monitoring
+    - roles/monitoring/nagios_monitoring
