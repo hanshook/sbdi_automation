@@ -46,30 +46,30 @@
 
     - name: "Setup storage for Docker data on {{ lvm_device }}"
       include_role:
-        name: docker_storage
+        name: roles/storage/docker_storage
         
     - name: "Setup Gluster Server"  
       include_role:
-        name: gluster_server
+        name: roles/storage/gluster_server
 
     
 - name: "Setup GlusterFS Volume for Docker data" 
   hosts: "{{ groups['storage'][0] }}"
   become: true
   roles:
-  - role: docker_gluster_volume
+  - role: roles/storage/docker_gluster_volume
     
 - name: "Setup Gluster Clients on all swarm nodes that are not also backends" 
   hosts: docker_swarm:!storage
   become: true
   roles:
-  - role: gluster_client
+  - role: roles/storage/gluster_client
     
 - name: "Ensure Gluster backed Docker data access on all swarm nodes"
   hosts: docker_swarm
   become: true
   roles:
-  - role: docker_data_access
+  - role: roles/storage/docker_data_access
 
 - name: "Setup *local* Docker storage"
   hosts: swarm_local_storage:docker
@@ -98,7 +98,7 @@
 
     - name: "Setup *local* storage for Docker data on {{ local_docker_storage_device }}"
       include_role:
-        name: local_docker_storage
+        name: roles/storage/local_docker_storage
         
 
 

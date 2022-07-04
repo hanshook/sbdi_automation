@@ -2,5 +2,5 @@
 - hosts: ipsec_servers
   become: true
   roles:
-  - ipsec_server
+  - roles/vpn/ipsec_server
 

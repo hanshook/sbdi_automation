@@ -1,2 +1,0 @@
-dependencies:
-  - { role: lvm_volume_group, volume_group: 'vg_docker' }

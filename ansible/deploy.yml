@@ -2,21 +2,21 @@
 - name: Ensure Security Groups and rules
   hosts: localhost
   roles:
-    - security_groups
+    - roles/deploy/security_groups
   tags:
     - security_groups
 
 - name: Ensure Internal Network
   hosts: localhost
   roles:
-    - internal_network
+    - roles/deploy/internal_network
   tags:
     - internal_network
     
 - name: Ensure Storage Volumes
   hosts: localhost
   roles:
-    - storage_volumes
+    - roles/deploy/storage_volumes
   tags:
     - storage
 
