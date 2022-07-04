@@ -85,15 +85,35 @@
   file:
     state: absent
     path: ~backupoperator/.ssh/known_hosts
+  tags:
+    - host_keys
 
 - name: Accept SSH host keys for hostnames
   shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }} >> ~backupoperator/.ssh/known_hosts' backupoperator"
+  register: keyscan_result
+  until: keyscan_result is succeeded
+  retries: 10
+  delay: 1  
   with_items: "{{ directed_hosts }}"
+  tags:
+    - host_keys
 
 - name: Accept SSH host keys for  fqdns
   shell:  "su -c 'ssh-keyscan -H {{ deployment_prefix }}-{{ item }}.{{ domain }} >> ~backupoperator/.ssh/known_hosts' backupoperator"
+  register: keyscan_result
+  until: keyscan_result is succeeded
+  retries: 10
+  delay: 1
   with_items: "{{ directed_hosts }}"
+  tags:
+    - host_keys
 
 - name: Accept SSH host keys for ips
   shell:  "su -c 'ssh-keyscan -H {{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }} >> ~backupoperator/.ssh/known_hosts' backupoperator"
+  register: keyscan_result
+  until: keyscan_result is succeeded
+  retries: 10
+  delay: 1
   with_items: "{{ directed_hosts }}"
+  tags:
+    - host_keys
