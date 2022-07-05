@@ -1,0 +1,20 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_dashboard:
+    file: "${DOCKER_CTX:-/docker}/etc/dashboard/config/dashboard-config.properties"
+
+services:
+  dashboard:
+    image: bioatlas/ala-dashboard:v1.0
+    environment:
+      JAVA_OPTS: -Xmx1g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    configs:
+      - source: config_dashboard
+        target: /data/dashboard/config/dashboard-config.properties
+    networks:
+      - {{ frontend_network }}
