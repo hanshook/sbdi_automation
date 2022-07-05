@@ -1,0 +1,56 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_specieslists:
+    file: "${DOCKER_CTX:-/docker}/etc/specieslists/config/specieslist-webapp-config.properties"
+
+services:
+  specieslists:
+    image: bioatlas/ala-specieslists:v3.5.9
+    environment:
+      JAVA_OPTS: -Xmx4g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    env_file: "${DOCKER_CTX:-/docker}/etc/specieslists/env/.envspecieslists"
+    configs:
+      - source: config_specieslists
+        target: /tmp/specieslist-webapp-config.properties
+    volumes:
+      - type: volume
+        source: data_nameindex
+        target: /data/lucene/namematching
+    command: /bin/ash -c "envsubst < /tmp/specieslist-webapp-config.properties > /data/specieslist-webapp/config/specieslist-webapp-config.properties && catalina.sh run"
+    networks:
+      - {{ frontend_network }}
+
+  mysqldbspecieslist:
+    image: mysql:5.7
+    environment:
+      LANG: C.UTF-8
+    env_file: "${DOCKER_CTX:-/docker}/etc/specieslists/env/.envspecieslists"
+    command: --sql_mode=""
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/specieslists/initdb.d"
+        target: /docker-entrypoint-initdb.d
+      - type: volume
+        source: db_data_specieslists
+        target: /var/lib/mysql
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  db_data_specieslists:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/specieslists/db_data_specieslists"
+  data_nameindex:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/nameindex/data_nameindex"

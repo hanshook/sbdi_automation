@@ -1,0 +1,83 @@
+---
+# tasks file for specieslists
+- name: Ensure configuration and script directories
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items:
+    - etc
+    - etc/specieslists
+    - etc/specieslists/env
+    - etc/specieslists/config
+    - etc/specieslists/initdb.d
+    - usr/specieslists
+    - usr/specieslists/bin
+  tags:
+    - app_directory
+
+- name: Ensure write access for docker group
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    mode: 0775
+    group: docker
+    recurse: yes
+    state: directory
+  with_items:
+    - etc/specieslists
+  tags:
+    - write_access
+
+- name: Install "envspecieslists.template"
+  copy:
+    src: etc/envspecieslists.template
+    dest: "{{ docker_ctx | default('/docker') }}/etc/specieslists/env/envspecieslists.template"
+    mode: 0644
+  tags:
+    - env_template
+
+- name: Copy Database initialization files
+  copy:
+    src : "{{ item }}"
+    dest : "{{ docker_ctx | default('/docker') }}/etc/specieslists/initdb.d"
+    mode: 0644
+  with_items:
+    - etc/initdb.d/
+  tags:
+    - db_schema
+
+- name: Install "docker-compose.yml"
+  template:
+    src: etc/docker-compose.yml
+    dest: "{{ docker_ctx | default('/docker') }}/etc/specieslists/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - docker_compose
+
+- name: Install specieslists configuration file
+  template:
+    src: etc/config/specieslist-webapp-config.properties
+    dest: "{{ docker_ctx | default('/docker') }}/etc/specieslists/config/specieslist-webapp-config.properties"
+    mode: 0644
+  tags:
+    - app_config
+
+- name: Install "application.cfg"
+  template:
+    src: etc/application.cfg
+    dest: "{{ docker_ctx | default('/docker') }}/etc/specieslists/application.cfg"
+    mode: 0644
+  tags:
+    - application_cfg
+
+- name: Install "proxy.conf"
+  template:
+    src: etc/proxy.conf
+    dest: "{{ docker_ctx | default('/docker') }}/etc/specieslists/proxy.conf"
+    mode: 0644
+  tags:
+    - proxy_conf

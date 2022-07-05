@@ -1,0 +1,5 @@
+---
+# defaults file for specieslists
+frontend_network: sbdi_frontend
+
+docker_volumes: ['db_data_specieslists']
