@@ -17,3 +17,6 @@ soa_srl_day: "{{ soa_serial_value[:8] }}"
 soa_srl_inc: "{{ soa_serial_value[9:] }}"
 soa_srl_new_inc: "{{ '%02d' % (soa_srl_inc|int + 1) }}"
 dns_serial: "{{ soa_srl_day + soa_srl_new_inc|string if (soa_srl_day == today) else today + '01' }}"
+
+
+dkim_key: "v=DKIM1; h=sha256; k=rsa; p=MIIBHjANBgkqhkiG9w0BAQEFAAOCAQsAMIIBBgKB/gCqAC6AWoT0lcAQQBFMME+nUGzlKzBuUu596eksFgaxGC5u39MqVFVUAQPTeagVpVfhmGwiVFuKcs3Xny5CMZK8LO5IX3/N0oEe1zKREI/1tjoRbiA54/NJ8dVSe+sn1SsJGa+T0CCvkQ2Jj82tgVDieNwvI4+NdsI1KfEoVDTngIMdxEcLz2kDrDJ6i9rtjblEIoPwXGNqKwW+/XoGofBbQ6f5wR6+qPqMa7cWhGPp58X/rgJqnRGsQXA+dDwoWnM6AQlbWHk+miYaQ/xA6dO+uAXLPS3v7WbwNsxd6/K411qFu0LRRGuqtinMTCrN1aQM8cXItZKK387wcHAhAgMBAAE="

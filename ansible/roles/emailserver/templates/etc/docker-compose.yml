@@ -3,9 +3,9 @@ version: '3.8'
 
 secrets:
   sbdi-uat.se.crt:
-    file: "${DOCKER_CTX:-/docker}/etc/emailserver/certs/sbdi-uat.se.crt"
+    file: "${DOCKER_CTX:-/docker}/etc/emailserver/certs/{{ domain }}.crt"
   sbdi-uat.se.key:
-    file: "${DOCKER_CTX:-/docker}/etc/emailserver/certs/sbdi-uat.se.key"
+    file: "${DOCKER_CTX:-/docker}/etc/emailserver/certs/{{ domain }}.key"
 
 services:
   mailserver:
