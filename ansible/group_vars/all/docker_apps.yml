@@ -46,6 +46,22 @@ docker_applications:
     role: loggerservice
     config:
       test_param: "test param specific value"
+  specieslists:
+    role: specieslists
+    config:
+      test_param: "test param specific value"
+  apiservice:
+    role: apiservice
+    config:
+      test_param: "test param specific value"
+  sds:
+    role: sds
+    config:
+      test_param: "test param specific value"
+  dashboard:
+    role: dashboard
+    config:
+      test_param: "test param specific value"
 
 # General deployment options:
   
