@@ -1,5 +1,5 @@
 ---
-# tasks file for loggerservice- name: Ensure configuration and script directories
+# tasks file for loggerservice
 - name: Ensure configuration and script directories
   file:
     path: "{{ docker_ctx | default('/docker') }}/{{item}}"
