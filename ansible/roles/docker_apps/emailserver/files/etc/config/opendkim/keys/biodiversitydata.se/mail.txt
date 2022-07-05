@@ -1,0 +1,3 @@
+mail._domainkey	IN	TXT	( "v=DKIM1; h=sha256; k=rsa; "
+	  "p=MIIBHjANBgkqhkiG9w0BAQEFAAOCAQsAMIIBBgKB/gCqAC6AWoT0lcAQQBFMME+nUGzlKzBuUu596eksFgaxGC5u39MqVFVUAQPTeagVpVfhmGwiVFuKcs3Xny5CMZK8LO5IX3/N0oEe1zKREI/1tjoRbiA54/NJ8dVSe+sn1SsJGa+T0CCvkQ2Jj82tgVDieNwvI4+NdsI1KfEoVDTngIMdxEcLz2kDrDJ6i9rtjblEIoPwXGNqKwW+/X"
+	  "oGofBbQ6f5wR6+qPqMa7cWhGPp58X/rgJqnRGsQXA+dDwoWnM6AQlbWHk+miYaQ/xA6dO+uAXLPS3v7WbwNsxd6/K411qFu0LRRGuqtinMTCrN1aQM8cXItZKK387wcHAhAgMBAAE=" )  ; ----- DKIM key mail for biodiversitydata.se

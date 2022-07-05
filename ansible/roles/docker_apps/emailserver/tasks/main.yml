@@ -71,7 +71,7 @@
     - opendkim/SigningTable
     - opendkim/TrustedHosts
 
-- name: Install dkim {{domain}} open key
+- name: "Install dkim {{domain}} open key"
   copy:
     src: etc/config/{{item}}
     dest: "{{ docker_ctx }}/etc/emailserver/config/{{item}}"
@@ -81,7 +81,7 @@
   with_items:
     - opendkim/keys/{{domain}}/mail.txt
     
-- name: Install dkim {{domain}} private key
+- name: "Install dkim {{domain}} private key"
   copy:
     src: etc/config/{{item}}
     dest: "{{ docker_ctx }}/etc/emailserver/config/{{item}}"

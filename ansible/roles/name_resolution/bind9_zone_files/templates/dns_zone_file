@@ -46,8 +46,7 @@ mail 3600    IN	 CNAME 	 @
 {% endfor %}
 
 
-
-;; mail._domainkey	 3600	 IN TXT v=DKIM1; h=sha256; k=rsa; p=MIIBHjANBgkqhkiG9w0BAQEFAAOCAQsAMIIBBgKB/gCsb7VLdAGWg/77dMoLnS3bRb7e9s6QsNHJbB2xPEEYlWlJjJp6UFoQcREnuFw6rfFh6FbKSGpDoPc8J4gYmsxMXowxdcK3k60bIHQtomzUlNyE+W2/ZfBQ+oJrD+I6JXm+qljSL4vXNFXXyV+7EAMbkNiCyGbbH7Idn4zkOn3lVpk4BlvFK/Lc4n9yvzWbtx9bH9cv7ki1cJzoeWNkmRXSo1VyoW5A8AEcM+4u1N/+QqjfA9b5wYZ2x4rzI6tWtDp1dk/9zm6afILER9WOeoLHHX0jrbq4gmgJ2iGkC2Urw6X0PRu9pXGoasn0TGbA3qPYNeK2xio8L22p/jXFAgMBAAE=
+mail._domainkey	 IN TXT {{ dkim_key }};
 
 
 ;; https://wiki.debian.org/Bind9
