@@ -1,6 +1,5 @@
 ---
 # defaults file for regions
-# defaults file for spatial
 frontend_network: sbdi_frontend
 
 docker_volumes: []
