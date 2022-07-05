@@ -1,0 +1,4 @@
+
+frontend_network: sbdi_frontend
+
+docker_volumes: ['wordpress_main_db', 'wordpress_main_html', 'wordpress_tools_db', 'wordpress_tools_html', 'wordpress_docs_db', 'wordpress_docs_html']

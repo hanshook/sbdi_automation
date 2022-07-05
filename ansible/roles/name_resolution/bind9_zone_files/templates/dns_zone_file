@@ -46,7 +46,7 @@ mail 3600    IN	 CNAME 	 @
 {% endfor %}
 
 
-mail:_domainkey	 IN TXT {{ dkim_key }};
+mail._domainkey	 IN TXT {{ dkim_key }};
 
 
 ;; https://wiki.debian.org/Bind9

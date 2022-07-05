@@ -7,11 +7,11 @@ docker_applications:
       osticket_version: 1.15.4.2
       test_param: "test param specific value"
   emailserver:
-    role: emailserver
+    role: roles/docker_apps/emailserver
     config:
       test_param: "test param specific value"
   wordpress_main:
-    role: wordpress_main
+    role: roles/docker_apps/wordpress
     config:
       test_param: "test param specific value"
   portainer:
