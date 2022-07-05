@@ -1,0 +1,6 @@
+---
+# defaults file for sds
+frontend_network: sbdi_frontend
+
+docker_volumes: []
+
