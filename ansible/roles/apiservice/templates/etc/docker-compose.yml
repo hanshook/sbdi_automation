@@ -1,0 +1,40 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_apiservice:
+    file: "${DOCKER_CTX:-/docker}/etc/apiservice/config/webapi-config.properties"
+
+services:
+  apiservice:
+    image: bioatlas/ala-api:v1.0
+    depends_on:
+      - mysqldbapi
+    environment:
+      JAVA_OPTS: -Xmx4g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    env_file: "${DOCKER_CTX:-/docker}/etc/apiservice/env/.envapi"
+    configs:
+      - source: config_apiservice
+        target: /tmp/webapi-config.properties
+    command: /bin/ash -c "envsubst < /tmp/webapi-config.properties > /data/webapi/config/webapi-config.properties && catalina.sh run"
+    networks:
+      - {{ frontend_network }}
+
+  mysqldbapi:
+    image: mysql:5.7
+    env_file: "${DOCKER_CTX:-/docker}/etc/apiservice/env/.envapi"
+    volumes:
+      - db_data_apiservice:/var/lib/mysql
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  db_data_apiservice:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/apiservice/db_data_apiservice"
