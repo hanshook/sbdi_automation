@@ -68,16 +68,16 @@
     - restore_backup.sh
     - translate.sh
     
-- name: Install seed backup
-  copy:
-    src: "files/backup/seed/{{ item }}"
-    dest: "{{ docker_ctx }}/var/backup/wordpress/seed/{{ item }}"
-    group: docker
-    mode: 0644
-  with_items:
-    - main-wordpress-db.sql
-    - main-wordpress-files.tgz
-    - docs-wordpress-db.sql
-    - docs-wordpress-files.tgz
-    - tools-wordpress-db.sql
-    - tools-wordpress-files.tgz
+# - name: Install seed backup
+#   copy:
+#     src: "files/backup/seed/{{ item }}"
+#     dest: "{{ docker_ctx }}/var/backup/wordpress/seed/{{ item }}"
+#     group: docker
+#     mode: 0644
+#   with_items:
+#     - main-wordpress-db.sql
+#     - main-wordpress-files.tgz
+#     - docs-wordpress-db.sql
+#     - docs-wordpress-files.tgz
+#     - tools-wordpress-db.sql
+#     - tools-wordpress-files.tgz
