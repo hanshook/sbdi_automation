@@ -27,7 +27,7 @@
     - var/volumes/wordpress
     - etc/wordpress
     - var/backup/wordpress
-    - var/backup/wordpress/seed
+#    - var/backup/wordpress/seed
 
     
 - name: Install "docker-compose.yml" 
