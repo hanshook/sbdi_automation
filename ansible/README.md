@@ -19,13 +19,13 @@ This repository contains Ansible playbooks for:
 
 2. Deploy vms, setup netorking and data volumes: ```ansible-playbook deploy.yml``` 
 
-3. Setup localhost for ssh access: ```ansible-playbook local_ssh.yml```
+3. Ensure access to hosts: ```ansible-playbook access.yml```
 
-4. Setup admin users: ```ansible-playbook admin_users.yml```
+4. Setup admin users: ```ansible-playbook admins.yml```
 
 5. "Harden" deployment (for now remove ubuntu user) : ```ansible-playbook harden.yml``` 
 
-6. Install software, update and configure servers and gateways: ```ansible-playbook initial_setup.yml```
+6. Install software, update and configure servers and gateways: ```ansible-playbook initialize.yml```
 
 7. Name resolution: ```ansible-playbook name_resolution.yml```
 
@@ -37,9 +37,9 @@ This repository contains Ansible playbooks for:
 
 11. Setup backup: ```ansible-playbook backup.yml```
 
-12. Setup Nagios monitoring: ```ansible-playbook nagios.yml```
+12. Setup Nagios monitoring: ```ansible-playbook monitor.yml```
 
-13. Setup IPSEC VPN access: ```ansible-playbook ipsec_access.yml```
+13. Setup IPSEC VPN access: ```ansible-playbook vpn.yml```
 
 14. Setup Docker Applications (work in progress): ```ansible-playbook docker_apps.yml```
 

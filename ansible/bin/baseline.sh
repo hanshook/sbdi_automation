@@ -30,19 +30,19 @@ SECONDS=0
 
 
 ansible-playbook deploy.yml $inventory_arg  || exit 1
-ansible-playbook local_ssh.yml $inventory_arg || exit 1
-ansible-playbook admin_users.yml $inventory_arg || exit 1
+ansible-playbook access.yml $inventory_arg || exit 1
+ansible-playbook admins.yml $inventory_arg || exit 1
 # TODO: When to harden and how to reverse?
 # For the time beeing do not do:
 # ansible-playbook harden.yml $inventory_arg || exit 1
-ansible-playbook initial_setup.yml  $inventory_arg || exit 1
+ansible-playbook initialize.yml  $inventory_arg || exit 1
 ansible-playbook name_resolution.yml $inventory_arg  || exit 1
 ansible-playbook time_sync.yml $inventory_arg  || exit 1
 ansible-playbook storage.yml $inventory_arg  || exit 1
 ansible-playbook docker.yml  $inventory_arg || exit 1
 ansible-playbook backup.yml  $inventory_arg || exit 1
-ansible-playbook nagios.yml  $inventory_arg || exit 1
-ansible-playbook ipsec_access.yml $inventory_arg || exit 1
+ansible-playbook monitor.yml  $inventory_arg || exit 1
+ansible-playbook vpn.yml $inventory_arg || exit 1
 ansible-playbook docker_apps.yml $inventory_arg
 
 duration=$SECONDS

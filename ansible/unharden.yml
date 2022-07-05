@@ -1,0 +1,23 @@
+---
+- name: Restore the ubuntu user on servers and gateways
+  hosts: gateways+servers
+  become: true
+  tasks:
+  - name: Ensure ubuntu users 
+    user:
+      name: ubuntu
+      comment: ubuntu
+      groups: ubuntu,adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,netdev,lxd
+      append: yes
+      shell: /bin/bash
+      password: "!"
+      state: present
+
+  - name: Set ubuntu authorized key for all admin users
+    authorized_key:
+      user: ubuntu
+      key: "{{ item.value['access_key'] }}"
+      state: "{{ item.value['state'] }}"
+    with_dict: "{{ admin_users }}"
+
+
