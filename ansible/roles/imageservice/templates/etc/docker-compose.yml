@@ -1,0 +1,74 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_imageservice:
+    file: "${DOCKER_CTX:-/docker}/etc/imageservice/config/image-service-config.yml"
+
+services:
+  elasticsearch:
+    image: "docker.elastic.co/elasticsearch/elasticsearch:7.0.0"
+    environment:
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      - node.name=elasticsearch
+    volumes:
+      - data_images_elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - {{ frontend_network }}
+
+  imageservice:
+    image: bioatlas/ala-imageservice:v1.0
+    depends_on:
+      - psqldbimage
+    environment:
+      JAVA_OPTS: -Xmx4g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    env_file: "${DOCKER_CTX:-/docker}/etc/imageservice/env/.envimage"
+    volumes:
+      - data_images:/data/image-service/store
+    configs:
+      - source: config_imageservice
+        target: /tmp/image-service-config.yml
+    command: /bin/ash -c "envsubst < /tmp/image-service-config.yml > /data/image-service/config/image-service-config.yml && catalina.sh run"
+    networks:
+      - {{ frontend_network }}
+
+  imagestore:
+    image: bioatlas/ala-imagestore:v1.0
+    volumes:
+      - data_images:/data/image-service/store
+    networks:
+      - {{ frontend_network }}
+
+  psqldbimage:
+    image: postgres:9.6.8-alpine
+    env_file: "${DOCKER_CTX:-/docker}/etc/imageservice/env/.envimage"
+    volumes:
+      - db_data_imageservice:/var/lib/postgresql/data
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  db_data_imageservice:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/imageservice/db_data_imageservice"
+
+  data_images:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/imageservice/data_images"
+
+  data_images_elasticsearch:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/imageservice/data_images_elasticsearch"

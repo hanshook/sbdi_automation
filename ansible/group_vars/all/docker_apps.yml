@@ -62,6 +62,10 @@ docker_applications:
     role: dashboard
     config:
       test_param: "test param specific value"
+  imageservice:
+    role: imageservice
+    config:
+      test_param: "test param specific value"
 
 # General deployment options:
   

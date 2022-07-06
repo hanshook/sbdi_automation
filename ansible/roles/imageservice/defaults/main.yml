@@ -1,0 +1,5 @@
+---
+# defaults file for imageservice
+frontend_network: sbdi_frontend
+
+docker_volumes: ['db_data_imageservice','data_images','data_images_elasticsearch']
