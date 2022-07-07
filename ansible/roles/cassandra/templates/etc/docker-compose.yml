@@ -1,0 +1,130 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+services:
+
+  cassandra-1:
+    image: bioatlas/ala-cassandra:v0.5
+    deploy:
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.hostname == uat-cassandra-1
+    environment:
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-1
+      - CASSANDRA_LISTEN_ADDRESS=cassandra-1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - MAX_HEAP_SIZE=8g
+      - HEAP_NEWSIZE=1600m
+    volumes:
+      - data_cassandra1:/var/lib/cassandra
+    entrypoint: /bin/bash -c "cp /tmp/cassandra.yaml /etc/cassandra/cassandra.yaml && cp /tmp/cassandra-env.sh /etc/cassandra/cassandra-env.sh && /entrypoint-wrap.sh"
+    networks:
+      - {{ frontend_network }}
+    restart: always
+
+  cassandra-2:
+    image: bioatlas/ala-cassandra:v0.5
+    deploy:
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.hostname == uat-cassandra-2
+    environment:
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-2
+      - CASSANDRA_LISTEN_ADDRESS=cassandra-2
+      - CASSANDRA_SEEDS=cassandra-1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - MAX_HEAP_SIZE=8g
+      - HEAP_NEWSIZE=1600m
+    volumes:
+      - data_cassandra2:/var/lib/cassandra
+    entrypoint: /bin/bash -c "cp /tmp/cassandra.yaml /etc/cassandra/cassandra.yaml && cp /tmp/cassandra-env.sh /etc/cassandra/cassandra-env.sh && /entrypoint-wrap.sh"
+    networks:
+      - {{ frontend_network }}
+    restart: always
+    depends_on:
+      - cassandra-1
+
+  cassandra-3:
+    image: bioatlas/ala-cassandra:v0.5
+    deploy:
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.hostname == uat-cassandra-3
+    environment:
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-3
+      - CASSANDRA_LISTEN_ADDRESS=cassandra-3
+      - CASSANDRA_SEEDS=cassandra-1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - MAX_HEAP_SIZE=8g
+      - HEAP_NEWSIZE=1600m
+    volumes:
+      - data_cassandra3:/var/lib/cassandra
+    entrypoint: /bin/bash -c "cp /tmp/cassandra.yaml /etc/cassandra/cassandra.yaml && cp /tmp/cassandra-env.sh /etc/cassandra/cassandra-env.sh && /entrypoint-wrap.sh"
+    networks:
+      - {{ frontend_network }}
+    restart: always
+    depends_on:
+      - cassandra-2
+
+  cassandra-4:
+    image: bioatlas/ala-cassandra:v0.5
+    deploy:
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.hostname == uat-cassandra-4
+    environment:
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-4
+      - CASSANDRA_LISTEN_ADDRESS=cassandra-4
+      - CASSANDRA_SEEDS=cassandra-1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - MAX_HEAP_SIZE=8g
+      - HEAP_NEWSIZE=1600m
+    volumes:
+      - data_cassandra4:/var/lib/cassandra
+    entrypoint: /bin/bash -c "cp /tmp/cassandra.yaml /etc/cassandra/cassandra.yaml && cp /tmp/cassandra-env.sh /etc/cassandra/cassandra-env.sh && /entrypoint-wrap.sh"
+    networks:
+      - {{ frontend_network }}
+    restart: always
+    depends_on:
+      - cassandra-3
+
+volumes:
+  data_cassandra1:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "/docker_local/var/volumes/cassandra/data_cassandra1"
+  data_cassandra2:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "/docker_local/var/volumes/cassandra/data_cassandra2"
+  data_cassandra3:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "/docker_local/var/volumes/cassandra/data_cassandra3"
+  data_cassandra4:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "/docker_local/var/volumes/cassandra/data_cassandra4"
