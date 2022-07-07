@@ -1,0 +1,65 @@
+---
+# tasks file for solrcloud
+- name: Ensure configuration and script directories
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items:
+    - etc
+    - etc/solrcloud
+    - etc/solrcloud/env
+    - usr/solrcloud
+    - usr/solrcloud/bin
+  tags:
+    - app_directory
+
+- name: Ensure write access for docker group
+  file:
+    path: "{{ docker_ctx | default('/docker') }}/{{item}}"
+    mode: 0775
+    group: docker
+    recurse: yes
+    state: directory
+  with_items:
+    - etc/solrcloud
+  tags:
+    - write_access
+
+- name: Install "envsolrcloud".template"
+  copy:
+    src: etc/envsolrcloud.template
+    dest: "{{ docker_ctx | default('/docker') }}/etc/solrcloud/env/envsolrcloud.template"
+    mode: 0644
+  tags:
+    - env_template
+
+- name: Copy SOLR index schema files
+  copy:
+    src : "{{ item }}"
+    dest : "{{ docker_ctx | default('/docker') }}/etc/solrcloud/biocache"
+    mode: 0644
+  with_items:
+    - etc/biocache
+  tags:
+    - solr_schema
+
+- name: Install "docker-compose.yml"
+  template:
+    src: etc/docker-compose.yml
+    dest: "{{ docker_ctx | default('/docker') }}/etc/solrcloud/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - docker_compose
+
+- name: Install "application.cfg"
+  template:
+    src: etc/application.cfg
+    dest: "{{ docker_ctx | default('/docker') }}/etc/solrcloud/application.cfg"
+    mode: 0644
+  tags:
+    - application_cfg

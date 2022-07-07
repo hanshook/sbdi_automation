@@ -1,0 +1,228 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+services:
+
+  zookeeper1:
+    image: zookeeper:3.4.14
+    restart: always
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zookeeper2:2888:3888 server.3=zookeeper3:2888:3888
+    volumes:
+      - data_zookeeper1:/data
+      - data_zookeeperlog1:/datalog
+    networks:
+      - {{ frontend_network }}
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+
+  zookeeper2:
+    image: zookeeper:3.4.14
+    restart: always
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zookeeper1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zookeeper3:2888:3888
+    volumes:
+      - data_zookeeper2:/data
+      - data_zookeeperlog2:/datalog
+    networks:
+      - {{ frontend_network }}
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+
+  zookeeper3:
+    image: zookeeper:3.4.14
+    restart: always
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zookeeper1:2888:3888 server.2=zookeeper2:2888:3888 server.3=0.0.0.0:2888:3888
+    volumes:
+      - data_zookeeper3:/data
+      - data_zookeeperlog3:/datalog
+    networks:
+      - {{ frontend_network }}
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+
+  solr1:
+    image: bioatlas/ala-solrcloud:v0.1
+    restart: always
+    environment:
+      SOLR_HEAP: 8g
+      ZK_HOST: zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      SOLR_HOST: solr1
+      SOLR_OPTS: -Dlog4j2.formatMsgNoLookups=true
+    volumes:
+      - data_solr1:/opt/solr
+    networks:
+      - {{ frontend_network }}
+    deploy:
+      placement:
+        constraints: [node.hostname == uat-solr-1]
+
+  solr2:
+    image: bioatlas/ala-solrcloud:v0.1
+    restart: always
+    environment:
+      SOLR_HEAP: 8g
+      ZK_HOST: zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      SOLR_HOST: solr2
+      SOLR_OPTS: -Dlog4j2.formatMsgNoLookups=true
+    volumes:
+      - data_solr2:/opt/solr
+    networks:
+      - {{ frontend_network }}
+    deploy:
+      placement:
+        constraints: [node.hostname == uat-solr-2]
+
+  solr3:
+    image: bioatlas/ala-solrcloud:v0.1
+    restart: always
+    environment:
+      SOLR_HEAP: 8g
+      ZK_HOST: zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      SOLR_HOST: solr3
+      SOLR_OPTS: -Dlog4j2.formatMsgNoLookups=true
+    volumes:
+      - data_solr3:/opt/solr
+    networks:
+      - {{ frontend_network }}
+    deploy:
+      placement:
+        constraints: [node.hostname == uat-solr-3]
+
+  solr4:
+    image: bioatlas/ala-solrcloud:v0.1
+    restart: always
+    environment:
+      SOLR_HEAP: 8g
+      ZK_HOST: zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+      SOLR_HOST: solr4
+      SOLR_OPTS: -Dlog4j2.formatMsgNoLookups=true
+    volumes:
+      - data_solr4:/opt/solr
+    networks:
+      - {{ frontend_network }}
+    deploy:
+      placement:
+        constraints: [node.hostname == uat-solr-4]
+
+#  create-collection:
+#    image: solr:7.7.2-slim
+#    environment:
+#      - SOLR_HOST=solr1
+#    volumes:
+#      - type: bind
+#        source: "${DOCKER_CTX:-/docker}/etc/solrcloud/biocache"
+#        target: /opt/solr/server/solr/configsets/
+#    entrypoint:
+#      - "bash"
+#      - "-exc"
+#      - "wait-for-solr.sh --max-attempts 10 --wait-seconds 10 --solr-url http://$$SOLR_HOST:8983/;
+#         solr zk upconfig -z zookeeper1:2181 -n biocache -d /opt/solr/server/solr/configsets/biocache/conf;
+#         solr create -c biocache -p 8983 -d biocache -shards 4 -replicationFactor 2;"
+#    networks:
+#      - {{ frontend_network }}
+#    deploy:
+#      placement:
+#        constraints: [node.hostname == uat-manager-1]
+
+volumes:
+  data_zookeeper1:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/solrcloud/data_zookeeper1"
+  data_zookeeperlog1:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/solrcloud/data_zookeeperlog1"
+  data_zookeeper2:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/solrcloud/data_zookeeper2"
+  data_zookeeperlog2:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/solrcloud/data_zookeeperlog2"
+  data_zookeeper3:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/solrcloud/data_zookeeper3"
+  data_zookeeperlog3:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/solrcloud/data_zookeeperlog3"
+  data_solr1:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "/docker_local/var/volumes/solrcloud/data_solr1"
+  data_solr2:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "/docker_local/var/volumes/solrcloud/data_solr2"
+  data_solr3:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "/docker_local/var/volumes/solrcloud/data_solr3"
+  data_solr4:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "/docker_local/var/volumes/solrcloud/data_solr4"
