@@ -121,6 +121,6 @@ connect-1
 [all:vars]
 deployment_prefix=uat
 private_subnet=10.201.0.0/24
-domain=sbdi-uat.se
+domain=biodiversitydata.se
 external_network="Public External IPv4 Network"
 server_image="Ubuntu 20.04 - 2021.03.23" 

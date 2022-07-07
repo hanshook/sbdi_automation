@@ -10,7 +10,7 @@ docker_applications:
     role: roles/docker_apps/emailserver
     config:
       test_param: "test param specific value"
-  wordpress_main:
+  wordpress:
     role: roles/docker_apps/wordpress
     config:
       test_param: "test param specific value"
