@@ -1,0 +1,5 @@
+---
+# defaults file for solrcloud
+frontend_network: sbdi_frontend
+
+docker_volumes: ['data_zookeeper1', 'data_zookeeperlog1','data_zookeeper2', 'data_zookeeperlog2','data_zookeeper3', 'data_zookeeperlog3']

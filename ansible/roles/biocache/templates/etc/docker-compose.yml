@@ -1,0 +1,65 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_biocache:
+    file: "${DOCKER_CTX:-/docker}/etc/biocache/config/biocache-config.properties"
+  config_logger-client:
+    file: "${DOCKER_CTX:-/docker}/etc/biocache/config/logger-client.properties"
+  config_ala_hub:
+    file: "${DOCKER_CTX:-/docker}/etc/biocache/config/ala-hub-config.properties"
+
+services:
+  biocacheservice:
+    image: bioatlas/ala-biocacheservice:v2.5.1
+    depends_on:
+      - cassandradb
+      - solr
+    environment:
+      JAVA_OPTS: -Xmx8g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    volumes:
+      - data_nameindex:/data/lucene/namematching
+    env_file: "${DOCKER_CTX:-/docker}/etc/biocache/env/.envbiocacheservice"
+    configs:
+      - source: config_biocache
+        target: /data/biocache/config/biocache-config.properties
+      - source: config_logger-client
+        target: /data/logger-client/config/logger-client.properties
+    networks:
+      - {{ frontend_network }}
+    command: /bin/sh -c "rm /usr/local/tomcat/conf/Catalina/localhost/ROOT.xml && envsubst < /tmp/context.xml > /usr/local/tomcat/conf/Catalina/localhost/ws.xml && catalina.sh run"
+
+  biocachehub:
+    image: bioatlas/ala-biocachehub:v3.2.9-BAS
+    depends_on:
+      - biocacheservice
+    env_file: "${DOCKER_CTX:-/docker}/etc/biocache/env/.envbiocachehub"
+    environment:
+      JAVA_OPTS: -Xmx4g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+    configs:
+      - source: config_ala_hub
+        target: /data/ala-hub/config/ala-hub-config.properties
+    networks:
+      - {{ frontend_network }}
+
+  postfix:
+    image: juanluisbaptiste/postfix:latest
+    expose:
+      - "25"
+    env_file:
+      - "${DOCKER_CTX:-/docker}/etc/biocache/env/.envpostfix"
+    volumes:
+     - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  data_nameindex:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/nameindex/data_nameindex"

@@ -66,6 +66,22 @@ docker_applications:
     role: imageservice
     config:
       test_param: "test param specific value"
+  solrcloud:
+    role: solrcloud
+    config:
+      test_param: "test param specific value"
+  cassandra:
+    role: cassandra
+    config:
+      test_param: "test param specific value"
+  biocache:
+    role: biocache
+    config:
+      test_param: "test param specific value"
+  mirroreum:
+    role: mirroreum
+    config:
+      test_param: "test param specific value"
 
 # General deployment options:
   

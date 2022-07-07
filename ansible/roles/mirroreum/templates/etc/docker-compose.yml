@@ -1,0 +1,35 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_rserver_conf:
+    file: "${DOCKER_CTX:-/docker}/etc/mirroreum/config/rserver.conf"
+
+services:
+  mirroreum:
+    image: ghcr.io/biodiversitydata-se/mirroreum:1.0.2
+    env_file: "${DOCKER_CTX:-/docker}/etc/mirroreum/env/.envmirroreum"
+    configs:
+      - source: config_rserver_conf
+        target: /etc/rstudio/rserver.conf
+    volumes:
+      - type: volume
+        source: data_mirroreum
+        target: /home/rstudio
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/mirroreum/login.html"
+        target: /etc/rstudio/login.html
+    command: /init
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  data_mirroreum:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/mirroreum/data_mirroreum"
