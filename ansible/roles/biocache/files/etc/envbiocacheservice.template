@@ -1,0 +1,4 @@
+TOMCAT_HOST=records.bioadiversitydata.se
+TOMCAT_CONTEXT_NAME=ws
+TOMCAT_CONTEXT_PATH=/ws
+ADMIN_EMAIL_PASSORD=password

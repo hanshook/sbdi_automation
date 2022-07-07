@@ -1,0 +1,6 @@
+SMTP_SERVER=mail.biodiversitydata.se
+SMTP_PORT=587
+SMTP_USERNAME=download@biodiversitydata.se
+SMTP_PASSWORD=password
+SERVER_HOSTNAME=mail.biodiversitydata.se
+OVERWRITE_FROM=download@biodiversitydata.se
