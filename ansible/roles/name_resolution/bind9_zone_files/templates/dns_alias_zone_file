@@ -1,0 +1,44 @@
+$ORIGIN {{ alias_domain }}.
+
+@     3600	IN    SOA    {{ inventory_hostname }}.{{ alias_domain }}.  root.{{ inventory_hostname }}.{{ alias_domain }}. (
+  	     	    	   {{ dns_serial }} ; Serial
+			28800          ; Refresh - 8 hours
+			7200           ; Retry - 2 hours
+			604800         ; Expire - 1 week
+			86400          ; Minimum - 1 day
+)
+
+;; Name Servers
+{% for host in groups['gateways'] %}
+@    3600   IN    NS     {{ host }}.{{ alias_domain }}.
+{% endfor %}
+
+
+;; Access Points (Round robbin) 
+
+{% for host in groups['gateways'] %}
+@      	       	3600  IN  A       {{ hostvars[host]['floating_ip'] }}
+{% endfor %}
+
+;; Access Points (externally)
+
+{% for host in groups['gateways'] %}
+{{ host }}      3600  IN  A       {{ hostvars[host]['floating_ip'] }}
+{% endfor %}
+
+
+; CNAME Records
+www  3600    IN  CNAME   @
+*    3600    IN  CNAME   @
+
+
+;; Servers and gateways (internally)
+
+{% for host in groups['gateways'] %}
+{{deployment_prefix}}-{{ host }} 3600  IN A    {{common_ip_part}}{{ hostvars[host]['nbr'] }};
+{% endfor %}
+{% for host in groups['servers'] %}
+{{deployment_prefix}}-{{ host }} 3600  IN A    {{common_ip_part}}{{ hostvars[host]['nbr'] }};
+{% endfor %}
+
+

@@ -151,13 +151,13 @@
         server: "{{ deployment_prefix }}-{{ item }}"
         volume: "{{ deployment_prefix }}-{{ item }}-volume_local_docker"
         device: "{{ hostvars[item]['data_volume_device'] }}"
-      with_items: "{{ groups['servers'] }}"
-      when:  hostvars[item]['volume_local_docker'] is defined 
+      with_items: "{{ groups['docker_swarm'] + groups['docker'] }}"
+#      when:  hostvars[item]['volume_local_docker'] is defined 
       tags:
         - hosts
         - hosts_storage
         - hosts_local_storage
-      
+
     #
     # Attach floating ips 
     #

@@ -15,6 +15,15 @@
     group: bind
     mode: 0644
     
+- name: Install dns alias zone file
+  template:
+    src: dns_alias_zone_file
+    dest: "/var/cache/bind/master/{{alias_domain}}"
+    owner: bind
+    group: bind
+    mode: 0644
+  when: alias_domain is defined
+    
 - name: Install dns reverse zone file
   template:
     src: reverse_dns_zone_file

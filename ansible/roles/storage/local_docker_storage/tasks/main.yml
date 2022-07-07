@@ -51,7 +51,7 @@
     owner: root
     group: root
     mode: 0755
-    recurse: yes
+#    recurse: yes
     state: directory
   with_items:
     - etc
@@ -59,3 +59,14 @@
     - var
     - var/volumes
     - var/backup
+    - var/lib
+
+- name: Make sure the "/docker_local" mount point has "var/lib/docker"
+  file:
+    path: "/docker_local/{{item}}"
+    owner: root
+    group: root
+    mode: 0750
+    state: directory
+  with_items:
+    - var/lib/docker

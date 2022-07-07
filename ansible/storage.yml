@@ -72,7 +72,7 @@
   - role: roles/storage/docker_data_access
 
 - name: "Setup *local* Docker storage"
-  hosts: swarm_local_storage:docker
+  hosts: docker_swarm:docker
   gather_facts: yes
   become: true
   tasks:

@@ -10,6 +10,8 @@
     display_name: "{{ deployment_prefix }}-{{ item }}-volume_gluster"
   with_items: "{{ groups['servers'] }}"
   when:  hostvars[item]['volume_gluster'] is defined
+  tags:
+    - hosts_storage
 
 # - name: "Debug output - data volumes"
 #   debug:
@@ -30,8 +32,13 @@
     state: present
     size: "{{hostvars[item]['volume_local_docker']}}"
     display_name: "{{ deployment_prefix }}-{{ item }}-volume_local_docker"
-  with_items: "{{ groups['servers'] }}"
-  when:  hostvars[item]['volume_local_docker'] is defined 
+  with_items: "{{ groups['docker_swarm'] + groups['docker'] }}"
+  when:  hostvars[item]['volume_local_docker'] is defined
+  tags:
+    - hosts_local_storage
+      
+
+
 
 
      # - name: "Get volume info"

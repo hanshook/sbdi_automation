@@ -67,6 +67,8 @@
     mode: 0664
   notify:
     - restart docker
+  tags:
+    - daemon_json
     
 - name: Add admin users to docker group
   user:

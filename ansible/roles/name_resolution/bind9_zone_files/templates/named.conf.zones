@@ -12,3 +12,12 @@ zone "{{ domain }}" {
      notify yes;
      file "master/{{ domain }}";
 };
+
+{% if alias_domain is defined %}
+zone "{{ alias_domain }}" {
+     allow-query { any; };
+     type master;
+     notify yes;
+     file "master/{{ alias_domain }}";
+};
+{% endif %}
