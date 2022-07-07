@@ -1,4 +1,5 @@
 #ansible_connection: ssh
 
 ansible_ssh_common_args: "-J {{ deployment_prefix }}-{{ groups['gateways'][0] }}.{{ domain }}"
+#ansible_ssh_common_args: "-J {{ deployment_prefix }}-{{ groups['gateways'][0] }}"
 #ansible_host: "{{deployment_prefix}}-{{  inventory_hostname }}.{{ domain }}"
