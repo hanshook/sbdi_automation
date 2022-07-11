@@ -4,9 +4,10 @@
   community.general.lvol:
     vg: vg_docker_local
     lv: lv_docker_local
-    size: 90%VG
+    size: "{{ local_docker_storage }}G"
     resizefs: yes
     force: yes
+  when: local_docker_storage is defined
     
 - name: Format the lvm volume for docker data with xfs
   community.general.filesystem:
@@ -14,12 +15,13 @@
     resizefs: yes
     dev: /dev/vg_docker_local/lv_docker_local
     opts: -i size=512
+  when: local_docker_storage is defined
     
 - name: Check if mount point for local docker data "/docker_local" exists
   stat:
     path: /docker_local
   register: docker_local_mount_point    
-
+  
 - name: Create mount point for local docker data "/docker_local"
   file:
     path: /docker_local
@@ -36,7 +38,8 @@
     fstype: xfs
     path: /docker_local
     state: mounted
-    
+  when: local_docker_storage is defined
+  
 - name: Make sure the "/docker_local" mount point has the correct access rights
   file:
     path: /docker_local
@@ -44,7 +47,8 @@
     group: root
     mode: 0755
     state: directory
-    
+  when: local_docker_storage is defined
+  
 - name: Make sure the "/docker_local" mount point has the correct subdirectories for deployment 
   file:
     path: "/docker_local/{{item}}"
@@ -60,13 +64,71 @@
     - var/volumes
     - var/backup
     - var/lib
-
-- name: Make sure the "/docker_local" mount point has "var/lib/docker"
+  when: local_docker_storage is defined
+  
+- name: Make sure the "/docker_local" mount point has the correct subdirectories for deployment 
   file:
     path: "/docker_local/{{item}}"
     owner: root
     group: root
-    mode: 0750
+    mode: 0755
+#    recurse: yes
     state: directory
   with_items:
-    - var/lib/docker
+    - etc
+    - usr
+    - var
+    - var/volumes
+    - var/backup
+  when: local_docker_storage is defined
+
+
+- name: Create an lvm volume for /var/lib/docker (lv_var_lib_docker)
+  community.general.lvol:
+    vg: vg_docker_local
+    lv: lv_var_lib_docker
+    size: "{{ var_lib_docker_storage }}G"
+    resizefs: yes
+    force: yes
+  when: var_lib_docker_storage is defined
+    
+- name: Format the lvm volume for /var/lib/docker data with ext4
+  community.general.filesystem:
+    fstype: ext4
+    resizefs: yes
+    dev: /dev/vg_docker_local/lv_var_lib_docker
+  when: var_lib_docker_storage is defined
+    
+- name: Check if mount point "/docker_var_lib" exists
+  stat:
+    path: /docker_var_lib
+  register: docker_var_lib_mount_point    
+  
+- name: Create mount point for local docker data "/docker_local"
+  file:
+    path: /docker_var_lib
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+    recurse: yes
+  when: docker_var_lib_mount_point.stat.exists == false
+  
+- name: Mount logical volume lv_var_lib_docker at /docker_var_lib
+  ansible.posix.mount:
+    src: /dev/vg_docker_local/lv_var_lib_docker
+    fstype: ext4
+    path: /docker_var_lib
+    state: mounted
+  when: var_lib_docker_storage is defined
+
+  
+- name: Make sure the "/docker_var_lib" mount point has the correct access rights
+  file:
+    path: /docker_var_lib
+    owner: root
+    group: root
+    mode: 0750
+    state: directory
+  when: local_docker_storage is defined  
+

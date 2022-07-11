@@ -30,7 +30,7 @@
 - name: "Ensure local docker data volumes"
   openstack.cloud.volume:
     state: present
-    size: "{{hostvars[item]['volume_local_docker']}}"
+    size: "{{ (hostvars[item]['local_docker_storage'] | default(0) | int) + (hostvars[item]['var_lib_docker_storage'] | default(0) | int) + (hostvars[item]['backup_snapshot_storage'] | default(0) | int) }}"
     display_name: "{{ deployment_prefix }}-{{ item }}-volume_local_docker"
   with_items: "{{ groups['docker_swarm'] + groups['docker'] }}"
   when:  hostvars[item]['volume_local_docker'] is defined

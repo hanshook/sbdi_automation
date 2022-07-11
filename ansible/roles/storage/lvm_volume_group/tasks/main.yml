@@ -35,6 +35,15 @@
   debug:
     var: lvm_device_info
 
+# TODO If lvm_device has only grown we do not need to partiton but we need to
+# grow the partion that is the root of the vg.
+# sudo parted /dev/vdb resizepart 1 100%; sudo pvresize /dev/vdb1
+#
+# To check:
+# sudo vgdisplay
+# Hint free space on device:
+# sudo parted /dev/vdb unit % print free | grep Free | awk '{print $1}' | cut -d'.' -f 1
+
 - name: "Figure out if {{ lvm_device }} needs partitioning, i.e. does not only contain one lvm partition"
   set_fact:
     device_needs_partitioning: "{{ not (((lvm_device_info['partitions'] | length) == 1) and ('lvm' in lvm_device_info['partitions'][0]['flags'])) }}"

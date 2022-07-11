@@ -33,21 +33,11 @@ fi
 
 . ${DOCKER_CTX}/etc/${application_name}/application.cfg
 
-if [[ -z ${DOCKER_VOLUMES+x} ]]
-then
-   log_fatal 94 "DOCKER_VOLUMES not defined in ${DOCKER_CTX}/etc/${application_name}/application.cfg" 
-fi	    
-
-if [ ! -e  ${DOCKER_CTX}/etc/${application_name}/docker-compose.yml ]
-then
-    log_fatal 95 "${DOCKER_CTX}/etc/${application_name}/docker-compose.yml does not exist ..."
-fi
-
 export VOLUMES_CTX=${DOCKER_CTX}/var/volumes/${application_name}
 
-if [ -z "$VOLUMES_CTX" ]
+if [[ -z ${DOCKER_VOLUMES+x} ]]
 then
-    log_warn "No docker volumes defined for aplication ${application_name}"
+    log_warn "DOCKER_VOLUMES not defined in ${DOCKER_CTX}/etc/${application_name}/application.cfg"
 else
     for volume in ${DOCKER_VOLUMES}
     do
@@ -62,7 +52,17 @@ else
 	    
 	fi
     done
+fi	    
+
+if [ ! -e  ${DOCKER_CTX}/etc/${application_name}/docker-compose.yml ]
+then
+    log_fatal 95 "${DOCKER_CTX}/etc/${application_name}/docker-compose.yml does not exist ..."
 fi
+
+
+
+
+
 
 cd ${DOCKER_CTX}/etc/${application_name}
 

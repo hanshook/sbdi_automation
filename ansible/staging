@@ -6,25 +6,49 @@ access-1 nbr=11 flavor=ssc.xsmall floating_ip=130.238.29.21
 access-2 nbr=12 flavor=ssc.xsmall floating_ip=130.238.28.173
 
 [servers]
-manager-1 nbr=21 flavor=ssc.large.highmem volume_gluster=700
-manager-2 nbr=22 flavor=ssc.large.highmem volume_gluster=700
-manager-3 nbr=23 flavor=ssc.large.highmem volume_gluster=700
-cassandra-1 nbr=41 flavor=ssc.large.highmem volume_local_docker=460
-cassandra-2 nbr=42 flavor=ssc.large.highmem volume_local_docker=460
-cassandra-3 nbr=43 flavor=ssc.large.highmem volume_local_docker=460
-cassandra-4 nbr=44 flavor=ssc.large.highmem volume_local_docker=460
-solr-1 nbr=51 flavor=ssc.medium.highmem volume_local_docker=260
-solr-2 nbr=52 flavor=ssc.medium.highmem volume_local_docker=260
-solr-3 nbr=53 flavor=ssc.medium.highmem volume_local_docker=260
-solr-4 nbr=54 flavor=ssc.medium.highmem volume_local_docker=260
-#spark-1 nbr=61 flavor=ssc.large.highmem volume_local_docker=360
-#spark-2 nbr=62 flavor=ssc.large.highmem volume_local_docker=360
-#spark-3 nbr=63 flavor=ssc.large.highmem volume_local_docker=360
-#spark-4 nbr=64 flavor=ssc.large.highmem volume_local_docker=360
+manager-1 nbr=21 flavor=ssc.large.highmem 
+manager-2 nbr=22 flavor=ssc.large.highmem 
+manager-3 nbr=23 flavor=ssc.large.highmem 
+cassandra-1 nbr=41 
+cassandra-2 nbr=42 
+cassandra-3 nbr=43 
+cassandra-4 nbr=44 
+solr-1 nbr=51 
+solr-2 nbr=52 
+solr-3 nbr=53 
+solr-4 nbr=54 
+#spark-1 nbr=61
+#spark-2 nbr=62
+#spark-3 nbr=63
+#spark-4 nbr=64
 backup-director nbr=91 flavor=ssc.tiny
 backup-target nbr=92 flavor=ssc.medium.highmem volume_backup=1500
 nagios nbr=97 flavor=ssc.tiny
-connect-1 nbr=101 flavor=ssc.xsmall floating_ip=130.238.29.73 
+connect-1 nbr=101 flavor=ssc.xsmall floating_ip=130.238.29.73
+
+# Solr Cluster
+# ============
+[solr]
+solr-1
+solr-2
+solr-3
+solr-4
+
+[solr:vars]
+local_docker_storage=200
+flavor=ssc.medium.highmem
+
+# Cassandra Cluster
+# =================
+[cassandra]
+cassandra-1
+cassandra-2
+cassandra-3
+cassandra-4
+
+[cassandra:vars]
+local_docker_storage=350
+flavor=ssc.large.highmem
 
 # Spark Cluster
 # =======
@@ -34,16 +58,19 @@ connect-1 nbr=101 flavor=ssc.xsmall floating_ip=130.238.29.73
 #spark-3
 #spark-4
 
+#[spark:vars]
+#local_storage=360 Note! Not implemented yet!
+# flavor=ssc.large.highmem
 
-# Storage
-# =======
-
+# Gluster Storage
+# ===============
 [storage]
 manager-1 
-manager-2
+manager-2 
 manager-3
-#worker-1
 
+[storage:vars]
+volume_gluster=700
 
 # Backup
 # ======
@@ -55,20 +82,28 @@ backup-director
 backup-target
 
 [backup_sources]
-manager-1 gluster_backup_source=true 
-cassandra-1 lvm_backup_source=true
-cassandra-2 lvm_backup_source=true
-cassandra-3 lvm_backup_source=true
-cassandra-4 lvm_backup_source=true
+manager-1 gluster_backup_source=true lvm_backup_source=false backup_snapshot_storage=0
+cassandra-1 
+cassandra-2 
+cassandra-3 
+cassandra-4 
+solr-1
+solr-2
+solr-3
+solr-4
+
+[backup_sources:vars]
+lvm_backup_source=true
+backup_snapshot_storage=20
 
 #Docker
 #======
 
 [docker_swarm]
-manager-1
-manager-2
-manager-3
-#worker-1
+manager-1 
+manager-2 
+manager-3 
+#worker-1 
 cassandra-1
 cassandra-2
 cassandra-3
@@ -78,10 +113,16 @@ solr-2
 solr-3
 solr-4
 
+[docker_swarm:vars]
+var_lib_docker_storage=80
+
 [swarm_managers]
 manager-1
 manager-2
 manager-3
+
+[swarm_managers:vars]
+var_lib_docker_storage=80
 
 [docker]
 # host with non swarm docker and local storage
@@ -89,6 +130,9 @@ manager-3
 #spark-2
 #spark-3
 #spark-4
+
+[docker:vars]
+var_lib_docker_storage=80
 
 # Nagios
 # ======
@@ -101,7 +145,6 @@ nagios
 # =============
 
 [ipsec_servers]
-#access-2
 connect-1
 
 # Deployment specific vars
@@ -114,4 +157,3 @@ domain=biodiversitydata.se
 alias_domain=sbdi.se
 external_network="Public External IPv4 Network"
 server_image="Ubuntu 20.04 - 2021.03.23"
-volume_local_docker=100
