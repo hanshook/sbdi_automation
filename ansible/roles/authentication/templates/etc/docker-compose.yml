@@ -1,0 +1,132 @@
+version: '3.7'
+
+networks:
+  {{ frontend_network }}:
+    external: true
+
+configs:
+  config_apikey:
+    file: "${DOCKER_CTX:-/docker}/etc/authentication/config/apikey-config.yml"
+  config_userdetails:
+    file: "${DOCKER_CTX:-/docker}/etc/authentication/config/userdetails-config.yml"
+  config_cas5:
+    file: "${DOCKER_CTX:-/docker}/etc/authentication/config/cas5-config.yml"
+  config_pwe:
+    file: "${DOCKER_CTX:-/docker}/etc/authentication/config/pwe.properties"
+  config_cas-management:
+    file: "${DOCKER_CTX:-/docker}/etc/authentication/config/cas-management-config.properties"
+
+services:
+
+  mysqldbapikey:
+    image: mysql:5.7
+    environment:
+      - LANG=C.UTF-8
+    env_file: "${DOCKER_CTX:-/docker}/etc/authentication/env/.envapikey"
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/authentication/apikey/initdb.d"
+        target: /docker-entrypoint-initdb.d
+      - type: volume
+        source: db_data_mysqldbapikey
+        target: /var/lib/mysql
+    networks:
+      - {{ frontend_network }}
+
+
+  apikey:
+    image: bioatlas/ala-apikey:v1.5
+    environment:
+      JAVA_OPTS: -Xmx2g -Xms128m -Xss256k -Dlog4j2.formatMsgNoLookups=true
+    env_file: "${DOCKER_CTX:-/docker}/etc/authentication/env/.envapikey"
+    configs:
+      - source: config_apikey
+        target: /tmp/apikey-config.yml
+    networks:
+      - {{ frontend_network }}
+
+  mysqldbcas:
+    image: mysql:5.7
+    environment:
+      - LANG=C.UTF-8
+    env_file: "${DOCKER_CTX:-/docker}/etc/authentication/env/.envcas"
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/authentication/cas/initdb.d"
+        target: /docker-entrypoint-initdb.d
+      - type: volume
+        source: db_data_mysqldbcas
+        target: /var/lib/mysql
+    networks:
+      - {{ frontend_network }}
+
+  userdetails:
+    image: bioatlas/ala-userdetails:v2.4-sbdi
+    environment:
+      JAVA_OPTS: -Xmx2g -Xms128m -Xss256k -Dlog4j2.formatMsgNoLookups=true
+    env_file: "${DOCKER_CTX:-/docker}/etc/authentication/env/.envcas"
+    configs:
+      - source: config_userdetails
+        target: /tmp/userdetails-config.yml
+    networks:
+      - {{ frontend_network }}
+
+  mongodbcas:
+    image: mongo:3.4.6
+    env_file: "${DOCKER_CTX:-/docker}/etc/authentication/env/.envcas"
+    volumes:
+      - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:z
+      - db_data_mongodbcas:/data/db
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/authentication/mongo-init.sh"
+        target: /docker-entrypoint-initdb.d/mongo-init.sh
+      - type: volume
+        source: db_data_mongodbcas
+        target: /data/db
+    networks:
+      - {{ frontend_network }}
+
+  casserver:
+    image: bioatlas/ala-cas:v5.3.12-2
+    environment:
+      JAVA_OPTS: -Xmx2g -Xms128m -Xss256k -Dlog4j2.formatMsgNoLookups=true
+    env_file: "${DOCKER_CTX:-/docker}/etc/authentication/env/.envcas"
+    configs:
+      - source: config_cas5
+        target: /tmp/application.yml
+      - source: config_pwe
+        target: /tmp/pwe.properties
+    networks:
+      - {{ frontend_network }}
+
+  casmanage:
+    image: bioatlas/ala-cas-management:v5.3
+    environment:
+      JAVA_OPTS: -Xmx2g -Xms128m -Xss256k -Dlog4j2.formatMsgNoLookups=true
+    env_file: "${DOCKER_CTX:-/docker}/etc/authentication/env/.envcas"
+    configs:
+      - source: config_cas-management
+        target: /tmp/application.properties
+    networks:
+      - {{ frontend_network }}
+
+volumes:
+  db_data_mysqldbapikey:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/authentication/db_data_mysqldbapikey"
+  db_data_mysqldbcas:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/authentication/db_data_mysqldbcas"
+  db_data_mongodbcas:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${DOCKER_CTX:-/docker}/var/volumes/authentication/db_data_mongodbcas"

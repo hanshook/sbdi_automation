@@ -82,6 +82,10 @@ docker_applications:
     role: mirroreum
     config:
       test_param: "test param specific value"
+  authentication:
+    role: authentication
+    config:
+      test_param: "test param specific value"
 
 # General deployment options:
   
