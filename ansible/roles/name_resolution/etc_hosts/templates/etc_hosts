@@ -3,7 +3,7 @@
 
 {% for host in groups['servers'] + groups['gateways'] %}
 {% if host != inventory_hostname %}
-{{common_ip_part}}{{ hostvars[host]['nbr'] }}	{{deployment_prefix}}-{{ host }} {{deployment_prefix}}-{{ host }}.{{ domain }} {{ host }}
+{{common_ip_part}}{{ hostvars[host]['nbr'] }}	{{deployment_prefix}}-{{ host }} {{deployment_prefix}}-{{ host }}.{{ domain }}
 {% endif %}
 {% endfor %}
 

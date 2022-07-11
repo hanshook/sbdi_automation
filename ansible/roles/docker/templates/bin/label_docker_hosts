@@ -1,0 +1,10 @@
+#! /bin/bash
+
+bin_dir=$(dirname $0)
+lib_dir=/opt/sbdi/lib  
+export DOCKER_CTX={{ docker_ctx | default('/docker') }}
+
+{% for host in groups['docker_swarm']  %}
+docker node update --label-add deployment_host={{host}} $(docker node ls -f "name={{deployment_prefix}}-{{ host }}" -q)
+{% endfor %}
+
