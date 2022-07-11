@@ -1,0 +1,82 @@
+# CAS Config
+security:
+  cas:
+    casServerName: https://auth.{{ domain }}
+    casServerUrlPrefix: ${security.cas.casServerName}/cas
+    loginUrl: ${security.cas.casServerUrlPrefix}/login
+    logoutUrl: ${security.cas.casServerUrlPrefix}/logout
+    appServerName: https://auth.{{ domain }}
+    authCookieName: ALA-Auth
+  user:
+    name: admin
+    password: secret
+    role:
+      - ACTUATOR
+  basic:
+    enabled: true
+    authorizeMode: role
+    realm: ALA CAS
+    path:
+      - /status/**
+endpoints:
+  enabled: true
+management:
+  security:
+    enabled: true
+    roles: ACTUATOR
+
+serverURL: https://auth.{{ domain }}
+serverName: https://auth.{{ domain }}
+grails:
+  serverURL: https://auth.{{ domain }}/apikey
+server:
+  port: 8080
+  contextPath: /apikey
+
+# Data source configuration
+dataSource:
+  dbCreate: "none"
+  url: jdbc:mysql://mysqldbapikey:3306/$APIKEY_DB_NAME?serverTimezone=Europe/Paris&zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8&useSSL=true
+  username: $APIKEY_DB_USERNAME
+  password: $APIKEY_DB_PASSWORD
+flyway:
+  baselineOnMigrate: true
+
+ala:
+  baseURL: https://www.ala.org.au
+
+supportEmail: support@{{ domain }}
+homeUrl: https://tools.{{ domain }}
+mainTitle: Swedish Biodiversity Data Infrastructure
+emailSenderTitle: Swedish Biodiversity Data Infrastructure
+emailSender: admin@{{ domain }}
+
+sightings.url: /mine
+spatial.url: https://spatial.{{ domain }}?tool=log
+volunteer.url: /user/myStats
+lists.url: https://lists.{{ domain }}/speciesList/list
+biocache.search.url: https://records.{{ domain }}/occurrences/search
+alerts.url:
+
+# this property is read/used by ala-auth-plugin (included by apikey)
+userDetails:
+  url: https://auth.{{ domain }}/userdetails/
+
+# Header and footer
+headerAndFooter:
+  baseURL: https://static.{{ domain }}
+  version: 2
+ala.baseURL: https://{{ domain }}
+bie.baseURL: https://species.{{ domain }}
+bie.searchPath: /search
+
+# Skin options
+skin.layout: generic
+#skin.fluidLayout: true
+skin.orgNameLong: Swedish Biodiversity Data Infrastructure
+skin.orgNameShort: SBDI
+skin.favicon: https://static.{{ domain }}/favicon.ico
+
+spring:
+  session:
+    store-type: none

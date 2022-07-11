@@ -1,0 +1,128 @@
+# CAS Config
+security:
+  cas:
+    casServerName: https://auth.{{ domain }}
+    casServerUrlPrefix: ${security.cas.casServerName}/cas
+    loginUrl: ${security.cas.casServerUrlPrefix}/login
+    logoutUrl: ${security.cas.casServerUrlPrefix}/logout
+    appServerName: https://auth.{{ domain }}
+    authCookieName: ALA-Auth
+  user:
+    name: admin
+    password: $SECURITY_USER_PASSWORD
+    role:
+      - ACTUATOR
+  basic:
+    enabled: true
+    authorizeMode: role
+    realm: ALA CAS
+    path:
+      - /status/**
+endpoints:
+  enabled: true
+management:
+  security:
+    enabled: true
+    roles: ACTUATOR
+
+serverURL: https://auth.{{ domain }}
+serverName: https://auth.{{ domain }}
+grails:
+  serverURL: https://auth.{{ domain }}/userdetails
+  mail:
+    host: mail.{{ domain }}
+    port: 587
+    username: admin@{{ domain }}
+    password: $ADMIN_EMAIL_PASSORD
+    props:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+          port: 587
+
+server:
+  port: 8080
+  contextPath: /userdetails
+redirectAfterFirstLogin: ${grails.serverURL}/myprofile
+
+# Data source configuration
+dataSource:
+  dbCreate: "none"
+  url: jdbc:mysql://mysqldbcas:3306/emmet?serverTimezone=Europe/Paris&zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8&useSSL=true
+  username: cas
+  password: $CAS_DB_PASSWORD
+
+oauth:
+  providers:
+    flickr:
+      enabled: false
+#      key: somekey
+#      secret: somesecret
+#      callback: ${grails.serverURL}/profile/flickrCallback
+    inaturalist:
+      enabled: false
+
+password:
+  encoder: legacy
+bcrypt:
+  strength: 10
+encoding:
+  algorithm: MD5
+  salt: $USER_STORE_DB_ENCODING_SALT
+
+recaptcha:
+  baseUrl: https://www.google.com/recaptcha/api/
+  siteKey:
+  secretKey:
+
+ala:
+  baseURL: https://{{ domain }}
+
+supportEmail: support@{{ domain }}
+homeUrl: https://tools.{{ domain }}
+mainTitle: Swedish Biodiversity Data Infrastructure
+emailSenderTitle: Swedish Biodiversity Data Infrastructure
+emailSender: admin@{{ domain }}
+
+sightings.url: /mine
+spatial.url: https://spatial.{{ domain }}?tool=log
+volunteer.url: /user/myStats
+lists.url: https://lists.{{ domain }}/speciesList/list
+biocache.search.baseUrl: https://records.{{ domain }}/occurrences/search
+biocache.search.url: https://records.{{ domain }}/occurrences/search/?q=*%3A*&fq=assertion_user_id%3A
+biocache.myDownloads.url:
+alerts.url:
+
+# this property is read/used by ala-auth-plugin (included by userdetails)
+userDetails:
+  url: https://auth.{{ domain }}/userdetails/
+
+# Header and footer
+headerAndFooter:
+  baseURL: https://static.{{ domain }}
+  version: 2
+ala.baseURL: https://{{ domain }}
+bie.baseURL: https://species.{{ domain }}
+bie.searchPath: /search
+
+# Skin options
+skin.layout: ala-main
+skin.fluidLayout: false
+skin.orgNameLong: Swedish Biodiversity Data Infrastructure
+skin.orgNameShort: SBDI
+skin.favicon: https://static.{{ domain }}/favicon.ico
+skin.homeUrl: https://tools.{{ domain }}
+
+# API key for external apps
+webservice.apiKey:
+
+# Default primary fields for Export to CSV functionality
+admin.export.csv.primary.fields: id,userName,firstName,lastName,email,activated,locked,created
+
+spring:
+  session:
+    store-type: none
+
+privacyPolicy: https://docs.{{ domain }}/sbdi-data/sbdi-atlas-terms-of-use/privacy-policy/
+termsOfUse : https://docs.{{ domain }}/sbdi-data/sbdi-atlas-terms-of-use/

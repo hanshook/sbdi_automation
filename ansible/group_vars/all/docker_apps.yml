@@ -102,6 +102,11 @@ docker_applications:
     config:
       test_param: "test param specific value"
       local: False
+  authentication:
+    role: authentication
+    config:
+      test_param: "test param specific value"
+      local: False
 
 # General deployment options:
   
