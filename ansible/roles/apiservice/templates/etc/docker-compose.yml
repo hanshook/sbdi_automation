@@ -19,7 +19,11 @@ services:
     configs:
       - source: config_apiservice
         target: /tmp/webapi-config.properties
-    command: /bin/ash -c "envsubst < /tmp/webapi-config.properties > /data/webapi/config/webapi-config.properties && catalina.sh run"
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/apiservice/wait-for-it.sh"
+        target: /wait-for-it.sh
+    command: /bin/ash -c "envsubst < /tmp/webapi-config.properties > /data/webapi/config/webapi-config.properties && /bin/bash /wait-for-it.sh mysqldbapi:3306 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
