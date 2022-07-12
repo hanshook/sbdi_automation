@@ -5,96 +5,117 @@ docker_applications:
     role: submodules/docker-osticket/ansible/roles/osticket
     config:
       osticket_version: 1.15.4.2
+      local: False
       test_param: "test param specific value"
   emailserver:
     role: roles/docker_apps/emailserver
     config:
       test_param: "test param specific value"
+      local: False
   wordpress:
     role: roles/docker_apps/wordpress
     config:
       test_param: "test param specific value"
+      local: False
   portainer:
     role: portainer
     config:
       test_param: "test param specific value"
+      local: False
   species:
     role: species
     config:
       test_param: "test param specific value"
+      local: False
   spatial:
     role: spatial
     config:
       test_param: "test param specific value"
+      local: False
   regions:
     role: regions
     config:
       test_param: "test param specific value"
+      local: False
   collectory:
     role: collectory
     config:
       test_param: "test param specific value"
+      local: False
   nameindex:
     role: nameindex
     config:
       test_param: "test param specific value"
+      local: False
   biocachebackend:
     role: biocachebackend
     config:
       test_param: "test param specific value"
+      local: False
   loggerservice:
     role: loggerservice
     config:
       test_param: "test param specific value"
+      local: False
   specieslists:
     role: specieslists
     config:
       test_param: "test param specific value"
+      local: False
   apiservice:
     role: apiservice
     config:
       test_param: "test param specific value"
+      local: False
   sds:
     role: sds
     config:
       test_param: "test param specific value"
+      local: False
   dashboard:
     role: dashboard
     config:
       test_param: "test param specific value"
+      local: False
   imageservice:
     role: imageservice
     config:
       test_param: "test param specific value"
+      local: False
   solrcloud:
     role: solrcloud
     config:
       test_param: "test param specific value"
+      local: True
   cassandra:
     role: cassandra
     config:
       test_param: "test param specific value"
+      local: False
   biocache:
     role: biocache
     config:
       test_param: "test param specific value"
+      local: False
   mirroreum:
     role: mirroreum
     config:
       test_param: "test param specific value"
+      local: False
   authentication:
     role: authentication
     config:
       test_param: "test param specific value"
+      local: False
 
 # General deployment options:
   
-# Will the services run in a swarm or jus under the Docker deamon?
+# Will the services run in a swarm or just under the Docker deamon?
 swarm_deployment: yes
 
 # Will we run each service by itself?
 # (i.e. without interdependencies, http proxy, CAS a.s.o.)
-# TOOO: Think this option through...
+# TODO: Think this option through...
 standalone_deployment: no
 
 

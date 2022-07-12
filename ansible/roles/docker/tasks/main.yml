@@ -107,6 +107,7 @@
     - list_docker_apps
     - start_docker_app
     - stop_docker_app
+    - label_docker_hosts
     
 - name: Copy docker maintenance scripts
   copy:

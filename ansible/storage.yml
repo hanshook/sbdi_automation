@@ -11,6 +11,9 @@
 # Local docker storage is backed by an ordinary logical volume (lvm).
 # Thus also local docker storage may be backed up using lvm snapshots.
 
+# When changing the size of a volume:
+# sudo parted /dev/vdb resizepart 1 100%; sudo pvresize /dev/vdb1; sudo vgdisplay
+
 ---
 - name: "Take an inventory of volumes in our cloud"
   hosts: localhost
