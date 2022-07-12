@@ -11,15 +11,17 @@ configs:
 services:
   loggerservice:
     image: bioatlas/ala-loggerservice:v1.0
-    depends_on:
-      - mysqldblogger
     environment:
       JAVA_OPTS: -Xmx1g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     env_file: "${DOCKER_CTX:-/docker}/etc/loggerservice/env/.envlogger"
     configs:
       - source: config_logger
         target: /tmp/logger-config.properties
-    command: /bin/ash -c "envsubst < /tmp/logger-config.properties > /data/logger/config/logger-config.properties && catalina.sh run"
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/loggerservice/wait-for-it.sh"
+        target: /wait-for-it.sh
+    command: /bin/ash -c "envsubst < /tmp/logger-config.properties > /data/logger/config/logger-config.properties && /bin/bash /wait-for-it.sh mysqldblogger:3306 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
