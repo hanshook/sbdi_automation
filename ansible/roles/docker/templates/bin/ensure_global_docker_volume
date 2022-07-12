@@ -53,15 +53,16 @@ then
     log_fatal 92 "No application found in  ${DOCKER_CTX}/etc/${application_name}"
 fi
 
+export VOLUMES_CTX=${DOCKER_CTX}/var/volumes/${application_name}
 
 if [ -e ${VOLUMES_CTX}/${volume_name} ]
 then
-    log_info  "Volume: ${volume} already exists in: ${VOLUMES_CTX}"
+    log_info  "Volume: ${volume_name} already exists in: ${VOLUMES_CTX}"
 else
     if mkdir -p ${VOLUMES_CTX}/${volume_name}
     then
-	log_info "Created empty global volume: ${volume} in: ${VOLUMES_CTX}"
+	log_info "Created empty global volume: ${volume_name} in: ${VOLUMES_CTX}"
     else
-	log_fatal 96 "Failed to created empty global volume: ${volume} in: ${LOCAL_VOLUMES_CTX}"
+	log_fatal 96 "Failed to created empty global volume: ${volume_name} in: ${VOLUMES_CTX}"
     fi
 fi

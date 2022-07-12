@@ -62,12 +62,12 @@ export LOCAL_VOLUMES_CTX=${DOCKER_LOCAL_CTX}/var/volumes/${application_name}
 
 if [ -e ${LOCAL_VOLUMES_CTX}/${volume_name} ]
 then
-    log_info  "Volume: ${volume} already exists in: ${LOCAL_VOLUMES_CTX} on: ${HOSTNAME}"
+    log_info  "Volume: ${volume_name} already exists in: ${LOCAL_VOLUMES_CTX} on: ${HOSTNAME}"
 else
     if mkdir -p ${LOCAL_VOLUMES_CTX}/${volume_name}
     then
-	log_info "Created empty local volume: ${volume} in: ${LOCAL_VOLUMES_CTX} on: ${HOSTNAME}"
+	log_info "Created empty local volume: ${volume_name} in: ${LOCAL_VOLUMES_CTX} on: ${HOSTNAME}"
     else
-	log_fatal 96 "Failed to created empty volume: ${volume} in: ${LOCAL_VOLUMES_CTX} on: ${HOSTNAME}"
+	log_fatal 96 "Failed to created empty volume: ${volume_name} in: ${LOCAL_VOLUMES_CTX} on: ${HOSTNAME}"
     fi
 fi
