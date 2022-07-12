@@ -131,3 +131,11 @@
     mode: 0644
   tags:
     - proxy_conf
+
+- name: Install "wait-for-it.sh"
+  template:
+    src: etc/wait-for-it.sh
+    dest: "{{ docker_ctx | default('/docker') }}/etc/spatial/wait-for-it.sh"
+    mode: 0755
+  tags:
+    - wait_for_it

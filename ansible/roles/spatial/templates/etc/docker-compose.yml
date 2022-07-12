@@ -50,6 +50,9 @@ services:
       JAVA_OPTS: -Xmx16g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     env_file: "${DOCKER_CTX:-/docker}/etc/spatial/env/.envspatial"
     volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/spatial/wait-for-it.sh"
+        target: /wait-for-it.sh
       - data_spatialhub:/data/ala/runtime/files
     configs:
       - source: config_spatial-hub
@@ -58,7 +61,7 @@ services:
         target: /data/spatial-hub/config/menu-config.json
       - source: config_spatial-hub-view-config
         target: /data/spatial-hub/config/view-config.json
-    command: /bin/bash -c "envsubst < /tmp/spatial-hub-config.yml > /data/spatial-hub/config/spatial-hub-config.yml && catalina.sh run"
+    command: /bin/bash -c "envsubst < /tmp/spatial-hub-config.yml > /data/spatial-hub/config/spatial-hub-config.yml && /wait-for-it.sh spatialservice:8080 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
@@ -68,11 +71,14 @@ services:
       JAVA_OPTS: -Xmx31g -Xms128m -Xss1024k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     env_file: "${DOCKER_CTX:-/docker}/etc/spatial/env/.envspatial"
     volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/spatial/wait-for-it.sh"
+        target: /wait-for-it.sh
       - data_spatialservice:/data/spatial-data
     configs:
       - source: config_spatial-service
         target: /tmp/spatial-service-config.yml
-    command: /bin/bash -c "envsubst < /tmp/spatial-service-config.yml > /data/spatial-service/config/spatial-service-config.yml && catalina.sh run"
+    command: /bin/bash -c "envsubst < /tmp/spatial-service-config.yml > /data/spatial-service/config/spatial-service-config.yml && /wait-for-it.sh postgis:5432 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
