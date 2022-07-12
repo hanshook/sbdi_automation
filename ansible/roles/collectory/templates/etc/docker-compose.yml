@@ -24,12 +24,17 @@ services:
     environment:
       JAVA_OPTS: -Xmx2g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     volumes:
-      - data_collectory:/data/ala-collectory
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/collectory/wait-for-it.sh"
+        target: /wait-for-it.sh
+      - type: volume
+        source: data_collectory
+        target: /data/ala-collectory
     env_file: "${DOCKER_CTX:-/docker}/etc/collectory/env/.envcollectory"
     configs:
       - source: config_collectory
         target: /tmp/ala-collectory-config.properties
-    command: /bin/ash -c "envsubst < /tmp/ala-collectory-config.properties > /data/ala-collectory/config/ala-collectory-config.properties && catalina.sh run"
+    command: /bin/ash -c "envsubst < /tmp/ala-collectory-config.properties > /data/ala-collectory/config/ala-collectory-config.properties && /bin/bash /wait-for-it.sh mysqldb:3306 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
