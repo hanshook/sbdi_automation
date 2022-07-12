@@ -64,125 +64,113 @@ then
     log_fatal 95 "${docker_compose_file}  does not exist ..."
 fi
 
-# Read docker compose file and create empty global (gluster) volumes if needed
-readarray volumes < <(yq ".volumes|keys|.[]"  ${docker_compose_file})
-for volume_key in ${volumes[@]}
-do
-    log_debug "Found volume: ${volume_key}"
-    volume_device_ue=$(yq ".volumes.${volume_key}.driver_opts.device" ${docker_compose_file})
-    eval "volume_device=$volume_device_ue"
-    log_info "volume_device: $volume_device ($volume_device_ue)"
-    if [ "$volume_device" != "null" ]
-    then
-	if [[ "$volume_device" =~ ${VOLUMES_CTX}/(.*) ]]
+
+if [ "$(yq '.volumes'  ${docker_compose_file})" == "null" ]
+then
+    log_info "No volumes found for this application!"
+else
+    # Read docker compose file and create empty global (gluster) volumes if needed
+    
+    readarray volumes < <(yq ".volumes|keys|.[]"  ${docker_compose_file})
+    for volume_key in ${volumes[@]}
+    do
+	log_debug "Found volume: ${volume_key}"
+	volume_device_ue=$(yq ".volumes.${volume_key}.driver_opts.device" ${docker_compose_file})
+	eval "volume_device=$volume_device_ue"
+	log_info "volume_device: $volume_device ($volume_device_ue)"
+	if [ "$volume_device" != "null" ]
 	then
-	    log_debug "Found a global volume: ${volume_key}"
-	    volume_name=${BASH_REMATCH[1]}
-	    if [ -e ${VOLUMES_CTX}/${volume_name} ]
+	    if [[ "$volume_device" =~ ${VOLUMES_CTX}/(.*) ]]
 	    then
-		log_info "Volume ${volume_name} exists in ${VOLUMES_CTX}"
-	    else
-		if sudo /opt/sbdi/bin/ensure_global_docker_volume -application ${application_name} -volume ${volume_name}
+		log_debug "Found a global volume: ${volume_key}"
+		volume_name=${BASH_REMATCH[1]}
+		if [ -e ${VOLUMES_CTX}/${volume_name} ]
 		then
-		    log_info "Created empty global volume  ${volume_name}"
+		    log_info "Volume ${volume_name} exists in ${VOLUMES_CTX}"
 		else
-		    log_fatal 96 "Failed to created empty global volume  ${VOLUMES_CTX}/${volume_name}"
+		    if sudo /opt/sbdi/bin/ensure_global_docker_volume -application ${application_name} -volume ${volume_name}
+		    then
+			log_info "Created empty global volume  ${volume_name}"
+		    else
+			log_fatal 96 "Failed to created empty global volume  ${VOLUMES_CTX}/${volume_name}"
+		    fi
 		fi
+	    else
+		log_debug "Found a non global volume ${volume_key}"
 	    fi
 	else
-	    log_debug "Found a non global volume ${volume_key}"
-	fi
-    else
-	log_fatal 97 "Found a volume declaration for volume: ${volume_name} without a device"
-    fi	    
-done
+	    log_fatal 97 "Found a volume declaration for volume: ${volume_name} without a device"
+	fi	    
+    done
 
-# if [[ -z ${DOCKER_VOLUMES+x} ]]
-# then
-#     log_warn "DOCKER_VOLUMES not defined in ${DOCKER_CTX}/etc/${application_name}/application.cfg"
-# else
-#     for volume_name in ${DOCKER_VOLUMES}
-#     do
-# 	if [ -e ${VOLUMES_CTX}/${volume_name} ]
-# 	then
-# 	    log_info "Volume ${volume_name} exists in ${VOLUMES_CTX}"
-# 	else
-# 	    if sudo /opt/sbdi/bin/ensure_global_docker_volume -application ${application_name} -volume ${volume_name}
-# 	    then
-# 		log_info "Created empty volume  ${volume_name}"
-# 	    else
-# 		log_fatal 96 "Failed to created empty volume  ${VOLUMES_CTX}/${volume_name}"
-# 	    fi
-# 	fi
-#     done
-# fi
 
-# Read docker compose file and create empty local volumes if needed
+    # Read docker compose file and create empty local volumes if needed
 
-readarray services < <(yq '.services|keys| .[]'  ${docker_compose_file})
-for service in ${services[@]}
-do
-    placement_constraint=$(yq ".services.${service}.deploy.placement.constraints" ${docker_compose_file})
-    if [ "$placement_constraint" != "null" ]
-    then
-	log_debug "$service has placement constraint: $placement_constraint"
-	host="null"
-	if [[ "$placement_constraint" =~ ^.*node\.hostname[[:space:]]*==[[:space:]]*([a-zA-Z0-9_-]+).*$ ]]
+    readarray services < <(yq '.services|keys| .[]'  ${docker_compose_file})
+    for service in ${services[@]}
+    do
+	placement_constraint=$(yq ".services.${service}.deploy.placement.constraints" ${docker_compose_file})
+	if [ "$placement_constraint" != "null" ]
 	then
-	    host=${BASH_REMATCH[1]}
-	    log_debug "$service is allocated (by hostname) to: $host"
-	elif [[ "$placement_constraint" =~ ^.*node\.label\.deployment_host.*==[[:space:]]*([a-zA-Z0-9_-]+).*$ ]]
-	then
-	    host="${deployment_prefix}-${BASH_REMATCH[1]}"
-	    log_debug "$service is allocated (by label) to: $host"
-	else
-	    log_warn "Unable to interpret placement constraint for service $service: $placement_constraint"
-	fi
-	log_info "$service is allocated to: $host"
-	if [ "$host" != "null" ]
-	then
-	    readarray volumes < <(yq ".services.${service}.volumes|.[]"  ${docker_compose_file})
-	    for volume in ${volumes[@]}
-	    do
-		log_debug "Found volume declaration for service: $service : ${volume}"
-		volume_key=${volume%%:*}
-		log_debug "$service has volume: ${volume_key}"
-		volume_device_ue=$(yq ".volumes.${volume_key}.driver_opts.device" ${docker_compose_file})
-		eval "volume_device=$volume_device_ue"
-		log_info "volume_device: $volume_device ($volume_device_ue)"
-		if [ "$volume_device" != "null" ]
-		then
-		    if [[ "$volume_device" =~ ${LOCAL_VOLUMES_CTX}/(.*) ]]
+	    log_debug "$service has placement constraint: $placement_constraint"
+	    host="null"
+	    if [[ "$placement_constraint" =~ ^.*node\.hostname[[:space:]]*==[[:space:]]*([a-zA-Z0-9_-]+).*$ ]]
+	    then
+		host=${BASH_REMATCH[1]}
+		log_debug "$service is allocated (by hostname) to: $host"
+	    elif [[ "$placement_constraint" =~ ^.*node\.label\.deployment_host.*==[[:space:]]*([a-zA-Z0-9_-]+).*$ ]]
+	    then
+		host="${deployment_prefix}-${BASH_REMATCH[1]}"
+		log_debug "$service is allocated (by label) to: $host"
+	    else
+		log_warn "Unable to interpret placement constraint for service $service: $placement_constraint"
+	    fi
+	    log_info "$service is allocated to: $host"
+	    if [ "$host" != "null" ]
+	    then
+		readarray volumes < <(yq ".services.${service}.volumes|.[]"  ${docker_compose_file})
+		for volume in ${volumes[@]}
+		do
+		    log_debug "Found volume declaration for service: $service : ${volume}"
+		    volume_key=${volume%%:*}
+		    log_debug "$service has volume: ${volume_key}"
+		    volume_device_ue=$(yq ".volumes.${volume_key}.driver_opts.device" ${docker_compose_file})
+		    eval "volume_device=$volume_device_ue"
+		    log_info "volume_device: $volume_device ($volume_device_ue)"
+		    if [ "$volume_device" != "null" ]
 		    then
-			volume_name=${BASH_REMATCH[1]}
-			ssh ${USER}@${host} "[ -e ${LOCAL_VOLUMES_CTX}/${volume_name} ]"
-			volume_test_result=$?
-			if [ $volume_test_result -eq 0 ]
+			if [[ "$volume_device" =~ ${LOCAL_VOLUMES_CTX}/(.*) ]]
 			then
-			    log_info "Volume: $volume_name exists in: ${LOCAL_VOLUMES_CTX} on host: ${host}"
-			elif [ $volume_test_result -eq 1 ]
-			then
-			    log_info "Trying to create local volume: $volume_name for application: $application_name (service: $service) on host: ${host}"
-		       
-			    if ssh -t ${USER}@${host} "sudo /opt/sbdi/bin/ensure_local_docker_volume -application ${application_name} -volume ${volume_name}"
+			    volume_name=${BASH_REMATCH[1]}
+			    ssh ${USER}@${host} "[ -e ${LOCAL_VOLUMES_CTX}/${volume_name} ]"
+			    volume_test_result=$?
+			    if [ $volume_test_result -eq 0 ]
 			    then
-				log_info "Created local volume: $volume_name for application: $application_name (service: $service) on host: ${host}"
+				log_info "Volume: $volume_name exists in: ${LOCAL_VOLUMES_CTX} on host: ${host}"
+			    elif [ $volume_test_result -eq 1 ]
+			    then
+				log_info "Trying to create local volume: $volume_name for application: $application_name (service: $service) on host: ${host}"
+				
+				if ssh -t ${USER}@${host} "sudo /opt/sbdi/bin/ensure_local_docker_volume -application ${application_name} -volume ${volume_name}"
+				then
+				    log_info "Created local volume: $volume_name for application: $application_name (service: $service) on host: ${host}"
+				else
+				    log_fatal 98 "Failed to create local volume: $volume_name for application: $application_name (service: $service) on host: ${host}"
+				fi
 			    else
-				log_fatal 98 "Failed to create local volume: $volume_name for application: $application_name (service: $service) on host: ${host}"
+				log_fatal 99 "Unable to ssh to host: ${host} (Remember to bring your key with -A)"
 			    fi
 			else
-			    log_fatal 99 "Unable to ssh to host: ${host} (Remember to bring your key with -A)"
+			    log_debug "$service has a non local volume device ${volume_device} on host: ${host}"
 			fi
 		    else
-			log_debug "$service has a non local volume device ${volume_device} on host: ${host}"
+			log_warn "No volume device declared for volume: ${volume_key} of service: $service" 
 		    fi
-		else
-		    log_warn "No volume device declared for volume: ${volume_key} of service: $service" 
-		fi
-	    done
+		done
+	    fi
 	fi
-    fi
-done
+    done
+fi
 
 
 cd ${DOCKER_CTX}/etc/${application_name}
