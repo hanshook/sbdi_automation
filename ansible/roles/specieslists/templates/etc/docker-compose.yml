@@ -21,7 +21,10 @@ services:
       - type: volume
         source: data_nameindex
         target: /data/lucene/namematching
-    command: /bin/ash -c "envsubst < /tmp/specieslist-webapp-config.properties > /data/specieslist-webapp/config/specieslist-webapp-config.properties && catalina.sh run"
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/loggerservice/wait-for-it.sh"
+        target: /wait-for-it.sh
+    command: /bin/ash -c "envsubst < /tmp/specieslist-webapp-config.properties > /data/specieslist-webapp/config/specieslist-webapp-config.properties && /bin/bash /wait-for-it.sh mysqldbspecieslist:3306 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
