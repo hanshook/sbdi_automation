@@ -19,9 +19,15 @@ services:
       - source: config_bieindex
         target: /data/bie-index/config/bie-index-config.properties
     volumes:
-      - data_bieindex:/data
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/species/wait-for-it.sh"
+        target: /wait-for-it.sh
+      - type: volume
+        source: data_bieindex
+        target: /data
     networks:
       - {{ frontend_network }}
+    command: /bin/sh -c "/bin/bash /wait-for-it.sh solr:8983 --timeout=60 --strict && catalina.sh run"
 
   biehub:
     image: bioatlas/ala-biehub:v1.0
@@ -32,6 +38,11 @@ services:
         target: /data/ala-bie/config/ala-bie-config.properties
     networks:
       - {{ frontend_network }}
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/species/wait-for-it.sh"
+        target: /wait-for-it.sh
+    command: /bin/sh -c "/bin/bash /wait-for-it.sh bieindex:8080 --timeout=60 --strict && catalina.sh run"
 
   solr:
     image: bioatlas/ala-solr:v0.6
@@ -50,11 +61,10 @@ volumes:
       type: none
       o: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/species/data_bieindex"
-      
+
   data_solr:
     driver: local
     driver_opts:
       type: none
       o: bind
       device: "${DOCKER_CTX:-/docker}/var/volumes/species/data_solr"
-
