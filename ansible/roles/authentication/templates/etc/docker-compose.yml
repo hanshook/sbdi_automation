@@ -42,6 +42,11 @@ services:
     configs:
       - source: config_apikey
         target: /tmp/apikey-config.yml
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/authentication/wait-for-it.sh"
+        target: /wait-for-it.sh
+    command: /bin/ash -c "envsubst < /tmp/apikey-config.yml > /data/apikey/config/apikey-config.yml && /bin/bash /wait-for-it.sh mysqldbapikey:3306 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
@@ -68,6 +73,11 @@ services:
     configs:
       - source: config_userdetails
         target: /tmp/userdetails-config.yml
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/authentication/wait-for-it.sh"
+        target: /wait-for-it.sh
+    command: /bin/ash -c "envsubst < /tmp/userdetails-config.yml > /data/userdetails/config/userdetails-config.yml && /bin/bash /wait-for-it.sh mysqldbcas:3306 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
@@ -97,6 +107,11 @@ services:
         target: /tmp/application.yml
       - source: config_pwe
         target: /tmp/pwe.properties
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/authentication/wait-for-it.sh"
+        target: /wait-for-it.sh
+#    command: /bin/sh -c "envsubst < /tmp/pwe.properties > /data/cas/config/pwe.properties && envsubst < /tmp/application.yml > /data/cas/config/application.yml && /wait-for-it.sh mysqldbcas:3306 --timeout=60 --strict && /wait-for-it.sh mongodbcas:27017 --timeout=60 --strict && java -Djava.util.logging.config.file=/data/cas/config/log4j2.xml -Dcas.standalone.configurationDirectory=/data/cas/config -Dala.password.properties=/data/cas/config/pwe.properties -jar /app/cas-exec.war"
     networks:
       - {{ frontend_network }}
 
@@ -108,6 +123,11 @@ services:
     configs:
       - source: config_cas-management
         target: /tmp/application.properties
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/authentication/wait-for-it.sh"
+        target: /wait-for-it.sh
+#    command: /bin/sh -c "envsubst < /tmp/application.properties > /data/cas-management/config/application.properties && /wait-for-it.sh mysqldbcas:3306 --timeout=60 --strict && /wait-for-it.sh mongodbcas:27017 --timeout=60 --strict && java -Dcas.standalone.configurationDirectory=/data/cas-management/config -jar /app/cas-management-exec.war"
     networks:
       - {{ frontend_network }}
 
