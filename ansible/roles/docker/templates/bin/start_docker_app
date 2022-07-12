@@ -157,10 +157,10 @@ do
 			volume_name=${BASH_REMATCH[1]}
 			ssh ${USER}@${host} "[ -e ${LOCAL_VOLUMES_CTX}/${volume_name} ]"
 			volume_test_result=$?
-			if [ $? -eq 0 ]
+			if [ $volume_test_result -eq 0 ]
 			then
 			    log_info "Volume: $volume_name exists in: ${LOCAL_VOLUMES_CTX} on host: ${host}"
-			elif [ $? -eq 1]
+			elif [ $volume_test_result -eq 1]
 			then
 			    log_info "Trying to create local volume: $volume_name for application: $application_name (service: $service) on host: ${host}"
 		       
