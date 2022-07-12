@@ -28,11 +28,16 @@ services:
       JAVA_OPTS: -Xmx4g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     env_file: "${DOCKER_CTX:-/docker}/etc/imageservice/env/.envimage"
     volumes:
-      - data_images:/data/image-service/store
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/loggerservice/wait-for-it.sh"
+        target: /wait-for-it.sh
+      - type: volume
+        source: data_images
+        target: /data/image-service/store
     configs:
       - source: config_imageservice
         target: /tmp/image-service-config.yml
-    command: /bin/ash -c "envsubst < /tmp/image-service-config.yml > /data/image-service/config/image-service-config.yml && catalina.sh run"
+    command: /bin/ash -c "envsubst < /tmp/image-service-config.yml > /data/image-service/config/image-service-config.yml && /bin/bash /wait-for-it.sh psqldbimage:5432 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
