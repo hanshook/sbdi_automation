@@ -160,7 +160,7 @@ do
 			if [ $volume_test_result -eq 0 ]
 			then
 			    log_info "Volume: $volume_name exists in: ${LOCAL_VOLUMES_CTX} on host: ${host}"
-			elif [ $volume_test_result -eq 1]
+			elif [ $volume_test_result -eq 1 ]
 			then
 			    log_info "Trying to create local volume: $volume_name for application: $application_name (service: $service) on host: ${host}"
 		       
