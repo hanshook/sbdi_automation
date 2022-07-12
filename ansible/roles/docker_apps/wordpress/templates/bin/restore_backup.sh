@@ -45,6 +45,7 @@ do
 	-h)
 	    echo $USAGE
 	    shift
+	    exit 0
 	    ;;
 	*) break	    
 	   ;;

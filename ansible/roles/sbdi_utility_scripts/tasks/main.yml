@@ -27,3 +27,11 @@
     - mount_utils
     - set_utils
     - string_utils
+
+- name: Install yq
+  copy:
+    src: "usr_bin/yq_linux_amd64"
+    dest: /usr/bin/yq
+    owner: root
+    group: root
+    mode: 0755
