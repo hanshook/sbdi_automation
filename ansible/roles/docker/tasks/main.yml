@@ -110,6 +110,8 @@
     - ensure_docker_host_labels
     - ensure_local_docker_volume
     - ensure_global_docker_volume
+  tags:
+    - docker_maintenance_scripts
     
 - name: Copy docker maintenance scripts
   copy:

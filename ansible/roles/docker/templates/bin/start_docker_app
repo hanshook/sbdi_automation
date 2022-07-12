@@ -11,13 +11,15 @@ if ! id -nG "$USER" | grep -qw "docker"
 then
     log_fatal 88 "User must belong to group 'docker'"
 fi
+
 contains() {
-    [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && exit(0) || exit(1)
+    [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 0 || return 1
 }
 
-export SWARM_MANAGERS="{% for host in groups['swarm_managers'] %}{{deployment_prefix}}-{{ host }} % endfor %}"
 
-if ! contains $SWARM_MANAGERS $HOSTNAME
+export SWARM_MANAGERS="{% for host in groups['swarm_managers'] %}{{deployment_prefix}}-{{ host }} {% endfor %}"
+
+if ! contains "$SWARM_MANAGERS" $HOSTNAME
 then
     log_fatal 89 "Must be run on a swarm manager..."
 fi
@@ -67,7 +69,9 @@ readarray volumes < <(yq ".volumes|keys|.[]"  ${docker_compose_file})
 for volume_key in ${volumes[@]}
 do
     log_debug "Found volume: ${volume_key}"
-    volume_device=$(yq ".volumes.${volume_key}.driver_opts.device" ${docker_compose_file})
+    volume_device_ue=$(yq ".volumes.${volume_key}.driver_opts.device" ${docker_compose_file})
+    eval "volume_device=$volume_device_ue"
+    log_info "volume_device: $volume_device ($volume_device_ue)"
     if [ "$volume_device" != "null" ]
     then
 	if [[ "$volume_device" =~ ${VOLUMES_CTX}/(.*) ]]
@@ -143,7 +147,9 @@ do
 		log_debug "Found volume declaration for service: $service : ${volume}"
 		volume_key=${volume%%:*}
 		log_debug "$service has volume: ${volume_key}"
-		volume_device=$(yq ".volumes.${volume_key}.driver_opts.device" ${docker_compose_file})
+		volume_device_ue=$(yq ".volumes.${volume_key}.driver_opts.device" ${docker_compose_file})
+		eval "volume_device=$volume_device_ue"
+		log_info "volume_device: $volume_device ($volume_device_ue)"
 		if [ "$volume_device" != "null" ]
 		then
 		    if [[ "$volume_device" =~ ${LOCAL_VOLUMES_CTX}/(.*) ]]
