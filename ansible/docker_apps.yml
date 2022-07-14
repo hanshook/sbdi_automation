@@ -78,24 +78,27 @@
     tags:
       - configuration
 
-- name: Setup Docker Swarm Applications local storage
-  hosts: docker_swarm
-  vars:
-    docker_ctx: "{{ docker_root | default('/docker') }}"
-    application_declarations: "{{ docker_applications | dict2items }}"
-  become: true
-  tags:
-    - local_applications
-  tasks:
+# Following was an attempt at setting up local storage at deploy
+# current sollution does that att start application
+#
+# - name: Setup Docker Swarm Applications local storage
+#   hosts: docker_swarm
+#   vars:
+#     docker_ctx: "{{ docker_root | default('/docker') }}"
+#     application_declarations: "{{ docker_applications | dict2items }}"
+#   become: true
+#   tags:
+#     - local_applications
+#   tasks:
 
-  - name: Deploy applications local storage
-    include_role:
-      name: "{{ application_declaration.value['role']}}"
-      tasks_from: local_docker.yml
-    when: application_declaration.value['config'].local and (only_app is not defined or application_declaration.key == only_app)
-    loop: "{{ application_declarations }}"
-    loop_control:
-      loop_var: application_declaration      
+#   - name: Deploy applications local storage
+#     include_role:
+#       name: "{{ application_declaration.value['role']}}"
+#       tasks_from: local_docker.yml
+#     when: application_declaration.value['config'].local and (only_app is not defined or application_declaration.key == only_app)
+#     loop: "{{ application_declarations }}"
+#     loop_control:
+#       loop_var: application_declaration      
       
 - name: Deploy HTTP proxy
   hosts: swarm_managers[0]
