@@ -32,7 +32,7 @@ services:
 
   wordpress-main:
     image: wordpress:latest
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_main"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_main"
     depends_on:
       - mysqldb-wordpress-main
     volumes:
@@ -46,7 +46,7 @@ services:
         
   wordpress-tools:
     image: wordpress:latest
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_tools"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_tools"
     depends_on:
       - mysqldb-wordpress-tools
     volumes:
@@ -60,7 +60,7 @@ services:
         
   wordpress-docs:
     image: wordpress:latest
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_docs"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_docs"
     depends_on:
       - mysqldb-wordpress-docs
     volumes:
