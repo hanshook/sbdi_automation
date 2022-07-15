@@ -19,12 +19,12 @@
         network_name: "{{ deployment_prefix }}_sbdi_network"
         name: "{{ deployment_prefix }}_sbdi_subnet"
         cidr: "{{ private_subnet }}"
-        dns_nameservers: "{{ dns_server_cmd.stdout }}"
+#        dns_nameservers: "{{ dns_server_cmd.stdout }}"
     - name: "Ensure router: {{ deployment_prefix  }}_sbdi_router"
       openstack.cloud.router:
         state: present
         name: "{{ deployment_prefix  }}_sbdi_router"
-        network: external
+        network: "{{ external_network }}"
         interfaces:
           - "{{ deployment_prefix }}_sbdi_subnet"
     - name: "Ensure fixed (internal) IP ports for servers and gateways"
