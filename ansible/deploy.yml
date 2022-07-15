@@ -98,7 +98,7 @@
         nics:
           - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
         key_name: "{{ lookup('env','USER') }}_key"
-        security_groups: hostvars[item]['security_groups']
+        security_groups: "{{ hostvars[item]['security_groups'] }}"
       with_items: "{{ groups['servers'] +  groups['gateways'] }}"
       tags:
         - hosts
