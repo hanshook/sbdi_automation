@@ -76,6 +76,8 @@
         network: "{{ deployment_prefix  }}_sbdi_network"
         fixed_ips:
           - ip_address: "{{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }}"
+        extra_dhcp_opts:
+          - "ip_version=4,opt_name=mtu, opt_value={{ internal_network_mtu }}"    
       with_items: "{{ groups['gateways'] + groups['servers'] }}"
       tags:
         - hosts
