@@ -21,7 +21,12 @@ services:
     environment:
       JAVA_OPTS: -Xmx8g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     volumes:
-      - data_nameindex:/data/lucene/namematching
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/loggerservice/wait-for-it.sh"
+        target: /wait-for-it.sh
+      - type: volume
+        source: data_nameindex
+        target: /data/lucene/namematching
     env_file: "${DOCKER_CTX:-/docker}/etc/biocache/env/.envbiocacheservice"
     configs:
       - source: config_biocache
@@ -30,18 +35,21 @@ services:
         target: /data/logger-client/config/logger-client.properties
     networks:
       - {{ frontend_network }}
-    command: /bin/sh -c "rm /usr/local/tomcat/conf/Catalina/localhost/ROOT.xml && envsubst < /tmp/context.xml > /usr/local/tomcat/conf/Catalina/localhost/ws.xml && catalina.sh run"
+    command: /bin/sh -c "rm /usr/local/tomcat/conf/Catalina/localhost/ROOT.xml && envsubst < /tmp/context.xml > /usr/local/tomcat/conf/Catalina/localhost/ws.xml && /wait-for-it.sh zookeeper1:2181 --timeout=60 --strict && catalina.sh run"
 
   biocachehub:
     image: bioatlas/ala-biocachehub:v3.2.9-BAS
-    depends_on:
-      - biocacheservice
     env_file: "${DOCKER_CTX:-/docker}/etc/biocache/env/.envbiocachehub"
     environment:
       JAVA_OPTS: -Xmx4g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     configs:
       - source: config_ala_hub
         target: /data/ala-hub/config/ala-hub-config.properties
+    volumes:
+      - type: bind
+        source: "${DOCKER_CTX:-/docker}/etc/loggerservice/wait-for-it.sh"
+        target: /wait-for-it.sh
+    command: /bin/sh -c "/wait-for-it.sh biocacheservice:8080 --timeout=60 --strict && catalina.sh run"
     networks:
       - {{ frontend_network }}
 
