@@ -8,23 +8,23 @@ services:
 
   mysqldb-wordpress-main:
     image: mysql:5.7
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_main"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_main"
     volumes:
       - wordpress_main_db:/var/lib/mysql:cached
     networks:
       - {{ frontend_network }}
-      
+
   mysqldb-wordpress-tools:
     image: mysql:5.7
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_tools"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_tools"
     volumes:
       - wordpress_tools_db:/var/lib/mysql:cached
     networks:
       - {{ frontend_network }}
-      
+
   mysqldb-wordpress-docs:
     image: mysql:5.7
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_docs"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_docs"
     volumes:
       - wordpress_docs_db:/var/lib/mysql:cached
     networks:
@@ -32,7 +32,7 @@ services:
 
   wordpress-main:
     image: wordpress:latest
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_main"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_main"
     depends_on:
       - mysqldb-wordpress-main
     volumes:
@@ -43,10 +43,10 @@ services:
       replicas: 1
       placement:
         constraints: [node.role == manager]
-        
+
   wordpress-tools:
     image: wordpress:latest
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_tools"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_tools"
     depends_on:
       - mysqldb-wordpress-tools
     volumes:
@@ -57,10 +57,10 @@ services:
       replicas: 1
       placement:
         constraints: [node.role == manager]
-        
+
   wordpress-docs:
     image: wordpress:latest
-    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress_main/env/.envwordpress_docs"
+    env_file: "${DOCKER_CTX:-/docker}/etc/wordpress/env/.envwordpress_docs"
     depends_on:
       - mysqldb-wordpress-docs
     volumes:
@@ -70,7 +70,7 @@ services:
     deploy:
       replicas: 1
       placement:
-        constraints: [node.role == manager]    
+        constraints: [node.role == manager]
 
 volumes:
   wordpress_main_db:
@@ -78,40 +78,39 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_main_db"
-      
+      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress/wordpress_main_db"
+
   wordpress_tools_db:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_tools_db"
-      
+      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress/wordpress_tools_db"
+
   wordpress_docs_db:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_docs_db"
-      
+      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress/wordpress_docs_db"
+
   wordpress_main_html:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_main_html"
-      
+      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress/wordpress_main_html"
+
   wordpress_tools_html:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_tools_html"
-      
+      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress/wordpress_tools_html"
+
   wordpress_docs_html:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress_main/wordpress_docs_html"    
-
+      device: "${DOCKER_CTX:-/docker}/var/volumes/wordpress/wordpress_docs_html"
