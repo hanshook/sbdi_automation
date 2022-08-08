@@ -1,0 +1,17 @@
+#---
+#- name: Custom application network
+#  hosts: docker_swarm
+#  tasks:
+  - name: Remove existing application stack network
+    docker_network:
+      name: "{{ app_network | default('sbdi_frontend') }}"
+      state: absent
+      force: yes
+
+  - name: Create custom application stack network
+    docker_network:
+      name: "{{ app_network | default('sbdi_frontend') }}"
+      driver: overlay
+      attachable: yes
+      driver_options:
+        com.docker.network.driver.mtu: 1450

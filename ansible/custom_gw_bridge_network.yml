@@ -1,0 +1,22 @@
+#---
+#- name: Custom docker_gwbridge network
+#  hosts: docker_swarm
+#  tasks:
+  - name: Remove default/existing docker_gwbridge network
+#    docker_network:
+#      name: docker_gwbridge
+#      state: absent
+#      force: yes
+    shell: |
+      docker network disconnect --force docker_gwbridge gateway_ingress-sbox
+      docker network rm docker_gwbridge
+
+  - name: Create custom docker_gwbridge network
+    docker_network:
+      name: docker_gwbridge
+      driver: bridge
+      driver_options:
+        com.docker.network.driver.mtu: 1450
+        com.docker.network.bridge.name: docker_gwbridge
+        com.docker.network.bridge.enable_icc: false
+        com.docker.network.bridge.enable_ip_masquerade: true

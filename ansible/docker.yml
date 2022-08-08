@@ -88,6 +88,10 @@
       with_items: "{{ ansible_play_hosts | default(play_hosts) }}"
       when: bootstrap_first_node is changed
 
+    - include_tasks: custom_ingress_network.yml
+    - include_tasks: custom_gw_bridge_network.yml
+    - include_tasks: custom_application_network.yml
+
 # retrieve the swarm tokens and populate a list of ips listening on
 # the swarm port 2377
 - hosts: swarm_manager_operational[0]
@@ -122,6 +126,9 @@
         --token={{ token }}
         {{ groups['swarm_manager_ips'][0] }}:2377
 
+    - include_tasks: custom_gw_bridge_network.yml
+    - include_tasks: custom_application_network.yml
+
 # join the worker hosts not yet initialized to the swarm cluster
 - hosts: swarm_worker_bootstrap
   become: true
@@ -134,3 +141,5 @@
         --advertise-addr={{ swarm_iface | default('eth0') }}:2377
         --token={{ token }}
         {{ groups['swarm_manager_ips'][0] }}:2377
+
+    - include_tasks: custom_gw_bridge_network.yml
