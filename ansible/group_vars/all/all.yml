@@ -20,7 +20,7 @@ data_volume_device: /dev/vdc
 # volumes attached.
 
 # MTU 9000 not poosible (yet) on MicroStac
-internal_network_mtu: 1000 
+internal_network_mtu: 1450 
 
 
 

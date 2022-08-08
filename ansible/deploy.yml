@@ -29,7 +29,11 @@
   hosts: gateways
   tasks:
     - set_fact:
+        security_groups: ['http_access_uat', 'email_access', 'dns_access', 'default']
+      when:  deployment_prefix == 'uat'
+    - set_fact:
         security_groups: ['http_access', 'email_access', 'dns_access', 'default']
+      when:  deployment_prefix != 'uat'
   tags:
     - hosts
         
@@ -76,6 +80,8 @@
         network: "{{ deployment_prefix  }}_sbdi_network"
         fixed_ips:
           - ip_address: "{{ hostvars[item]['common_ip_part'] }}{{ hostvars[item]['nbr'] }}"
+        extra_dhcp_opts:
+          - "ip_version=4,opt_name=mtu, opt_value={{ internal_network_mtu }}"    
       with_items: "{{ groups['gateways'] + groups['servers'] }}"
       tags:
         - hosts
@@ -96,25 +102,25 @@
         nics:
           - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
         key_name: "{{ lookup('env','USER') }}_key"
-        security_groups: hostvars[item]['security_groups']
-      with_items: "{{ groups['servers'] +  groups['gateways'] }}"
-      tags:
-        - hosts
-
-    - name: "Repeat to ensure security groups for hosts are correct (Bugg workarround)"
-      openstack.cloud.server:
-        name: "{{ deployment_prefix }}-{{ item }}"
-        state: present
-        image: "{{server_image}}"
-        flavor: "{{ hostvars[item]['flavor'] }}"
-        auto_floating_ip: no
-        nics:
-          - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
-        key_name: "{{ lookup('env','USER') }}_key"
         security_groups: "{{ hostvars[item]['security_groups'] }}"
       with_items: "{{ groups['servers'] +  groups['gateways'] }}"
       tags:
         - hosts
+
+    # - name: "Repeat to ensure security groups for hosts are correct (Bugg workarround)"
+    #   openstack.cloud.server:
+    #     name: "{{ deployment_prefix }}-{{ item }}"
+    #     state: present
+    #     image: "{{server_image}}"
+    #     flavor: "{{ hostvars[item]['flavor'] }}"
+    #     auto_floating_ip: no
+    #     nics:
+    #       - port-name: "port_of_{{ deployment_prefix }}-{{ item }}"
+    #     key_name: "{{ lookup('env','USER') }}_key"
+    #     security_groups: "{{ hostvars[item]['security_groups'] }}"
+    #   with_items: "{{ groups['servers'] +  groups['gateways'] }}"
+    #   tags:
+    #     - hosts
         
     #
     # Attach storage to hosts

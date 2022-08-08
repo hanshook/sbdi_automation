@@ -1,0 +1,68 @@
+#! /bin/bash
+cd $(dirname $0)
+. /opt/sbdi/lib/log_utils
+log_logging_application="MGM"
+
+export DOCKER_CTX={{ docker_ctx | default('/docker') }}
+export DOCKER_LOCAL_CTX="${DOCKER_CTX}_local"
+
+if [ $EUID -ne 0 ]
+then
+    log_fatal 88 "Must be run as root"
+fi
+
+USAGE="USAGE: $0 -application <application_name> -volume <volume_name>"
+
+application_name=''
+volume_name=''
+
+while true 
+do
+    case $1 in
+	-application)
+	    application_name=$2
+	    shift
+	    shift
+	    ;;
+	-volume)
+	    volume_name=$2
+	    shift
+	    shift
+	    ;;
+	-h)
+	    echo $USAGE
+	    shift
+	    exit 0
+	    ;;
+	*) break	    
+	   ;;
+    esac
+done
+
+if [ -z "$application_name" ]
+then
+    log_fatal 91 "Application not provided. Usage: $USAGE"
+fi
+if [ -z "$volume_name" ]
+then
+    log_fatal 91 "Volume not provided. Usage: $USAGE"
+fi
+
+if [ ! -d ${DOCKER_CTX}/etc/${application_name} ]
+then
+    log_fatal 92 "No application found in  ${DOCKER_CTX}/etc/${application_name}"
+fi
+
+export VOLUMES_CTX=${DOCKER_CTX}/var/volumes/${application_name}
+
+if [ -e ${VOLUMES_CTX}/${volume_name} ]
+then
+    log_info  "Volume: ${volume_name} already exists in: ${VOLUMES_CTX}"
+else
+    if mkdir -p ${VOLUMES_CTX}/${volume_name}
+    then
+	log_info "Created empty global volume: ${volume_name} in: ${VOLUMES_CTX}"
+    else
+	log_fatal 96 "Failed to created empty global volume: ${volume_name} in: ${VOLUMES_CTX}"
+    fi
+fi

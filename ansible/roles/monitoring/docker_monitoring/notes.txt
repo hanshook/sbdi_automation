@@ -15,3 +15,8 @@ for f in $(docker service ps  -q `docker service ls --format '{{.Name}}'` -f des
 
 
 
+https://spr.com/how-to-customize-the-nagios-docker-plugin-to-help-monitor-your-infrastructure/
+
+https://hub.docker.com/r/harisekhon/nagios-plugins
+
+https://github.com/timdaman/check_docker/tree/master/check_docker

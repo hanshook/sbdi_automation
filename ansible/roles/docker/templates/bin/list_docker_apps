@@ -1,7 +1,24 @@
 #! /bin/bash
 
-bin_dir=$(dirname $0)
-lib_dir=/opt/sbdi/lib  
+. /opt/sbdi/lib/log_utils
+log_logging_application="MGM"
+
+[ $EUID -eq 0 ] && log_fatal 88 "Do *not* run as root"
+if ! id -nG "$USER" | grep -qw "docker"
+then
+    log_fatal 88 "User must belong to group 'docker'"
+fi
+
+contains() {
+    [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 0 || return 1
+}
+
+export SWARM_MANAGERS="{% for host in groups['swarm_managers'] %}{{deployment_prefix}}-{{ host }} {% endfor %}"
+
+if ! contains "$SWARM_MANAGERS" $HOSTNAME
+then
+    log_fatal 89 "Must be run on a swarm manager..."
+fi
 
 export DOCKER_CTX={{ docker_ctx | default('/docker') }}
 

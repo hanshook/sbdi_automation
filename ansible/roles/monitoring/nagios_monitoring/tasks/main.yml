@@ -1,4 +1,16 @@
-- name: copy server monitoring configuration
+- name: Look for old server monitoring configs
+  find:
+    paths: /usr/local/nagios/etc/servers
+    patterns: "*.cfg"
+  register: old_server_monitoring_configs
+
+- name: Remove old server monitoring configs
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ old_server_monitoring_configs.files }}"
+
+- name: Generate new server monitoring configs
   vars:
     common_ip_part: "{{ private_subnet | regex_replace('0\\/.+$', '') }}"
   template:
@@ -12,7 +24,7 @@
     - restart nagios
     - reload apache
 
-- name: setup server monitoring groups
+- name: Setup server monitoring groups
   template:
     src: "{{ item }}"
     dest: "/usr/local/nagios/etc/servers/{{ item }}"
@@ -26,7 +38,7 @@
     - reload apache
 
 
-- name: copy localhost monitoring configuration
+- name: Setup localhost monitoring config
   template:
     src: "{{ item }}"
     dest: "/usr/local/nagios/etc/objects/{{ item }}"

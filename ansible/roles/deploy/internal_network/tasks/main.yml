@@ -6,6 +6,7 @@
   openstack.cloud.network:
     state: present
     name: "{{ deployment_prefix  }}_sbdi_network"
+    mtu_size: "{{ internal_network_mtu }}"
 - name: "Ensure subnet {{ deployment_prefix }}_sbdi_subnet"
   openstack.cloud.subnet: 
     state: present

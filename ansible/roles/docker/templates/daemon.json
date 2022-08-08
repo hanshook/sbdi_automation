@@ -1,4 +1,5 @@
 {
     "dns": ["10.201.0.11", "10.201.0.12" ],
-    "data-root":"/docker_var_lib"
+    "data-root":"/docker_var_lib",
+    "mtu": 1450
 }

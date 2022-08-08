@@ -34,12 +34,19 @@
     wait_for_connection:
       delay: 10
     when: reboot_required_marker_file.stat.exists
-      
-- name: Install basic sw, utility scripts, auotupdates and nrpe client
+    
+- name: Install utility scripts
   hosts: "{{ selected_hosts | default('servers:gateways') }}"
   become: true
   roles:
     - role: sbdi_utility_scripts
+      tags:
+        - utility_scripts
+
+- name: Install basic sw, auotupdates and nrpe client
+  hosts: "{{ selected_hosts | default('servers:gateways') }}"
+  become: true
+  roles:
     - role: autoupdate
       tags:
         - autoupdate

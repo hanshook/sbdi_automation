@@ -1,0 +1,15 @@
+#! /bin/bash
+cd $(dirname $0)
+. /opt/sbdi/lib/log_utils
+log_logging_application="MGM"
+
+[ $EUID -eq 0 ] && log_fatal 88 "Do *not* run as root"
+if ! id -nG "$USER" | grep -qw "docker"
+then
+    log_fatal 88 "User must belong to group 'docker'"
+fi
+
+{% for host in groups['docker_swarm']  %}
+docker node update --label-add deployment_host={{host}} $(docker node ls -f "name={{deployment_prefix}}-{{ host }}" -q)
+{% endfor %}
+

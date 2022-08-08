@@ -4,6 +4,25 @@ cd $(dirname $0)
 
 log_logging_application="MGM"
 
+[ $EUID -eq 0 ] && log_fatal 88 "Do *not* run as root"
+if ! id -nG "$USER" | grep -qw "docker"
+then
+    log_fatal 88 "User must belong to group 'docker'"
+fi
+
+contains() {
+    [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 0 || return 1
+}
+
+export SWARM_MANAGERS="{% for host in groups['swarm_managers'] %}{{deployment_prefix}}-{{ host }} {% endfor %}"
+
+if ! contains "$SWARM_MANAGERS" $HOSTNAME
+then
+    log_fatal 89 "Must be run on a swarm manager..."
+fi
+
+USAGE="USAGE: $0 <application_name>"
+
 export DOCKER_CTX={{ docker_ctx | default('/docker') }}
 
 #cd ..
@@ -12,14 +31,14 @@ export DOCKER_CTX={{ docker_ctx | default('/docker') }}
 application_name=$1
 if [ -z "${application_name}" ]
 then
-    log_fatal 91 "No application name provided"
+    log_fatal 91 "No application name provided. Usage: $USAGE"
 fi
 
 log_logging_application="MGM/${application_name}"
 
 if [ ! -d ${DOCKER_CTX}/etc/${application_name} ]
 then
-    log_fatal 92 "No application found in  ${DOCKER_CTX}/etc/${application_name}"
+    log_fatal 92 "Unknown application.No application found in  ${DOCKER_CTX}/etc/${application_name}"
 fi
 
 cd ${DOCKER_CTX}/etc/${application_name}
