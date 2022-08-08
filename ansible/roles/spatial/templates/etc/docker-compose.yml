@@ -47,7 +47,7 @@ services:
   spatialhub:
     image: bioatlas/ala-spatialhub:v0.4.0.1-bas
     environment:
-      JAVA_OPTS: -Xmx16g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+      JAVA_OPTS: -Xmx8g -Xms128m -Xss256k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     env_file: "${DOCKER_CTX:-/docker}/etc/spatial/env/.envspatial"
     volumes:
       - type: bind
@@ -68,7 +68,7 @@ services:
   spatialservice:
     image: bioatlas/ala-spatialservice:v0.4
     environment:
-      JAVA_OPTS: -Xmx31g -Xms128m -Xss1024k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
+      JAVA_OPTS: -Xmx8g -Xms128m -Xss1024k -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dlog4j2.formatMsgNoLookups=true
     env_file: "${DOCKER_CTX:-/docker}/etc/spatial/env/.envspatial"
     volumes:
       - type: bind
