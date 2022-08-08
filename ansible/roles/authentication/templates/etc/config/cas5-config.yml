@@ -159,7 +159,7 @@ ala:
     uiVersion: 2
     headerFooterUrl: https://static.{{ domain }}/
     favIconBaseUrl: https://static.{{ domain }}/
-    loginLogo: https://{{ domain }}/wp-content/uploads/2021/02/sbdi-logo-orginal-large.png
+    loginLogo: https://static.{{ domain }}/images/sbdi-logo-orginal-large.png
     bieBaseUrl: https://species.{{ domain }}
     bieSearchPath: /search
     userDetailsUrl: https://auth.{{ domain }}/userdetails/
