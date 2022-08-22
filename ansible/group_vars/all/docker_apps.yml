@@ -23,7 +23,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   spatial:
-    role: spatial
+    role: roles/docker_apps/spatial
     config:
       test_param: "test param specific value"
   regions:
@@ -31,15 +31,15 @@ docker_applications:
     config:
       test_param: "test param specific value"
   collectory:
-    role: collectory
+    role: roles/docker_apps/collectory
     config:
       test_param: "test param specific value"
   nameindex:
-    role: nameindex
+    role: roles/docker_apps/nameindex
     config:
       test_param: "test param specific value"
   biocachebackend:
-    role: biocachebackend
+    role: roles/docker_apps/biocachebackend
     config:
       test_param: "test param specific value"
   loggerservice:
@@ -51,7 +51,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   apiservice:
-    role: apiservice
+    role: roles/docker_apps/apiservice
     config:
       test_param: "test param specific value"
   sds:
@@ -75,7 +75,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   biocache:
-    role: biocache
+    role: roles/docker_apps/biocache
     config:
       test_param: "test param specific value"
   mirroreum:
