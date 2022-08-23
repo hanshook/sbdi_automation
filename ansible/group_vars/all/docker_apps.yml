@@ -19,7 +19,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   species:
-    role: species
+    role: roles/docker_apps/species
     config:
       test_param: "test param specific value"
   spatial:
@@ -27,7 +27,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   regions:
-    role: regions
+    role: roles/docker_apps/regions
     config:
       test_param: "test param specific value"
   collectory:
@@ -43,7 +43,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   loggerservice:
-    role: loggerservice
+    role: roles/docker_apps/loggerservice
     config:
       test_param: "test param specific value"
   specieslists:
@@ -55,7 +55,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   sds:
-    role: sds
+    role: roles/docker_apps/sds
     config:
       test_param: "test param specific value"
   dashboard:
@@ -63,15 +63,15 @@ docker_applications:
     config:
       test_param: "test param specific value"
   imageservice:
-    role: imageservice
+    role: roles/docker_apps/imageservice
     config:
       test_param: "test param specific value"
   solrcloud:
-    role: solrcloud
+    role: roles/docker_apps/solrcloud
     config:
       test_param: "test param specific value"
   cassandra:
-    role: cassandra
+    role: roles/docker_apps/cassandra
     config:
       test_param: "test param specific value"
   biocache:
@@ -83,7 +83,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   authentication:
-    role: authentication
+    role: roles/docker_apps/authentication
     config:
       test_param: "test param specific value"
 
