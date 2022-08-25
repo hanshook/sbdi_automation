@@ -47,7 +47,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   specieslists:
-    role: specieslists
+    role: roles/docker_apps/specieslists
     config:
       test_param: "test param specific value"
   apiservice:
@@ -59,7 +59,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   dashboard:
-    role: dashboard
+    role: roles/docker_apps/dashboard
     config:
       test_param: "test param specific value"
   imageservice:
@@ -79,7 +79,7 @@ docker_applications:
     config:
       test_param: "test param specific value"
   mirroreum:
-    role: mirroreum
+    role: roles/docker_apps/mirroreum
     config:
       test_param: "test param specific value"
   authentication:

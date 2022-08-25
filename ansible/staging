@@ -37,7 +37,7 @@ solr-4
 
 [solr:vars]
 local_docker_storage=200
-flavor=ssc.medium.highmem
+flavor=ssc.large.highmem
 
 # Cassandra Cluster
 # =================
