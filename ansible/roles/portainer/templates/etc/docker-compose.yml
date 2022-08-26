@@ -15,9 +15,9 @@ services:
       AGENT_CLUSTER_ADDR: tasks.agent
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/volumes:/var/lib/docker/volumes
+#      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      - /docker_var_lib//volumes:/var/lib/docker/volumes
 #      - /var/lib/docker_volumes:/var/lib/docker/volumes
-# Above must be corrected with a softlink (???) /var/lib/docker_volumes -> /docker/var/lib/<host_name>
     networks:
       - agent-network
     deploy:
@@ -35,10 +35,13 @@ services:
       - agent-network
       - {{ frontend_network }}
     deploy:
+      replicas: 1
       placement:
-        constraints:
-          - node.role == manager
-          - node.labels.portainer.portainer-data == true
+        constraints: [node.role == manager]      
+#      placement:
+#        constraints:
+#          - node.role == manager
+#          - node.labels.portainer.portainer-data == true
       # labels:
       #   - traefik.enable=true
       #   - traefik.docker.network=traefik-public
