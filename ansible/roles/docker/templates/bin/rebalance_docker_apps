@@ -1,0 +1,18 @@
+#! /bin/bash
+cd $(dirname $0)
+. /opt/sbdi/lib/log_utils
+
+log_logging_application="MGM"
+
+[ $EUID -eq 0 ] && log_fatal 88 "Do *not* run as root"
+if ! id -nG "$USER" | grep -qw "docker"
+then
+    log_fatal 88 "User must belong to group 'docker'"
+fi
+
+log _info "Rebalancing all docker apps"
+EXCLUDE_LIST="(_solr|_cassandra|portainer|broker|traefik|NAME)"
+for service in $(docker service ls | egrep -v $EXCLUDE_LIST | awk '{print $2}'); do
+  log_info "Updating service $service as part of rebalance"
+  docker service update --force $service
+done

@@ -95,8 +95,8 @@ services:
       - {{ frontend_network }}
     deploy:
       placement:
-        constraints: [node.hostname == uat-solr-1]
-
+        constraints: [node.labels.deployment_host == solr-1]
+#        constraints: [node.hostname == uat-solr-1]
   solr2:
     image: bioatlas/ala-solrcloud:v0.1
     restart: always
@@ -111,8 +111,8 @@ services:
       - {{ frontend_network }}
     deploy:
       placement:
-        constraints: [node.hostname == uat-solr-2]
-
+        constraints: [node.labels.deployment_host == solr-2]
+#        constraints: [node.hostname == uat-solr-2]
   solr3:
     image: bioatlas/ala-solrcloud:v0.1
     restart: always
@@ -127,8 +127,8 @@ services:
       - {{ frontend_network }}
     deploy:
       placement:
-        constraints: [node.hostname == uat-solr-3]
-
+        constraints: [node.labels.deployment_host == solr-3]
+#        constraints: [node.hostname == uat-solr-3]
   solr4:
     image: bioatlas/ala-solrcloud:v0.1
     restart: always
@@ -143,7 +143,8 @@ services:
       - {{ frontend_network }}
     deploy:
       placement:
-        constraints: [node.hostname == uat-solr-4]
+        constraints: [node.labels.deployment_host == solr-4]
+#        constraints: [node.hostname == uat-solr-4]
 
 #  create-collection:
 #    image: solr:7.7.2-slim
