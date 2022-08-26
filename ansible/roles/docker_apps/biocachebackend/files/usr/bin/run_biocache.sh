@@ -7,4 +7,4 @@ docker run --rm --network=sbdi_frontend \
 --mount type=bind,source=/docker/etc/biocachebackend/config/blacklistMediaUrls.txt,target=/data/biocache/config/blacklistMediaUrls.txt \
 --mount type=bind,source=/docker/etc/biocachebackend/config/biocache-config.properties,target=/data/biocache/config/biocache-config.properties  \
 -e BIOCACHE_MEMORY_OPTS="-Xmx16g -Xms1g"  \
--it bioatlas/ala-biocachebackend:v2.6.1 bas
+-it bioatlas/ala-biocachebackend:v2.6.1 bash

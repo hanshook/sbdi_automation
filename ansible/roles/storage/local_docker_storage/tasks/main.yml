@@ -104,7 +104,7 @@
     path: /docker_var_lib
   register: docker_var_lib_mount_point    
   
-- name: Create mount point for local docker data "/docker_local"
+- name: Create mount point for local docker data "/docker_var_lib"
   file:
     path: /docker_var_lib
     state: directory

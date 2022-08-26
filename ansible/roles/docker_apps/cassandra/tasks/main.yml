@@ -28,7 +28,7 @@
   tags:
     - write_access
 
-- name: Install "envcassandra".template"
+- name: Install "envcassandra.template"
   copy:
     src: etc/envcassandra.template
     dest: "{{ docker_ctx | default('/docker') }}/etc/cassandra/env/envcassandra.template"

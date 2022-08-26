@@ -41,13 +41,13 @@ This repository contains Ansible playbooks for:
 
 13. Setup IPSEC VPN access: ```ansible-playbook vpn.yml```
 
-14. Setup Docker Applications (work in progress): ```ansible-playbook docker_apps.yml```
+14. Setup Docker Applications: ```ansible-playbook docker_apps.yml```
 
 Example:
 
 Only deploy the species stack/docker app without redeploying static_html and haproxy:
 
-```ansible-playbook docker_apps.yml --skip-tags "static_html, haproxy" --extra-vars "only_app=species" ```
+```bin/deploy_docker_app.sh species" ```
 
 TODO: Setup logging and log analysis
 
