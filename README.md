@@ -1,9 +1,9 @@
 # SBDI 2.0 Deployment Platform
 
 One might regard SBDI to consist primarily of three tiers:
-    1. Computation Platform
-    2. Deployment Platform
-    3. Applications, i.e. Docker Swarm Services
+1. Computation Platform
+2. Deployment Platform
+3. Applications, i.e. Docker Swarm Services
 	
 ## Computation Platform
 
