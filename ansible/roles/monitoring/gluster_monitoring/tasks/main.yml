@@ -1,0 +1,39 @@
+- name: Install bc
+  package:
+    name: bc
+    state: present
+    use: apt
+
+- name: copy sudoers file
+  copy:
+    src: "{{ item }}"
+    dest: /etc/sudoers.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0440
+  with_items:
+    - 52-nagios-gluster
+
+- name: copy nrpe commands
+  copy:
+    src: "{{ item }}"
+    dest: /usr/lib/nagios/plugins/{{ item }}
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - check_glusterfs
+  notify:
+    - restart nrpe
+
+- name: copy nrpe configuration
+  copy:
+    src: "{{ item }}"
+    dest: /etc/nagios/nrpe.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - check_glusterfs.cfg
+  notify:
+    - restart nrpe

@@ -1,0 +1,2 @@
+# Give nagios access to gluster
+nagios ALL=(root) NOPASSWD:/usr/sbin/gluster volume status [[\:graph\:]]* detail,/usr/sbin/gluster volume heal [[\:graph\:]]* info, /usr/sbin/gluster volume heal [[\:graph\:]]* info split-brain
