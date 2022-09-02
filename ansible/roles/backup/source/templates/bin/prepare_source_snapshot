@@ -4,6 +4,7 @@
 # =======================
 
 # Note! This script is generated from a template by Ansible
+# ---
 
 bin_dir=$(dirname $0)
 lib_dir=/opt/sbdi/lib  
