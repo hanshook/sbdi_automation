@@ -84,18 +84,19 @@ backup-target
 
 [backup_sources]
 manager-1 gluster_backup_source=true lvm_backup_source=false backup_snapshot_storage=0
-cassandra-1 
-cassandra-2 
-cassandra-3 
-cassandra-4 
-solr-1
-solr-2
-solr-3
-solr-4
+cassandra-1 gluster_backup_source=false lvm_backup_source=true backup_snapshot_storage=20
+cassandra-2 gluster_backup_source=false lvm_backup_source=true backup_snapshot_storage=20 
+cassandra-3 gluster_backup_source=false lvm_backup_source=true backup_snapshot_storage=20 
+cassandra-4 gluster_backup_source=false lvm_backup_source=true backup_snapshot_storage=20 
+solr-1 gluster_backup_source=false lvm_backup_source=true backup_snapshot_storage=20
+solr-2 gluster_backup_source=false lvm_backup_source=true backup_snapshot_storage=20
+solr-3 gluster_backup_source=false lvm_backup_source=true backup_snapshot_storage=20
+solr-4 gluster_backup_source=false lvm_backup_source=true backup_snapshot_storage=20
 
-[backup_sources:vars]
-lvm_backup_source=true
-backup_snapshot_storage=20
+# Note! lvm_backup_source=true below overrides lvm_backup_source=false on manager-1 :-(
+#[backup_sources:vars]
+#lvm_backup_source=true
+#backup_snapshot_storage=20
 
 #Docker
 #======
