@@ -15,6 +15,9 @@ services:
     environment:
       - CASSANDRA_BROADCAST_ADDRESS=cassandra-{{ node_number }}
       - CASSANDRA_LISTEN_ADDRESS=cassandra-{{ node_number }}
+{% if node_number > 1 -%}
+      - CASSANDRA_SEEDS=cassandra-1
+{%- endif %}
       - CASSANDRA_DC=datacenter1
       - CASSANDRA_RACK=rack1
       - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
