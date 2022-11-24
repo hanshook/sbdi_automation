@@ -1,3 +1,13 @@
+# Note!
+
+This is a fork of the Open Source biodiversitydata-se/automation project that I worked on for a year. 
+The fork is made to simplify result safkeeping and currently kept in the state it was when I left the project. 
+Some of the work is of a very general nature and of value in many other contexts.
+My intentions is to lift out those general parts and when possible make them even more generally usefull.
+
+----
+
+
 # SBDI 2.0 Deployment Platform
 
 One might regard SBDI to consist primarily of three tiers:
